@@ -1,0 +1,15 @@
+{
+  "common": {
+    "appName": "Smart Social Learning Marketplace",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "confirm": "Confirm"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "common": {
+    "appName": "Smart Social Learning Marketplace",
+    "loading": "Đang tải...",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "search": "Tìm kiếm",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "submit": "Gửi",
+    "confirm": "Xác nhận"
+  }
+}
