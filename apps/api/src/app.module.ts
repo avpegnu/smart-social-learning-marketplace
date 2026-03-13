@@ -1,14 +1,55 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
+
+import { AppConfigModule } from './config/config.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { RedisModule } from './redis/redis.module';
+import { MailModule } from './mail/mail.module';
+
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
-    }),
+    // Global config (replaces previous ConfigModule.forRoot)
+    AppConfigModule,
     PrismaModule,
+    RedisModule,
+    MailModule,
+
+    // Rate limiting
+    ThrottlerModule.forRoot([
+      { name: 'short', ttl: 1000, limit: 3 },
+      { name: 'medium', ttl: 10000, limit: 20 },
+      { name: 'long', ttl: 60000, limit: 100 },
+    ]),
+
+    // Cron jobs
+    ScheduleModule.forRoot(),
+
+    // Feature modules (sẽ thêm dần từ Phase 5.4+)
+    // AuthModule,
+    // UsersModule,
+    // CoursesModule,
+    // ...
+  ],
+  providers: [
+    // NOTE: JwtAuthGuard + ThrottlerGuard sẽ được register global trong Phase 5.4
+    // khi JWT Strategy đã sẵn sàng. Nếu register ngay sẽ crash vì thiếu strategy.
+
+    // Global filters
+    { provide: APP_FILTER, useClass: PrismaExceptionFilter },
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+
+    // Global interceptors
+    { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: TimeoutInterceptor },
   ],
 })
 export class AppModule {}
