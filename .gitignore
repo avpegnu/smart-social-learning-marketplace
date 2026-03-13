@@ -13,6 +13,7 @@ out/
 # Documentation (private, not pushed to GitHub)
 /docs
 CLAUDE.md
+.claude
 
 # Environment
 .env
