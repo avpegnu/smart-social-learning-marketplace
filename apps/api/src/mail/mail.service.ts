@@ -1,6 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Resend } from 'resend';
+import * as nodemailer from 'nodemailer';
 
 interface SendEmailOptions {
   to: string;
@@ -10,21 +10,37 @@ interface SendEmailOptions {
 
 @Injectable()
 export class MailService {
-  private resend: Resend;
+  private readonly logger = new Logger(MailService.name);
+  private transporter: nodemailer.Transporter;
   private fromEmail: string;
 
   constructor(@Inject(ConfigService) private readonly configService: ConfigService) {
-    this.resend = new Resend(this.configService.get<string>('resend.apiKey'));
-    this.fromEmail = this.configService.get<string>('resend.fromEmail') || 'noreply@sslm.com';
+    this.transporter = nodemailer.createTransport({
+      host: this.configService.get<string>('mail.smtpHost'),
+      port: this.configService.get<number>('mail.smtpPort'),
+      secure: false,
+      auth: {
+        user: this.configService.get<string>('mail.smtpUser'),
+        pass: this.configService.get<string>('mail.smtpPass'),
+      },
+    });
+    this.fromEmail = this.configService.get<string>('mail.fromEmail') || '';
   }
 
   async sendEmail({ to, subject, html }: SendEmailOptions) {
-    return this.resend.emails.send({
-      from: `SSLM <${this.fromEmail}>`,
-      to,
-      subject,
-      html,
-    });
+    try {
+      const result = await this.transporter.sendMail({
+        from: `SSLM <${this.fromEmail}>`,
+        to,
+        subject,
+        html,
+      });
+      this.logger.log(`Email sent to ${to}: ${result.messageId}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to send email to ${to}`, (error as Error).message);
+      throw error;
+    }
   }
 
   async sendVerificationEmail(to: string, token: string) {

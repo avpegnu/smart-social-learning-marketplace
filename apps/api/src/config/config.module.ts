@@ -5,7 +5,7 @@ import { authConfig } from './auth.config';
 import { databaseConfig } from './database.config';
 import { redisConfig } from './redis.config';
 import { cloudinaryConfig } from './cloudinary.config';
-import { resendConfig } from './resend.config';
+import { mailConfig } from './mail.config';
 import { sepayConfig } from './sepay.config';
 import { groqConfig } from './groq.config';
 
@@ -20,7 +20,7 @@ import { groqConfig } from './groq.config';
         databaseConfig,
         redisConfig,
         cloudinaryConfig,
-        resendConfig,
+        mailConfig,
         sepayConfig,
         groqConfig,
       ],
