@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.turbo/
+
+# Documentation (private, not pushed to GitHub)
+/docs
+CLAUDE.md
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug
+npm-debug.log*
+debug.log*
+
+# Testing
+coverage/
+
+# Prisma
+/prisma/
+apps/api/src/prisma/migrations/**/migration_lock.toml
+
+# Docker volumes
+pgdata/
+redisdata/
+
+# Misc
+*.tsbuildinfo
+next-env.d.ts
