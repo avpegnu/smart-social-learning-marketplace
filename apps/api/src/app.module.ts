@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppConfigModule } from './config/config.module';
@@ -8,6 +8,9 @@ import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { MailModule } from './mail/mail.module';
 
+import { AuthModule } from './modules/auth/auth.module';
+
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -16,7 +19,7 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
 
 @Module({
   imports: [
-    // Global config (replaces previous ConfigModule.forRoot)
+    // Global config
     AppConfigModule,
     PrismaModule,
     RedisModule,
@@ -32,15 +35,13 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
     // Cron jobs
     ScheduleModule.forRoot(),
 
-    // Feature modules (sẽ thêm dần từ Phase 5.4+)
-    // AuthModule,
-    // UsersModule,
-    // CoursesModule,
-    // ...
+    // Feature modules
+    AuthModule,
   ],
   providers: [
-    // NOTE: JwtAuthGuard + ThrottlerGuard sẽ được register global trong Phase 5.4
-    // khi JWT Strategy đã sẵn sàng. Nếu register ngay sẽ crash vì thiếu strategy.
+    // Global guards (order: ThrottlerGuard → JwtAuthGuard)
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
 
     // Global filters
     { provide: APP_FILTER, useClass: PrismaExceptionFilter },
