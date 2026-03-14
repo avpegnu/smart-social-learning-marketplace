@@ -13,6 +13,11 @@ import { UsersModule } from './modules/users/users.module';
 import { InstructorModule } from './modules/instructor/instructor.module';
 import { CoursesModule } from './modules/courses/courses.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { CartModule } from './modules/cart/cart.module';
+import { CouponsModule } from './modules/coupons/coupons.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { EnrollmentsModule } from './modules/enrollments/enrollments.module';
+import { WithdrawalsModule } from './modules/withdrawals/withdrawals.module';
 
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -45,6 +50,11 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
     InstructorModule,
     CoursesModule,
     CategoriesModule,
+    CartModule,
+    CouponsModule,
+    OrdersModule,
+    EnrollmentsModule,
+    WithdrawalsModule,
   ],
   providers: [
     // Global guards (order: ThrottlerGuard → JwtAuthGuard)
