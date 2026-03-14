@@ -366,6 +366,8 @@ model Course {
   description      String?
   thumbnailUrl     String?      @map("thumbnail_url")
   promoVideoUrl    String?      @map("promo_video_url")
+  learningOutcomes Json?        @map("learning_outcomes")
+  prerequisites    Json?        @map("prerequisites")
   level            CourseLevel  @default(ALL_LEVELS)
   language         String       @default("vi")
   price            Float        @default(0)
