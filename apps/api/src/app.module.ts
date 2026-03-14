@@ -9,6 +9,8 @@ import { RedisModule } from './redis/redis.module';
 import { MailModule } from './mail/mail.module';
 
 import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+import { InstructorModule } from './modules/instructor/instructor.module';
 
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -37,6 +39,8 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
 
     // Feature modules
     AuthModule,
+    UsersModule,
+    InstructorModule,
   ],
   providers: [
     // Global guards (order: ThrottlerGuard → JwtAuthGuard)

@@ -9,7 +9,7 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { CurrentUser, Public } from '@/common/decorators';
@@ -38,6 +38,7 @@ const REFRESH_COOKIE_OPTIONS = {
 
 @Controller('auth')
 @ApiTags('Auth')
+@ApiBearerAuth()
 export class AuthController {
   constructor(@Inject(AuthService) private readonly authService: AuthService) {}
 
