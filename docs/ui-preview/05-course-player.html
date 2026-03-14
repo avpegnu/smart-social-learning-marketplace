@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Course Player - SSML</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #fff;
+      color: #1e293b;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    a { text-decoration: none; color: inherit; }
+
+    /* ── Variables ──────────────────────────────────────── */
+    :root {
+      --primary: #1e293b;
+      --accent: #16a34a;
+      --accent-hover: #15803d;
+      --muted: #f1f5f9;
+      --muted-fg: #64748b;
+      --border: #e2e8f0;
+      --sidebar-w: 30%;
+    }
+
+    /* ── Top Bar ───────────────────────────────────────── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 20px;
+      height: 52px;
+      background: var(--primary);
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .topbar-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #cbd5e1;
+      white-space: nowrap;
+      transition: color .15s;
+    }
+    .topbar-back:hover { color: #fff; }
+    .topbar-back svg { width: 16px; height: 16px; }
+    .topbar-divider {
+      width: 1px;
+      height: 24px;
+      background: rgba(255,255,255,.15);
+      flex-shrink: 0;
+    }
+    .topbar-title {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .topbar-progress {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .topbar-progress-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+    .progress-track {
+      width: 140px;
+      height: 6px;
+      background: rgba(255,255,255,.15);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width .3s;
+    }
+    .topbar-settings {
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      padding: 6px;
+      border-radius: 6px;
+      transition: background .15s, color .15s;
+    }
+    .topbar-settings:hover { background: rgba(255,255,255,.1); color: #fff; }
+    .topbar-settings svg { width: 18px; height: 18px; }
+
+    /* ── Main Layout ───────────────────────────────────── */
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .player-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow-y: auto;
+    }
+    .sidebar-col {
+      width: var(--sidebar-w);
+      min-width: 340px;
+      max-width: 420px;
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Video Player ──────────────────────────────────── */
+    .video-wrapper {
+      background: #000;
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      flex-shrink: 0;
+    }
+    .video-play-btn {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    .video-play-btn button {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.15);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s, transform .15s;
+    }
+    .video-play-btn button:hover {
+      background: rgba(255,255,255,.25);
+      transform: scale(1.08);
+    }
+    .video-play-btn svg { width: 32px; height: 32px; color: #fff; }
+
+    /* Controls bar */
+    .video-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,.75));
+      padding: 24px 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 3;
+    }
+    .vc-progress {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .vc-progress-track {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,.25);
+      border-radius: 2px;
+      position: relative;
+      cursor: pointer;
+    }
+    .vc-progress-track:hover { height: 6px; }
+    .vc-progress-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 41.8%;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    .vc-progress-handle {
+      position: absolute;
+      right: -5px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 4px rgba(0,0,0,.4);
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .vc-progress-track:hover .vc-progress-handle { opacity: 1; }
+    .vc-time {
+      font-size: 12px;
+      color: rgba(255,255,255,.8);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .vc-buttons {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .vc-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 6px;
+      color: rgba(255,255,255,.85);
+      transition: background .15s, color .15s;
+    }
+    .vc-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
+    .vc-btn svg { width: 18px; height: 18px; }
+    .vc-btn--play svg { width: 22px; height: 22px; }
+    .vc-volume {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .vc-volume-track {
+      width: 60px;
+      height: 3px;
+      background: rgba(255,255,255,.25);
+      border-radius: 2px;
+      position: relative;
+    }
+    .vc-volume-fill {
+      height: 100%;
+      width: 70%;
+      background: #fff;
+      border-radius: 2px;
+    }
+    .vc-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255,255,255,.85);
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .vc-label:hover { background: rgba(255,255,255,.12); }
+    .vc-spacer { flex: 1; }
+
+    /* ── Lesson Navigation ─────────────────────────────── */
+    .lesson-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+    }
+    .ln-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted-fg);
+      padding: 8px 14px;
+      border-radius: 8px;
+      transition: background .15s, color .15s;
+    }
+    .ln-btn:hover { background: var(--muted); color: var(--primary); }
+    .ln-btn svg { width: 16px; height: 16px; }
+    .ln-complete {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--primary);
+      padding: 8px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      transition: border-color .15s, background .15s;
+      cursor: pointer;
+    }
+    .ln-complete:hover { border-color: var(--accent); background: #f0fdf4; }
+    .ln-checkbox {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .15s, border-color .15s;
+      flex-shrink: 0;
+    }
+    .ln-complete:hover .ln-checkbox {
+      border-color: var(--accent);
+    }
+
+    /* ── Sidebar Tabs ──────────────────────────────────── */
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .stab {
+      flex: 1;
+      padding: 12px 4px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted-fg);
+      text-align: center;
+      position: relative;
+      transition: color .15s;
+    }
+    .stab:hover { color: var(--primary); }
+    .stab.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .stab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 16px;
+      right: 16px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 1px;
+    }
+
+    /* ── Curriculum ─────────────────────────────────────── */
+    .curriculum {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+    .curriculum::-webkit-scrollbar { width: 4px; }
+    .curriculum::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      cursor: pointer;
+      transition: background .12s;
+    }
+    .section-header:hover { background: var(--muted); }
+    .section-chevron {
+      width: 16px;
+      height: 16px;
+      color: var(--muted-fg);
+      flex-shrink: 0;
+      transition: transform .15s;
+    }
+    .section-meta {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--muted-fg);
+    }
+    .lesson-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px 9px 36px;
+      font-size: 13px;
+      color: var(--muted-fg);
+      cursor: pointer;
+      transition: background .12s;
+      border-left: 3px solid transparent;
+    }
+    .lesson-item:hover { background: var(--muted); }
+    .lesson-item.active {
+      background: #f0fdf4;
+      color: var(--primary);
+      font-weight: 500;
+      border-left-color: var(--accent);
+    }
+    .lesson-icon {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 13px;
+    }
+    .lesson-icon--done { color: var(--accent); }
+    .lesson-icon--playing { color: var(--accent); }
+    .lesson-icon--locked { color: #cbd5e1; font-size: 12px; }
+    .lesson-icon--pending { color: var(--border); }
+    .lesson-dur {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--muted-fg);
+      font-variant-numeric: tabular-nums;
+    }
+    .lesson-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent);
+      background: #dcfce7;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 4px;
+    }
+
+    /* ── AI Tutor Chat ─────────────────────────────────── */
+    .ai-chat {
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 280px;
+      flex-shrink: 0;
+    }
+    .ai-chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .ai-chat-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .ai-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .4; }
+    }
+    .ai-counter {
+      font-size: 11px;
+      color: var(--muted-fg);
+      background: var(--muted);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .ai-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ai-messages::-webkit-scrollbar { width: 3px; }
+    .ai-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .ai-bubble {
+      max-width: 88%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .ai-bubble--user {
+      background: var(--primary);
+      color: #fff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .ai-bubble--bot {
+      background: var(--muted);
+      color: var(--primary);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .ai-bubble--bot code {
+      background: #e2e8f0;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-family: 'SF Mono', Consolas, monospace;
+    }
+    .ai-bubble--bot strong { font-weight: 600; }
+    .ai-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .ai-input {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .ai-input::placeholder { color: #94a3b8; }
+    .ai-input:focus { border-color: var(--accent); }
+    .ai-send {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background .15s;
+    }
+    .ai-send:hover { background: var(--accent-hover); }
+    .ai-send svg { width: 16px; height: 16px; }
+
+    /* ── Responsive tweaks ─────────────────────────────── */
+    @media (max-width: 900px) {
+      .main { flex-direction: column; }
+      .sidebar-col { width: 100%; min-width: 0; max-width: none; border-left: none; border-top: 1px solid var(--border); }
+      .ai-chat { height: 240px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════ Top Bar ═══════ -->
+<header class="topbar">
+  <a href="#" class="topbar-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+    Quay lại khóa học
+  </a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-title">Lập trình React &amp; Next.js</span>
+  <div class="topbar-progress">
+    <span class="topbar-progress-label">65%</span>
+    <div class="progress-track">
+      <div class="progress-fill" style="width:65%"></div>
+    </div>
+  </div>
+  <button class="topbar-settings" title="Cài đặt">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</header>
+
+<!-- ═══════ Main Area ═══════ -->
+<div class="main">
+
+  <!-- ─── Left: Player Column ─── -->
+  <div class="player-col">
+
+    <!-- Video -->
+    <div class="video-wrapper">
+      <div class="video-play-btn">
+        <button title="Phát">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7z"/></svg>
+        </button>
+      </div>
+
+      <div class="video-controls">
+        <div class="vc-progress">
+          <div class="vc-progress-track">
+            <div class="vc-progress-fill">
+              <div class="vc-progress-handle"></div>
+            </div>
+          </div>
+          <span class="vc-time">12:34 / 30:00</span>
+        </div>
+        <div class="vc-buttons">
+          <!-- play/pause -->
+          <button class="vc-btn vc-btn--play" title="Phát">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7z"/></svg>
+          </button>
+
+          <!-- volume -->
+          <div class="vc-volume">
+            <button class="vc-btn" title="Âm lượng">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+            </button>
+            <div class="vc-volume-track">
+              <div class="vc-volume-fill"></div>
+            </div>
+          </div>
+
+          <span class="vc-spacer"></span>
+
+          <!-- speed -->
+          <span class="vc-label" title="Tốc độ phát">1x</span>
+          <!-- quality -->
+          <span class="vc-label" title="Chất lượng">720p</span>
+
+          <!-- fullscreen -->
+          <button class="vc-btn" title="Toàn màn hình">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lesson Navigation -->
+    <div class="lesson-nav">
+      <button class="ln-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        Bài trước
+      </button>
+      <label class="ln-complete">
+        <span class="ln-checkbox"></span>
+        Hoàn thành
+      </label>
+      <button class="ln-btn">
+        Bài tiếp theo
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── Right: Sidebar ─── -->
+  <div class="sidebar-col">
+
+    <!-- Tabs -->
+    <div class="sidebar-tabs">
+      <button class="stab active">Nội dung</button>
+      <button class="stab">Ghi chú</button>
+      <button class="stab">AI Tutor</button>
+      <button class="stab">Tài liệu</button>
+    </div>
+
+    <!-- Curriculum -->
+    <div class="curriculum">
+      <!-- Section 1 -->
+      <div class="section-header">
+        <svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        Section 1: Giới thiệu
+        <span class="section-meta">3 bài</span>
+      </div>
+      <div class="lesson-item">
+        <span class="lesson-icon lesson-icon--done">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </span>
+        Bài 1: Welcome
+        <span class="lesson-dur">5:30</span>
+      </div>
+      <div class="lesson-item active">
+        <span class="lesson-icon lesson-icon--playing">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7z"/></svg>
+        </span>
+        Bài 2: Setup
+        <span class="lesson-badge">Đang xem</span>
+        <span class="lesson-dur">10:15</span>
+      </div>
+      <div class="lesson-item">
+        <span class="lesson-icon lesson-icon--locked">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+        Bài 3: Overview
+        <span class="lesson-dur">8:00</span>
+      </div>
+
+      <!-- Section 2 -->
+      <div class="section-header">
+        <svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        Section 2: Components
+        <span class="section-meta">5 bài</span>
+      </div>
+      <div class="lesson-item">
+        <span class="lesson-icon lesson-icon--pending">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+        </span>
+        Bài 4: JSX
+        <span class="lesson-dur">12:00</span>
+      </div>
+      <div class="lesson-item">
+        <span class="lesson-icon lesson-icon--pending">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+        </span>
+        Bài 5: Props
+        <span class="lesson-dur">15:00</span>
+      </div>
+
+      <!-- Section 3 -->
+      <div class="section-header">
+        <svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        Section 3: Bài kiểm tra
+        <span class="section-meta">1 bài</span>
+      </div>
+      <div class="lesson-item">
+        <span class="lesson-icon lesson-icon--pending">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </span>
+        Quiz: Test 1
+        <span class="lesson-dur">10 câu</span>
+      </div>
+    </div>
+
+    <!-- AI Tutor Chat -->
+    <div class="ai-chat">
+      <div class="ai-chat-header">
+        <div class="ai-chat-title">
+          <div class="ai-dot"></div>
+          AI Tutor
+        </div>
+        <span class="ai-counter">3/10 câu hỏi hôm nay</span>
+      </div>
+      <div class="ai-messages">
+        <div class="ai-bubble ai-bubble--user">
+          useEffect khác gì useLayoutEffect?
+        </div>
+        <div class="ai-bubble ai-bubble--bot">
+          <strong>Khác biệt chính:</strong><br/>
+          - <code>useEffect</code> chạy <strong>sau</strong> khi trình duyệt paint, không block UI.<br/>
+          - <code>useLayoutEffect</code> chạy <strong>trước</strong> paint, block UI cho tới khi xong.<br/><br/>
+          Dùng <code>useLayoutEffect</code> khi cần đo DOM hoặc tránh flicker.
+        </div>
+      </div>
+      <div class="ai-input-row">
+        <input class="ai-input" type="text" placeholder="Hỏi AI Tutor về bài học này..." />
+        <button class="ai-send" title="Gửi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
