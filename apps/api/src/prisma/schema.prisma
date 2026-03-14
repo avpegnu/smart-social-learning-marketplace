@@ -604,8 +604,10 @@ model Order {
   totalAmount    Float       @map("total_amount")
   discountAmount Float       @default(0) @map("discount_amount")
   finalAmount    Float       @map("final_amount")
+  orderCode      String      @unique @map("order_code")
   status         OrderStatus @default(PENDING)
   paymentRef     String?     @map("payment_ref")
+  paidAt         DateTime?   @map("paid_at")
   expiresAt      DateTime?   @map("expires_at")
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -681,6 +683,7 @@ model Coupon {
   maxDiscount    Float?     @map("max_discount")
   usageLimit     Int?       @map("usage_limit")
   usageCount     Int        @default(0) @map("usage_count")
+  maxUsesPerUser Int?       @default(1) @map("max_uses_per_user")
   startDate      DateTime   @map("start_date")
   endDate        DateTime   @map("end_date")
   isActive       Boolean    @default(true) @map("is_active")
@@ -764,6 +767,7 @@ model Earning {
   commissionAmount Float         @map("commission_amount")
   netAmount        Float         @map("net_amount")
   status           EarningStatus @default(PENDING)
+  availableAt      DateTime?     @map("available_at")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
