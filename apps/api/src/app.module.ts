@@ -11,6 +11,8 @@ import { MailModule } from './mail/mail.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { InstructorModule } from './modules/instructor/instructor.module';
+import { CoursesModule } from './modules/courses/courses.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -41,6 +43,8 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
     AuthModule,
     UsersModule,
     InstructorModule,
+    CoursesModule,
+    CategoriesModule,
   ],
   providers: [
     // Global guards (order: ThrottlerGuard → JwtAuthGuard)
