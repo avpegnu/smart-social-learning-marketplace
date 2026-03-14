@@ -1,12 +1,6 @@
-import { useTranslations } from 'next-intl';
+import { redirect } from 'next/navigation';
 
-export default function HomePage() {
-  const t = useTranslations('common');
-
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
-      <h1 className="text-4xl font-bold">{t('appName')}</h1>
-      <p className="text-muted-foreground mt-2 text-lg">Management Portal</p>
-    </main>
-  );
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  redirect(`/${locale}/instructor/dashboard`);
 }
