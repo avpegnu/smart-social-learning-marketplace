@@ -1,0 +1,156 @@
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '@/prisma/prisma.service';
+import { CouponsService } from '@/modules/coupons/coupons.service';
+import { createPaginatedResult } from '@/common/utils/pagination.util';
+import { ORDER_EXPIRY_MINUTES } from '@/common/constants/app.constant';
+import type { PaginationDto } from '@/common/dto/pagination.dto';
+import type { CreateOrderDto } from './dto/create-order.dto';
+
+@Injectable()
+export class OrdersService {
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(ConfigService) private readonly config: ConfigService,
+    @Inject(CouponsService) private readonly couponsService: CouponsService,
+  ) {}
+
+  async createOrder(userId: string, dto: CreateOrderDto) {
+    // 1. Get cart items
+    const cartItems = await this.prisma.cartItem.findMany({
+      where: { userId },
+      include: { course: true, chapter: true },
+    });
+    if (cartItems.length === 0) throw new BadRequestException({ code: 'CART_EMPTY' });
+
+    // 2. Re-validate items
+    for (const item of cartItems) {
+      if (item.course && item.course.status !== 'PUBLISHED') {
+        throw new BadRequestException({ code: 'COURSE_NO_LONGER_AVAILABLE' });
+      }
+    }
+
+    // 3. Calculate totals
+    const totalAmount = cartItems.reduce((sum, item) => sum + item.price, 0);
+    let discountAmount = 0;
+    let couponId: string | undefined;
+
+    // 4. Apply coupon if provided
+    if (dto.couponCode) {
+      const couponResult = await this.couponsService.validateAndCalculateDiscount(
+        dto.couponCode,
+        userId,
+        cartItems.map((item) => ({ courseId: item.courseId, price: item.price })),
+      );
+      discountAmount = couponResult.discount;
+      couponId = couponResult.couponId;
+    }
+
+    const finalAmount = totalAmount - discountAmount;
+    const orderCode = this.generateOrderCode();
+
+    // 5. Create order in transaction
+    const order = await this.prisma.$transaction(async (tx) => {
+      const newOrder = await tx.order.create({
+        data: {
+          userId,
+          orderCode,
+          totalAmount,
+          discountAmount,
+          finalAmount,
+          expiresAt: new Date(Date.now() + ORDER_EXPIRY_MINUTES * 60 * 1000),
+          items: {
+            create: cartItems.map((item) => ({
+              type: item.chapterId ? 'CHAPTER' : 'COURSE',
+              courseId: item.courseId,
+              chapterId: item.chapterId,
+              price: item.price,
+              title: item.course?.title ?? item.chapter?.title ?? '',
+            })),
+          },
+        },
+        include: { items: true },
+      });
+
+      // Record coupon usage + increment counter
+      if (couponId) {
+        await tx.couponUsage.create({
+          data: { couponId, orderId: newOrder.id, discount: discountAmount },
+        });
+        await tx.coupon.update({
+          where: { id: couponId },
+          data: { usageCount: { increment: 1 } },
+        });
+      }
+
+      // Clear cart
+      await tx.cartItem.deleteMany({ where: { userId } });
+
+      return newOrder;
+    });
+
+    // 6. Generate payment info
+    const payment = this.generatePaymentInfo(order.orderCode, order.finalAmount);
+
+    return { order, payment };
+  }
+
+  async findById(orderId: string, userId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+    if (!order || order.userId !== userId) {
+      throw new NotFoundException({ code: 'ORDER_NOT_FOUND' });
+    }
+    return order;
+  }
+
+  async getOrderStatus(orderId: string, userId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { status: true, paidAt: true, userId: true },
+    });
+    if (!order || order.userId !== userId) {
+      throw new NotFoundException({ code: 'ORDER_NOT_FOUND' });
+    }
+    return { status: order.status, paidAt: order.paidAt };
+  }
+
+  async getOrderHistory(userId: string, query: PaginationDto) {
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where: { userId },
+        include: { items: true },
+        orderBy: { createdAt: 'desc' },
+        skip: query.skip,
+        take: query.limit,
+      }),
+      this.prisma.order.count({ where: { userId } }),
+    ]);
+    return createPaginatedResult(orders, total, query.page, query.limit);
+  }
+
+  // ==================== PRIVATE HELPERS ====================
+
+  private generateOrderCode(): string {
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 6);
+    return `SSLM-${timestamp}${random}`;
+  }
+
+  private generatePaymentInfo(orderCode: string, amount: number) {
+    const bankId = this.config.get<string>('sepay.bankId') ?? 'MB';
+    const accountNumber = this.config.get<string>('sepay.bankAccountNumber') ?? '';
+    const accountName = this.config.get<string>('sepay.bankAccountName') ?? '';
+
+    return {
+      bankId,
+      accountNumber,
+      accountName,
+      amount,
+      content: orderCode,
+      qrUrl: `https://img.vietqr.io/image/${bankId}-${accountNumber}-compact2.png?amount=${amount}&addInfo=${orderCode}`,
+    };
+  }
+}

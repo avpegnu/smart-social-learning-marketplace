@@ -1,0 +1,156 @@
+import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { Prisma } from '@prisma/client';
+import { PrismaService } from '@/prisma/prisma.service';
+import { EARNING_HOLD_DAYS } from '@/common/constants/app.constant';
+import type { SepayWebhookDto } from './dto/sepay-webhook.dto';
+
+@Injectable()
+export class WebhooksService {
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(ConfigService) private readonly config: ConfigService,
+  ) {}
+
+  async handleSepayWebhook(authorization: string, payload: SepayWebhookDto) {
+    // 1. Verify API key — SePay sends "Apikey <key>" in Authorization header
+    const webhookSecret = this.config.get<string>('sepay.webhookSecret');
+    const apiKey = authorization?.replace(/^Apikey\s+/i, '') ?? '';
+    if (apiKey !== webhookSecret) {
+      throw new ForbiddenException({ code: 'INVALID_WEBHOOK_KEY' });
+    }
+
+    // 2. Only process incoming transfers
+    if (payload.transferType !== 'in') return { success: true };
+
+    // 3. Extract order code from content
+    const orderCodeMatch = payload.content.match(/SSLM-[a-z0-9]+/i);
+    if (!orderCodeMatch) return { success: true };
+    const orderCode = orderCodeMatch[0]!;
+
+    // 4. Find pending order
+    const order = await this.prisma.order.findFirst({
+      where: { orderCode, status: 'PENDING' },
+      include: { items: true },
+    });
+    if (!order) return { success: true };
+
+    // 5. Verify amount
+    if (payload.transferAmount < order.finalAmount) return { success: true };
+
+    // 6. Complete order in transaction
+    await this.completeOrder(order.id, order.userId, order.items, payload.referenceCode);
+
+    return { success: true };
+  }
+
+  private async completeOrder(
+    orderId: string,
+    userId: string,
+    items: {
+      id: string;
+      type: string;
+      courseId: string | null;
+      chapterId: string | null;
+      price: number;
+    }[],
+    paymentRef?: string,
+  ) {
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Update order status
+      await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: 'COMPLETED',
+          paymentRef: paymentRef ?? null,
+          paidAt: new Date(),
+        },
+      });
+
+      // 2. Process each order item
+      for (const item of items) {
+        if (item.type === 'COURSE' && item.courseId) {
+          // Full course enrollment
+          await tx.enrollment.upsert({
+            where: { userId_courseId: { userId, courseId: item.courseId } },
+            update: { type: 'FULL' },
+            create: { userId, courseId: item.courseId, type: 'FULL' },
+          });
+          await tx.course.update({
+            where: { id: item.courseId },
+            data: { totalStudents: { increment: 1 } },
+          });
+        }
+
+        if (item.type === 'CHAPTER' && item.chapterId) {
+          // Chapter purchase
+          await tx.chapterPurchase.upsert({
+            where: { userId_chapterId: { userId, chapterId: item.chapterId } },
+            update: {},
+            create: { userId, chapterId: item.chapterId },
+          });
+
+          // Create PARTIAL enrollment if not already exists
+          if (item.courseId) {
+            const existing = await tx.enrollment.findUnique({
+              where: { userId_courseId: { userId, courseId: item.courseId } },
+            });
+            if (!existing) {
+              await tx.enrollment.create({
+                data: { userId, courseId: item.courseId, type: 'PARTIAL' },
+              });
+            }
+          }
+        }
+
+        // 3. Create earning for instructor
+        if (item.courseId) {
+          const course = await tx.course.findUnique({
+            where: { id: item.courseId },
+            select: { instructorId: true },
+          });
+          if (course) {
+            const commissionRate = await this.getCommissionRate(course.instructorId, tx);
+            const commissionAmount = Math.round(item.price * commissionRate);
+            const netAmount = item.price - commissionAmount;
+
+            await tx.earning.create({
+              data: {
+                instructorId: course.instructorId,
+                orderItemId: item.id,
+                amount: item.price,
+                commissionRate,
+                commissionAmount,
+                netAmount,
+                status: 'PENDING',
+                availableAt: new Date(Date.now() + EARNING_HOLD_DAYS * 24 * 60 * 60 * 1000),
+              },
+            });
+          }
+        }
+      }
+    });
+  }
+
+  private async getCommissionRate(
+    instructorId: string,
+    tx: Prisma.TransactionClient,
+  ): Promise<number> {
+    const totalRevenue = await tx.earning.aggregate({
+      where: {
+        instructorId,
+        status: { in: ['AVAILABLE', 'WITHDRAWN'] },
+      },
+      _sum: { netAmount: true },
+    });
+
+    const revenue = totalRevenue._sum.netAmount ?? 0;
+
+    const tier = await tx.commissionTier.findFirst({
+      where: { minRevenue: { lte: revenue } },
+      orderBy: { minRevenue: 'desc' },
+    });
+
+    return tier?.rate ?? 0.3;
+  }
+}
