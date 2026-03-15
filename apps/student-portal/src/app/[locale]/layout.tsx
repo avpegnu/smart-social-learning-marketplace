@@ -2,7 +2,10 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ThemeProvider } from 'next-themes';
+import { Toaster } from 'sonner';
 import { routing } from '@/i18n/routing';
+import { QueryProvider } from '@/providers/query-provider';
+import { AuthProvider } from '@/providers/auth-provider';
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
@@ -25,7 +28,14 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
       enableSystem
       storageKey="sslm-theme"
     >
-      <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+      <NextIntlClientProvider messages={messages}>
+        <QueryProvider>
+          <AuthProvider>
+            {children}
+            <Toaster richColors position="top-right" />
+          </AuthProvider>
+        </QueryProvider>
+      </NextIntlClientProvider>
     </ThemeProvider>
   );
 }
