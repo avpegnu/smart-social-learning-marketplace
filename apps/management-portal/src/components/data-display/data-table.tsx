@@ -11,6 +11,7 @@ import {
   TableRow,
   Button,
   Input,
+  Skeleton,
 } from '@shared/ui';
 import { ChevronLeft, ChevronRight, ArrowUpDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -35,6 +36,14 @@ interface DataTableProps {
   pageSize?: number;
   filterSlot?: React.ReactNode;
   className?: string;
+  // Server-side mode (when provided, disables client-side filtering/pagination)
+  isLoading?: boolean;
+  serverPage?: number;
+  serverTotalPages?: number;
+  serverTotal?: number;
+  onServerPageChange?: (page: number) => void;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 export function DataTable({
@@ -46,20 +55,32 @@ export function DataTable({
   pageSize = 10,
   filterSlot,
   className,
+  isLoading,
+  serverPage,
+  serverTotalPages,
+  serverTotal,
+  onServerPageChange,
+  searchValue,
+  onSearchChange,
 }: DataTableProps) {
   const t = useTranslations('common');
-  const [search, setSearch] = React.useState('');
+  const [clientSearch, setClientSearch] = React.useState('');
   const [sortKey, setSortKey] = React.useState<string | null>(null);
   const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('asc');
-  const [page, setPage] = React.useState(0);
+  const [clientPage, setClientPage] = React.useState(0);
 
+  const isServerMode = serverPage !== undefined && onServerPageChange !== undefined;
+
+  // Client-side filtering (only in client mode)
   const filteredData = React.useMemo(() => {
+    if (isServerMode) return data;
+
     let result = [...data];
 
-    if (searchable && search && searchKey) {
+    if (searchable && clientSearch && searchKey) {
       result = result.filter((item) => {
         const val = item[searchKey];
-        return String(val).toLowerCase().includes(search.toLowerCase());
+        return String(val).toLowerCase().includes(clientSearch.toLowerCase());
       });
     }
 
@@ -77,10 +98,17 @@ export function DataTable({
     }
 
     return result;
-  }, [data, search, searchKey, searchable, sortKey, sortDir]);
+  }, [data, clientSearch, searchKey, searchable, sortKey, sortDir, isServerMode]);
 
-  const totalPages = Math.ceil(filteredData.length / pageSize);
-  const paginatedData = filteredData.slice(page * pageSize, (page + 1) * pageSize);
+  // Pagination
+  const totalPages = isServerMode
+    ? (serverTotalPages ?? 1)
+    : Math.ceil(filteredData.length / pageSize);
+  const currentPage = isServerMode ? (serverPage ?? 1) - 1 : clientPage;
+  const displayData = isServerMode
+    ? data
+    : filteredData.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+  const totalItems = isServerMode ? (serverTotal ?? data.length) : filteredData.length;
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -91,6 +119,25 @@ export function DataTable({
     }
   };
 
+  const handlePageChange = (newPage: number) => {
+    if (isServerMode) {
+      onServerPageChange!(newPage + 1); // server pages are 1-indexed
+    } else {
+      setClientPage(newPage);
+    }
+  };
+
+  const handleSearchChange = (value: string) => {
+    if (onSearchChange) {
+      onSearchChange(value);
+    } else {
+      setClientSearch(value);
+      setClientPage(0);
+    }
+  };
+
+  const currentSearchValue = onSearchChange ? (searchValue ?? '') : clientSearch;
+
   return (
     <div className={cn('space-y-4', className)}>
       {(searchable || filterSlot) && (
@@ -100,11 +147,8 @@ export function DataTable({
               <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder={searchPlaceholder || t('search')}
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(0);
-                }}
+                value={currentSearchValue}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-9"
               />
             </div>
@@ -135,7 +179,17 @@ export function DataTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedData.length === 0 ? (
+            {isLoading ? (
+              Array.from({ length: pageSize }).map((_, i) => (
+                <TableRow key={i}>
+                  {columns.map((col) => (
+                    <TableCell key={col.key} className={col.className}>
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : displayData.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
@@ -145,12 +199,12 @@ export function DataTable({
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedData.map((item, index) => (
-                <TableRow key={index}>
+              displayData.map((item, index) => (
+                <TableRow key={item.id ?? index}>
                   {columns.map((col) => (
                     <TableCell key={col.key} className={col.className}>
                       {col.render
-                        ? col.render(item, page * pageSize + index)
+                        ? col.render(item, currentPage * pageSize + index)
                         : String(item[col.key] ?? '')}
                     </TableCell>
                   ))}
@@ -164,28 +218,28 @@ export function DataTable({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground text-sm">
-            {t('showing')} {page * pageSize + 1}-
-            {Math.min((page + 1) * pageSize, filteredData.length)} {t('of')} {filteredData.length}{' '}
+            {t('showing')} {currentPage * pageSize + 1}-
+            {Math.min((currentPage + 1) * pageSize, totalItems)} {t('of')} {totalItems}{' '}
             {t('results')}
           </p>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setPage(page - 1)}
-              disabled={page === 0}
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 0}
             >
               <ChevronLeft className="h-4 w-4" />
               {t('previous')}
             </Button>
             <span className="text-muted-foreground text-sm">
-              {t('page')} {page + 1} / {totalPages}
+              {t('page')} {currentPage + 1} / {totalPages}
             </span>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setPage(page + 1)}
-              disabled={page >= totalPages - 1}
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage >= totalPages - 1}
             >
               {t('next')}
               <ChevronRight className="h-4 w-4" />

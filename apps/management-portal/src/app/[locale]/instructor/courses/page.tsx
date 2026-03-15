@@ -1,69 +1,107 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
+import { useInstructorCourses, useDeleteCourse, useSubmitCourseForReview } from '@shared/hooks';
+import { useDebounce } from '@shared/hooks';
 import { Button, Badge } from '@shared/ui';
 import { DataTable, type Column } from '@/components/data-display/data-table';
 import { StatusBadge } from '@/components/data-display/status-badge';
-import { Plus, Pencil, Eye, Star, Image } from 'lucide-react';
-import { instructorCourses, formatCurrency, type Course } from '@/lib/mock-data';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { Plus, Pencil, Eye, Trash2, Send, Star, Image } from 'lucide-react';
+import { formatPrice } from '@shared/utils';
+
+interface CourseItem {
+  id: string;
+  title: string;
+  slug: string;
+  thumbnailUrl: string | null;
+  status: string;
+  price: number;
+  totalStudents: number;
+  totalLessons: number;
+  avgRating: number;
+  reviewCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const STATUS_FILTERS = ['ALL', 'DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'REJECTED'] as const;
 
 export default function InstructorCoursesPage() {
   const t = useTranslations('courses');
-  const [statusFilter, setStatusFilter] = React.useState<string>('ALL');
+  const tc = useTranslations('common');
+  const router = useRouter();
 
-  const filteredData =
-    statusFilter === 'ALL'
-      ? instructorCourses
-      : instructorCourses.filter((c) => c.status === statusFilter);
+  // Filters
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const debouncedSearch = useDebounce(search, 300);
 
-  const columns: Column<Course>[] = [
+  // Confirm dialogs
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [submitTarget, setSubmitTarget] = useState<string | null>(null);
+
+  // API
+  const { data, isLoading } = useInstructorCourses({
+    page,
+    limit: 10,
+    status: statusFilter === 'ALL' ? undefined : statusFilter,
+    search: debouncedSearch || undefined,
+  });
+  const deleteMutation = useDeleteCourse();
+  const submitMutation = useSubmitCourseForReview();
+
+  const courses = (data?.data ?? []) as CourseItem[];
+  const meta = data?.meta;
+
+  const columns: Column<CourseItem>[] = [
     {
       key: 'thumbnail',
       header: t('thumbnail'),
       className: 'w-16',
-      render: () => (
-        <div className="bg-muted flex h-10 w-14 items-center justify-center rounded">
-          <Image className="text-muted-foreground h-4 w-4" />
-        </div>
-      ),
+      render: (course) =>
+        course.thumbnailUrl ? (
+          <img
+            src={course.thumbnailUrl}
+            alt={course.title}
+            className="h-10 w-16 rounded object-cover"
+          />
+        ) : (
+          <div className="bg-muted flex h-10 w-16 items-center justify-center rounded">
+            <Image className="text-muted-foreground h-4 w-4" />
+          </div>
+        ),
     },
     {
       key: 'title',
       header: t('courseTitle'),
-      sortable: true,
       render: (course) => (
         <div className="max-w-[250px]">
           <p className="truncate font-medium">{course.title}</p>
-          <p className="text-muted-foreground truncate text-xs">{course.subtitle}</p>
+          <p className="text-muted-foreground text-xs">
+            {course.totalLessons} {t('lessons')} · {formatPrice(course.price)}
+          </p>
         </div>
       ),
     },
     {
-      key: 'students',
+      key: 'totalStudents',
       header: t('students'),
-      sortable: true,
       className: 'text-right',
-      render: (course) => <span className="tabular-nums">{course.students}</span>,
+      render: (course) => <span className="tabular-nums">{course.totalStudents}</span>,
     },
     {
-      key: 'revenue',
-      header: t('revenue'),
-      sortable: true,
-      className: 'text-right',
-      render: (course) => <span className="tabular-nums">{formatCurrency(course.revenue)}</span>,
-    },
-    {
-      key: 'rating',
+      key: 'avgRating',
       header: t('rating'),
-      sortable: true,
       className: 'text-right',
       render: (course) =>
-        course.rating > 0 ? (
+        course.avgRating > 0 ? (
           <span className="inline-flex items-center gap-1">
             <Star className="fill-warning text-warning h-3 w-3" />
-            <span className="tabular-nums">{course.rating}</span>
+            <span className="tabular-nums">{course.avgRating.toFixed(1)}</span>
             <span className="text-muted-foreground text-xs">({course.reviewCount})</span>
           </span>
         ) : (
@@ -73,21 +111,56 @@ export default function InstructorCoursesPage() {
     {
       key: 'status',
       header: t('status'),
-      render: (course) => <StatusBadge status={course.status} />,
+      render: (course) => <StatusBadge status={course.status as 'DRAFT'} />,
     },
     {
       key: 'actions',
-      header: t('actions'),
+      header: '',
+      className: 'w-28',
       render: (course) => (
         <div className="flex items-center gap-1">
-          <Link href={`/instructor/courses/${course.id}/curriculum`}>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Pencil className="h-4 w-4" />
-            </Button>
-          </Link>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <Eye className="h-4 w-4" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            title={t('edit')}
+            onClick={() => router.push(`/instructor/courses/${course.id}/edit`)}
+          >
+            <Pencil className="h-4 w-4" />
           </Button>
+          {course.status === 'PUBLISHED' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title={t('view')}
+              onClick={() => router.push(`/instructor/courses/${course.id}/curriculum`)}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+          )}
+          {(course.status === 'DRAFT' || course.status === 'REJECTED') && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                title={t('submitForReview')}
+                onClick={() => setSubmitTarget(course.id)}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-destructive h-8 w-8"
+                title={tc('delete')}
+                onClick={() => setDeleteTarget(course.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
       ),
     },
@@ -99,7 +172,7 @@ export default function InstructorCoursesPage() {
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         <Link href="/instructor/courses/new">
           <Button>
-            <Plus className="h-4 w-4" />
+            <Plus className="mr-1 h-4 w-4" />
             {t('createCourse')}
           </Button>
         </Link>
@@ -107,28 +180,88 @@ export default function InstructorCoursesPage() {
 
       <DataTable
         columns={columns}
-        data={filteredData}
+        data={courses}
         searchable
         searchPlaceholder={t('searchPlaceholder')}
-        searchKey="title"
-        pageSize={5}
+        pageSize={10}
+        isLoading={isLoading}
+        searchValue={search}
+        onSearchChange={(v) => {
+          setSearch(v);
+          setPage(1);
+        }}
+        serverPage={page}
+        serverTotalPages={meta?.totalPages ?? 1}
+        serverTotal={meta?.total ?? 0}
+        onServerPageChange={setPage}
         filterSlot={
           <div className="flex items-center gap-2">
-            {['ALL', 'DRAFT', 'PENDING', 'PUBLISHED', 'REJECTED'].map((s) => (
+            {STATUS_FILTERS.map((s) => (
               <Badge
                 key={s}
                 variant={statusFilter === s ? 'default' : 'outline'}
                 className="cursor-pointer"
-                onClick={() => setStatusFilter(s)}
+                onClick={() => {
+                  setStatusFilter(s);
+                  setPage(1);
+                }}
               >
-                {s === 'ALL'
-                  ? t('allCourses')
-                  : t(s.toLowerCase() as 'draft' | 'pending' | 'published' | 'rejected')}
+                {s === 'ALL' ? t('allCourses') : t(statusMap(s))}
               </Badge>
             ))}
           </div>
         }
       />
+
+      {/* Delete Confirmation */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title={t('confirmDelete')}
+        description={t('confirmDeleteDesc')}
+        confirmLabel={tc('delete')}
+        variant="destructive"
+        isLoading={deleteMutation.isPending}
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteMutation.mutate(deleteTarget, {
+              onSuccess: () => setDeleteTarget(null),
+            });
+          }
+        }}
+      />
+
+      {/* Submit for Review Confirmation */}
+      <ConfirmDialog
+        open={!!submitTarget}
+        onOpenChange={(open) => !open && setSubmitTarget(null)}
+        title={t('confirmSubmit')}
+        description={t('confirmSubmitDesc')}
+        confirmLabel={t('submitForReview')}
+        isLoading={submitMutation.isPending}
+        onConfirm={() => {
+          if (submitTarget) {
+            submitMutation.mutate(submitTarget, {
+              onSuccess: () => setSubmitTarget(null),
+            });
+          }
+        }}
+      />
     </div>
   );
+}
+
+function statusMap(status: string): string {
+  switch (status) {
+    case 'DRAFT':
+      return 'draft';
+    case 'PENDING_REVIEW':
+      return 'pending';
+    case 'PUBLISHED':
+      return 'published';
+    case 'REJECTED':
+      return 'rejected';
+    default:
+      return status.toLowerCase();
+  }
 }
