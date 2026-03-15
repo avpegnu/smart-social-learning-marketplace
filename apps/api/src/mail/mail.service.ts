@@ -44,7 +44,7 @@ export class MailService {
   }
 
   async sendVerificationEmail(to: string, token: string) {
-    const verifyUrl = `${this.configService.get('app.studentPortalUrl')}/auth/verify-email?token=${token}`;
+    const verifyUrl = `${this.configService.get('app.studentPortalUrl')}/verify-email?token=${token}`;
     return this.sendEmail({
       to,
       subject: 'Verify your email — SSLM',
@@ -58,7 +58,7 @@ export class MailService {
   }
 
   async sendResetPasswordEmail(to: string, token: string) {
-    const resetUrl = `${this.configService.get('app.studentPortalUrl')}/auth/reset-password?token=${token}`;
+    const resetUrl = `${this.configService.get('app.studentPortalUrl')}/reset-password?token=${token}`;
     return this.sendEmail({
       to,
       subject: 'Reset your password — SSLM',

@@ -148,7 +148,17 @@ export class AuthService {
     const accessToken = this.generateAccessToken(storedToken.user.id, storedToken.user.role);
     const newRefreshToken = await this.generateRefreshToken(storedToken.user.id);
 
-    return { accessToken, refreshToken: newRefreshToken };
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+      user: {
+        id: storedToken.user.id,
+        email: storedToken.user.email,
+        fullName: storedToken.user.fullName,
+        role: storedToken.user.role,
+        avatarUrl: storedToken.user.avatarUrl,
+      },
+    };
   }
 
   // ==================== LOGOUT ====================
@@ -182,6 +192,29 @@ export class AuthService {
     });
 
     return { message: 'EMAIL_VERIFIED' };
+  }
+
+  // ==================== RESEND VERIFICATION ====================
+  async resendVerification(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    // Always return success to prevent email enumeration
+    if (!user || user.status === 'ACTIVE') {
+      return { message: 'VERIFICATION_EMAIL_SENT' };
+    }
+
+    const verificationToken = crypto.randomUUID();
+    const verificationExpiresAt = new Date(
+      Date.now() + VERIFICATION_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000,
+    );
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { verificationToken, verificationExpiresAt },
+    });
+
+    await this.mail.sendVerificationEmail(email, verificationToken);
+
+    return { message: 'VERIFICATION_EMAIL_SENT' };
   }
 
   // ==================== FORGOT PASSWORD ====================

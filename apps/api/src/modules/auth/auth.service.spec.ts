@@ -319,6 +319,13 @@ describe('AuthService', () => {
       expect(result).toEqual({
         accessToken: 'mock-access-token',
         refreshToken: MOCK_UUID,
+        user: {
+          id: MOCK_USER.id,
+          email: MOCK_USER.email,
+          fullName: MOCK_USER.fullName,
+          role: MOCK_USER.role,
+          avatarUrl: MOCK_USER.avatarUrl,
+        },
       });
     });
 
@@ -430,6 +437,55 @@ describe('AuthService', () => {
         const response = (error as BadRequestException).getResponse();
         expect(response).toMatchObject({ code: 'INVALID_VERIFICATION_TOKEN' });
       }
+    });
+  });
+
+  // ==================== RESEND VERIFICATION ====================
+  describe('resendVerification', () => {
+    it('should generate new token and send verification email', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        ...MOCK_USER,
+        status: 'PENDING',
+      });
+      mockPrisma.user.update.mockResolvedValue(MOCK_USER);
+
+      const result = await service.resendVerification('test@test.com');
+
+      expect(result.message).toBe('VERIFICATION_EMAIL_SENT');
+      expect(mockPrisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            verificationToken: expect.any(String),
+            verificationExpiresAt: expect.any(Date),
+          }),
+        }),
+      );
+      expect(mockMail.sendVerificationEmail).toHaveBeenCalledWith(
+        'test@test.com',
+        expect.any(String),
+      );
+    });
+
+    it('should return success even if user not found (anti-enumeration)', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      const result = await service.resendVerification('nonexistent@test.com');
+
+      expect(result.message).toBe('VERIFICATION_EMAIL_SENT');
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
+      expect(mockMail.sendVerificationEmail).not.toHaveBeenCalled();
+    });
+
+    it('should return success if user already verified (anti-enumeration)', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        ...MOCK_USER,
+        status: 'ACTIVE',
+      });
+
+      const result = await service.resendVerification('test@test.com');
+
+      expect(result.message).toBe('VERIFICATION_EMAIL_SENT');
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
     });
   });
 

@@ -99,6 +99,13 @@ export class AuthController {
   }
 
   @Public()
+  @Post('resend-verification')
+  @ApiOperation({ summary: 'Resend email verification' })
+  async resendVerification(@Body('email') email: string) {
+    return this.authService.resendVerification(email);
+  }
+
+  @Public()
   @Post('forgot-password')
   @ApiOperation({ summary: 'Send password reset email' })
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
