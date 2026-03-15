@@ -23,6 +23,8 @@ import { SocialModule } from './modules/social/social.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { QnaModule } from './modules/qna/qna.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { AiTutorModule } from './modules/ai-tutor/ai-tutor.module';
+import { RecommendationsModule } from './modules/recommendations/recommendations.module';
 
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -65,6 +67,8 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
     ChatModule,
     QnaModule,
     NotificationsModule,
+    AiTutorModule,
+    RecommendationsModule,
   ],
   providers: [
     // Global guards (order: ThrottlerGuard → JwtAuthGuard)
