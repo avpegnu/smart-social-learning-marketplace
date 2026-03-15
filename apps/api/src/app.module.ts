@@ -19,6 +19,8 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { EnrollmentsModule } from './modules/enrollments/enrollments.module';
 import { WithdrawalsModule } from './modules/withdrawals/withdrawals.module';
 import { LearningModule } from './modules/learning/learning.module';
+import { SocialModule } from './modules/social/social.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -57,6 +59,8 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
     EnrollmentsModule,
     WithdrawalsModule,
     LearningModule,
+    SocialModule,
+    ChatModule,
   ],
   providers: [
     // Global guards (order: ThrottlerGuard → JwtAuthGuard)
