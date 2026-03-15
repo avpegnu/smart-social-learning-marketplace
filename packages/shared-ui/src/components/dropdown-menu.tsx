@@ -71,7 +71,7 @@ function DropdownMenuContent({
   return (
     <div
       className={cn(
-        'border-border bg-popover text-popover-foreground animate-in fade-in-0 zoom-in-95 absolute z-50 mt-2 min-w-[8rem] overflow-hidden rounded-lg border p-1 shadow-lg',
+        'border-border bg-card text-card-foreground absolute z-50 mt-2 min-w-[8rem] overflow-hidden rounded-lg border p-1 shadow-xl',
         align === 'end' && 'right-0',
         align === 'start' && 'left-0',
         align === 'center' && 'left-1/2 -translate-x-1/2',

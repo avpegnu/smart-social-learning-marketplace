@@ -134,6 +134,12 @@
   }
 }
 
+/* Disable color transitions during theme switch — prevent slow text color change */
+html.disable-transitions,
+html.disable-transitions * {
+  transition-duration: 0s !important;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

@@ -157,6 +157,12 @@ body {
   color: var(--foreground);
 }
 
+/* Disable color transitions during theme switch */
+html.disable-transitions,
+html.disable-transitions * {
+  transition-duration: 0s !important;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
