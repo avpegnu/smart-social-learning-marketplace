@@ -29,3 +29,20 @@ export {
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
 } from './api/use-notifications';
+
+export {
+  useInstructorDashboard,
+  useInstructorProfile,
+  useUpdateInstructorProfile,
+  useInstructorApplicationStatus,
+} from './api/use-instructor';
+
+export {
+  useInstructorCourses,
+  useInstructorCourseDetail,
+  useCreateCourse,
+  useUpdateCourse,
+  useDeleteCourse,
+  useSubmitCourseForReview,
+  useUpdateCourseTags,
+} from './api/use-courses';

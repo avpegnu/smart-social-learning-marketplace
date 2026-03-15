@@ -53,6 +53,17 @@ export function getErrorMessageKey(code: string): string {
 }
 
 /**
+ * Format date to localized string
+ */
+export function formatDate(date: string | Date, locale: string = 'vi'): string {
+  return new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(date));
+}
+
+/**
  * Format duration in seconds to human-readable (e.g., "2h 30m" or "5m")
  */
 export function formatDuration(seconds: number): string {
