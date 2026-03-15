@@ -35,12 +35,13 @@ import {
 } from '@shared/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LocaleSwitcher } from '@/components/locale-switcher';
-import { useAuthStore, useCartStore, useLogout } from '@shared/hooks';
+import { useAuthStore, useCartStore, useLogout, useAuthHydrated } from '@shared/hooks';
 import { apiClient, queryKeys } from '@shared/api-client';
 
 export function Navbar() {
   const t = useTranslations('nav');
   const router = useRouter();
+  const hydrated = useAuthHydrated();
   const { user, isAuthenticated } = useAuthStore();
   const cartCount = useCartStore((s) => s.itemCount());
 
@@ -94,7 +95,7 @@ export function Navbar() {
                 >
                   {t('browseCourses')}
                 </Link>
-                {isAuthenticated && (
+                {hydrated && isAuthenticated && (
                   <>
                     <Link
                       href="/my-learning"
@@ -147,13 +148,15 @@ export function Navbar() {
 
         {/* Nav links - Desktop */}
         <nav className="ml-auto hidden items-center gap-1 md:flex">
-          <Link href="/courses">
-            <Button variant="ghost" size="sm" className="gap-1">
-              <BookOpen className="h-4 w-4" />
-              {t('browseCourses')}
-            </Button>
-          </Link>
-          {isAuthenticated && (
+          {hydrated && (
+            <Link href="/courses">
+              <Button variant="ghost" size="sm" className="gap-1">
+                <BookOpen className="h-4 w-4" />
+                {t('browseCourses')}
+              </Button>
+            </Link>
+          )}
+          {hydrated && isAuthenticated && (
             <Link href="/my-learning">
               <Button variant="ghost" size="sm">
                 {t('myLearning')}
@@ -171,7 +174,12 @@ export function Navbar() {
             </Button>
           </Link>
 
-          {isAuthenticated ? (
+          {!hydrated ? (
+            /* Placeholder while Zustand hydrates — prevents flash of guest UI */
+            <div className="ml-2 flex items-center gap-2">
+              <div className="bg-muted h-8 w-8 animate-pulse rounded-full" />
+            </div>
+          ) : isAuthenticated ? (
             <>
               {/* Cart */}
               <Link href="/cart">
