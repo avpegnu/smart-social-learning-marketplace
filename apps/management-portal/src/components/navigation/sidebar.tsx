@@ -24,8 +24,10 @@ import {
   GraduationCap,
   UserCheck,
   BookMarked,
+  LogOut,
 } from 'lucide-react';
 import { AvatarSimple } from '@shared/ui';
+import { useAuthStore, useLogout } from '@shared/hooks';
 
 interface NavItem {
   label: string;
@@ -70,9 +72,12 @@ interface SidebarProps {
 
 export function Sidebar({ variant }: SidebarProps) {
   const t = useTranslations('nav');
+  const tAuth = useTranslations('auth');
   const pathname = usePathname();
   const { collapsed, toggle } = useSidebarStore();
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
+  const user = useAuthStore((s) => s.user);
+  const logoutMutation = useLogout();
 
   const navItems = variant === 'instructor' ? instructorNav : adminNav;
   const basePath = variant === 'instructor' ? '' : '';
@@ -211,18 +216,35 @@ export function Sidebar({ variant }: SidebarProps) {
             collapsed && 'justify-center',
           )}
         >
-          <AvatarSimple alt="Nguyen Van An" size="sm" />
+          <AvatarSimple src={user?.avatarUrl ?? undefined} alt={user?.fullName ?? ''} size="sm" />
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <p className="text-sidebar-foreground truncate text-sm font-medium">
-                {variant === 'instructor' ? 'Nguyen Van An' : 'Admin'}
+                {user?.fullName ?? ''}
               </p>
               <p className="text-sidebar-muted truncate text-xs">
-                {variant === 'instructor' ? 'Instructor' : 'Administrator'}
+                {user?.role === 'ADMIN' ? 'Administrator' : 'Instructor'}
               </p>
             </div>
           )}
         </div>
+        <button
+          onClick={() =>
+            logoutMutation.mutate(undefined, {
+              onSettled: () => {
+                window.location.href = '/login';
+              },
+            })
+          }
+          className={cn(
+            'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mt-1 flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+            collapsed && 'justify-center px-2',
+          )}
+          title={collapsed ? tAuth('logout') : undefined}
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!collapsed && <span>{tAuth('logout')}</span>}
+        </button>
       </div>
     </aside>
   );

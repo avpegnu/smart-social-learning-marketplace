@@ -262,6 +262,28 @@
     "autoApproveCoursesDesc": "Khóa học sẽ được tự động duyệt mà không cần phê duyệt thủ công",
     "maxUploadSize": "Kích thước upload tối đa"
   },
+  "apiErrors": {
+    "INVALID_CREDENTIALS": "Email hoặc mật khẩu không đúng",
+    "ACCOUNT_UNVERIFIED": "Tài khoản chưa được xác thực email",
+    "ACCOUNT_SUSPENDED": "Tài khoản đã bị khóa",
+    "ACCOUNT_NOT_FOUND": "Tài khoản không tồn tại",
+    "EMAIL_ALREADY_EXISTS": "Email đã được sử dụng",
+    "MISSING_REFRESH_TOKEN": "Phiên đăng nhập hết hạn",
+    "INVALID_REFRESH_TOKEN": "Phiên đăng nhập không hợp lệ",
+    "TOKEN_EXPIRED": "Phiên đăng nhập đã hết hạn",
+    "INVALID_TOKEN": "Mã xác thực không hợp lệ",
+    "FORBIDDEN": "Bạn không có quyền thực hiện hành động này",
+    "NOT_FOUND": "Không tìm thấy dữ liệu",
+    "COURSE_NOT_FOUND": "Không tìm thấy khóa học",
+    "INSUFFICIENT_BALANCE": "Số dư không đủ",
+    "MIN_WITHDRAWAL_NOT_MET": "Chưa đạt số tiền rút tối thiểu",
+    "COUPON_NOT_FOUND": "Mã giảm giá không tồn tại",
+    "COUPON_EXPIRED": "Mã giảm giá đã hết hạn",
+    "CATEGORY_HAS_COURSES": "Không thể xóa danh mục đang có khóa học"
+  },
+  "common_errors": {
+    "unknownError": "Đã xảy ra lỗi không xác định"
+  },
   "error": {
     "title": "Đã xảy ra lỗi",
     "description": "Đã có lỗi xảy ra. Vui lòng thử lại sau.",

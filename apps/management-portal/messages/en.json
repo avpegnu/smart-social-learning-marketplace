@@ -262,6 +262,28 @@
     "autoApproveCoursesDesc": "Courses will be automatically approved without manual review",
     "maxUploadSize": "Max Upload Size"
   },
+  "apiErrors": {
+    "INVALID_CREDENTIALS": "Invalid email or password",
+    "ACCOUNT_UNVERIFIED": "Account email not verified",
+    "ACCOUNT_SUSPENDED": "Account has been suspended",
+    "ACCOUNT_NOT_FOUND": "Account not found",
+    "EMAIL_ALREADY_EXISTS": "Email is already in use",
+    "MISSING_REFRESH_TOKEN": "Session expired",
+    "INVALID_REFRESH_TOKEN": "Invalid session",
+    "TOKEN_EXPIRED": "Session has expired",
+    "INVALID_TOKEN": "Invalid verification token",
+    "FORBIDDEN": "You don't have permission to perform this action",
+    "NOT_FOUND": "Resource not found",
+    "COURSE_NOT_FOUND": "Course not found",
+    "INSUFFICIENT_BALANCE": "Insufficient balance",
+    "MIN_WITHDRAWAL_NOT_MET": "Minimum withdrawal amount not met",
+    "COUPON_NOT_FOUND": "Coupon not found",
+    "COUPON_EXPIRED": "Coupon has expired",
+    "CATEGORY_HAS_COURSES": "Cannot delete category with existing courses"
+  },
+  "common_errors": {
+    "unknownError": "An unknown error occurred"
+  },
   "error": {
     "title": "Something went wrong",
     "description": "An error occurred. Please try again later.",
