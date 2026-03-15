@@ -2,14 +2,16 @@
 
 import { useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
-import { useAuthStore } from '@shared/hooks';
+import { useAuthStore, useAuthHydrated } from '@shared/hooks';
 
 export default function HomePage() {
   const router = useRouter();
+  const hydrated = useAuthHydrated();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
+    if (!hydrated) return;
     if (!isAuthenticated) {
       router.replace('/login');
       return;
@@ -19,7 +21,7 @@ export default function HomePage() {
     } else {
       router.replace('/instructor/dashboard');
     }
-  }, [isAuthenticated, user, router]);
+  }, [hydrated, isAuthenticated, user, router]);
 
   return null;
 }

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
-import { useAuthStore } from '@shared/hooks';
+import { useAuthStore, useAuthHydrated } from '@shared/hooks';
 import { useSidebarStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/navigation/sidebar';
@@ -11,11 +11,13 @@ import { DesktopGuard } from '@/components/desktop-guard';
 
 export default function InstructorLayout({ children }: { children: React.ReactNode }) {
   const { collapsed } = useSidebarStore();
+  const hydrated = useAuthHydrated();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
   const router = useRouter();
 
   useEffect(() => {
+    if (!hydrated) return;
     if (!isAuthenticated) {
       router.replace('/login');
       return;
@@ -23,9 +25,9 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
     if (user && user.role !== 'INSTRUCTOR' && user.role !== 'ADMIN') {
       router.replace('/unauthorized');
     }
-  }, [isAuthenticated, user, router]);
+  }, [hydrated, isAuthenticated, user, router]);
 
-  if (!isAuthenticated || !user) return null;
+  if (!hydrated || !isAuthenticated || !user) return null;
   if (user.role !== 'INSTRUCTOR' && user.role !== 'ADMIN') return null;
 
   return (
