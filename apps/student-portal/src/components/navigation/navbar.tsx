@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
+import { useQuery } from '@tanstack/react-query';
 import {
   Search,
   ShoppingCart,
@@ -13,6 +14,7 @@ import {
   Settings,
   LogOut,
   Heart,
+  Package,
 } from 'lucide-react';
 import {
   Button,
@@ -33,9 +35,33 @@ import {
 } from '@shared/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LocaleSwitcher } from '@/components/locale-switcher';
+import { useAuthStore, useCartStore, useLogout } from '@shared/hooks';
+import { apiClient, queryKeys } from '@shared/api-client';
 
 export function Navbar() {
   const t = useTranslations('nav');
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
+  const cartCount = useCartStore((s) => s.itemCount());
+
+  const { data: unreadData } = useQuery({
+    queryKey: queryKeys.notifications.unreadCount,
+    queryFn: () => apiClient.get<number>('/notifications/unread-count'),
+    enabled: isAuthenticated,
+    refetchInterval: 30000,
+  });
+  const unreadCount = (unreadData?.data as number) ?? 0;
+
+  const logoutMutation = useLogout();
+
+  const initials = user?.fullName
+    ? user.fullName
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : '';
 
   return (
     <header className="border-border bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 w-full border-b backdrop-blur">
@@ -68,35 +94,33 @@ export function Navbar() {
                 >
                   {t('browseCourses')}
                 </Link>
-                <Link
-                  href="/my-learning"
-                  className="hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2"
-                >
-                  {t('myLearning')}
-                </Link>
-                <Link
-                  href="/social"
-                  className="hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2"
-                >
-                  {t('social')}
-                </Link>
-                <Link
-                  href="/chat"
-                  className="hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2"
-                >
-                  {t('chat')}
-                </Link>
+                {isAuthenticated && (
+                  <>
+                    <Link
+                      href="/my-learning"
+                      className="hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2"
+                    >
+                      {t('myLearning')}
+                    </Link>
+                    <Link
+                      href="/social"
+                      className="hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2"
+                    >
+                      {t('social')}
+                    </Link>
+                    <Link
+                      href="/chat"
+                      className="hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2"
+                    >
+                      {t('chat')}
+                    </Link>
+                  </>
+                )}
                 <Link
                   href="/qna"
                   className="hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2"
                 >
                   {t('qna')}
-                </Link>
-                <Link
-                  href="/ai-tutor"
-                  className="hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2"
-                >
-                  {t('aiTutor')}
                 </Link>
               </nav>
               <div className="mt-auto flex items-center gap-2 pt-4">
@@ -129,11 +153,13 @@ export function Navbar() {
               {t('browseCourses')}
             </Button>
           </Link>
-          <Link href="/my-learning">
-            <Button variant="ghost" size="sm">
-              {t('myLearning')}
-            </Button>
-          </Link>
+          {isAuthenticated && (
+            <Link href="/my-learning">
+              <Button variant="ghost" size="sm">
+                {t('myLearning')}
+              </Button>
+            </Link>
+          )}
         </nav>
 
         {/* Right side */}
@@ -145,75 +171,118 @@ export function Navbar() {
             </Button>
           </Link>
 
-          {/* Cart */}
-          <Link href="/cart">
-            <Button variant="ghost" size="icon" className="relative">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold">
-                2
-              </span>
-            </Button>
-          </Link>
+          {isAuthenticated ? (
+            <>
+              {/* Cart */}
+              <Link href="/cart">
+                <Button variant="ghost" size="icon" className="relative">
+                  <ShoppingCart className="h-5 w-5" />
+                  {cartCount > 0 && (
+                    <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold">
+                      {cartCount > 9 ? '9+' : cartCount}
+                    </span>
+                  )}
+                </Button>
+              </Link>
 
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="bg-destructive text-destructive-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold">
-              3
-            </span>
-          </Button>
+              {/* Notifications */}
+              <Link href="/notifications">
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="bg-destructive text-destructive-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </Button>
+              </Link>
 
-          {/* Theme & Locale - Desktop */}
-          <div className="ml-2 hidden items-center gap-2 lg:flex">
-            <ThemeToggle />
-            <LocaleSwitcher />
-          </div>
-
-          {/* Avatar Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger className="ml-2">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                  MT
-                </AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>
-                <div className="flex flex-col">
-                  <span className="font-medium">Minh Tuấn</span>
-                  <span className="text-muted-foreground text-xs">minhtuan@email.com</span>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                {t('profile')}
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BookOpen className="mr-2 h-4 w-4" />
-                {t('myLearning')}
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Heart className="mr-2 h-4 w-4" />
-                {t('wishlist')}
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                {t('settings')}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <div className="flex items-center gap-2 px-2 py-1.5 lg:hidden">
+              {/* Theme & Locale - Desktop */}
+              <div className="ml-2 hidden items-center gap-2 lg:flex">
                 <ThemeToggle />
                 <LocaleSwitcher />
               </div>
-              <DropdownMenuSeparator className="lg:hidden" />
-              <DropdownMenuItem className="text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                {t('logout')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+              {/* Avatar Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger className="ml-2 cursor-pointer">
+                  <Avatar className="h-8 w-8">
+                    {user?.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt={user.fullName}
+                        className="h-full w-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                        {initials}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{user?.fullName}</span>
+                      <span className="text-muted-foreground text-xs">{user?.email}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push(`/profile/${user?.id}`)}>
+                    <User className="mr-2 h-4 w-4" />
+                    {t('profile')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/my-learning')}>
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    {t('myLearning')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/wishlist')}>
+                    <Heart className="mr-2 h-4 w-4" />
+                    {t('wishlist')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/orders')}>
+                    <Package className="mr-2 h-4 w-4" />
+                    {t('orders')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/settings')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    {t('settings')}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <div className="flex items-center gap-2 px-2 py-1.5 lg:hidden">
+                    <ThemeToggle />
+                    <LocaleSwitcher />
+                  </div>
+                  <DropdownMenuSeparator className="lg:hidden" />
+                  <DropdownMenuItem
+                    className="text-destructive cursor-pointer"
+                    onClick={() =>
+                      logoutMutation.mutate(undefined, { onSettled: () => router.push('/login') })
+                    }
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    {t('logout')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <>
+              {/* Guest: Login + Register buttons */}
+              <div className="ml-2 hidden items-center gap-2 lg:flex">
+                <ThemeToggle />
+                <LocaleSwitcher />
+              </div>
+              <Link href="/login">
+                <Button variant="ghost" size="sm">
+                  {t('login')}
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button size="sm">{t('register')}</Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
