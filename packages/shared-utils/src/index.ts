@@ -35,3 +35,32 @@ export function formatRelativeTime(date: string | Date, locale: string = 'vi'): 
   if (diffMinutes > 0) return rtf.format(-diffMinutes, 'minute');
   return rtf.format(-diffSeconds, 'second');
 }
+
+/**
+ * Check if error is an API error with code and statusCode
+ */
+export function isApiError(
+  error: unknown,
+): error is { code: string; statusCode: number; message: string } {
+  return typeof error === 'object' && error !== null && 'code' in error && 'statusCode' in error;
+}
+
+/**
+ * Get i18n key for API error code
+ */
+export function getErrorMessageKey(code: string): string {
+  return `apiErrors.${code}`;
+}
+
+/**
+ * Format duration in seconds to human-readable (e.g., "2h 30m" or "5m")
+ */
+export function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+
+  if (hours > 0) {
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  }
+  return `${minutes}m`;
+}
