@@ -16,7 +16,6 @@ import { CreateAnswerDto } from '../dto/create-answer.dto';
 
 @Controller('questions')
 @ApiTags('Q&A')
-@ApiBearerAuth()
 export class QuestionsController {
   constructor(
     @Inject(QuestionsService)
@@ -25,18 +24,21 @@ export class QuestionsController {
     private readonly answersService: AnswersService,
   ) {}
 
+  @ApiBearerAuth()
   @Post()
   @ApiOperation({ summary: 'Create a question' })
   async create(@CurrentUser() user: JwtPayload, @Body() dto: CreateQuestionDto) {
     return this.questionsService.create(user.sub, dto);
   }
 
+  @Public()
   @Get()
   @ApiOperation({ summary: 'List questions with filters' })
   async findAll(@Query() query: QueryQuestionsDto) {
     return this.questionsService.findAll(query);
   }
 
+  @Public()
   @Get('similar')
   @ApiOperation({ summary: 'Find similar questions' })
   async findSimilar(@Query('title') title: string) {
@@ -50,6 +52,7 @@ export class QuestionsController {
     return this.questionsService.findById(id);
   }
 
+  @ApiBearerAuth()
   @Put(':id')
   @ApiOperation({ summary: 'Update question (owner only)' })
   async update(
@@ -60,12 +63,14 @@ export class QuestionsController {
     return this.questionsService.update(id, user.sub, dto);
   }
 
+  @ApiBearerAuth()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete question (owner only)' })
   async delete(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: JwtPayload) {
     return this.questionsService.delete(id, user.sub);
   }
 
+  @ApiBearerAuth()
   @Post(':id/answers')
   @ApiOperation({ summary: 'Post an answer' })
   async createAnswer(
@@ -76,6 +81,7 @@ export class QuestionsController {
     return this.answersService.create(user.sub, id, dto);
   }
 
+  @ApiBearerAuth()
   @Put(':id/best-answer')
   @ApiOperation({ summary: 'Mark best answer (owner/instructor)' })
   async markBestAnswer(

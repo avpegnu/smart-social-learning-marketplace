@@ -38,7 +38,6 @@ const REFRESH_COOKIE_OPTIONS = {
 
 @Controller('auth')
 @ApiTags('Auth')
-@ApiBearerAuth()
 export class AuthController {
   constructor(@Inject(AuthService) private readonly authService: AuthService) {}
 
@@ -79,6 +78,7 @@ export class AuthController {
     return { accessToken: result.accessToken };
   }
 
+  @ApiBearerAuth()
   @Post('logout')
   @ApiOperation({ summary: 'Logout and invalidate refresh token' })
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -112,6 +112,7 @@ export class AuthController {
     return this.authService.resetPassword(dto);
   }
 
+  @ApiBearerAuth()
   @Get('ott')
   @ApiOperation({ summary: 'Generate one-time token for cross-portal redirect' })
   async generateOtt(@CurrentUser() user: JwtPayload) {

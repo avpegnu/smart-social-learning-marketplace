@@ -26,24 +26,26 @@ import { UpdateNotificationPreferencesDto } from './dto/update-notification-pref
 
 @Controller('users')
 @ApiTags('Users')
-@ApiBearerAuth()
 export class UsersController {
   constructor(@Inject(UsersService) private readonly usersService: UsersService) {}
 
   // ==================== AUTHENTICATED ENDPOINTS ====================
 
+  @ApiBearerAuth()
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
   async getMe(@CurrentUser() user: JwtPayload) {
     return this.usersService.getMe(user.sub);
   }
 
+  @ApiBearerAuth()
   @Patch('me')
   @ApiOperation({ summary: 'Update current user profile' })
   async updateProfile(@CurrentUser() user: JwtPayload, @Body() dto: UpdateProfileDto) {
     return this.usersService.updateProfile(user.sub, dto);
   }
 
+  @ApiBearerAuth()
   @Put('me/notification-preferences')
   @ApiOperation({ summary: 'Update notification preferences' })
   async updateNotificationPreferences(
@@ -64,12 +66,14 @@ export class UsersController {
 
   // ==================== FOLLOW SYSTEM (Authenticated) ====================
 
+  @ApiBearerAuth()
   @Post(':id/follow')
   @ApiOperation({ summary: 'Follow a user' })
   async follow(@CurrentUser() user: JwtPayload, @Param('id', ParseCuidPipe) id: string) {
     return this.usersService.follow(user.sub, id);
   }
 
+  @ApiBearerAuth()
   @Delete(':id/follow')
   @ApiOperation({ summary: 'Unfollow a user' })
   async unfollow(@CurrentUser() user: JwtPayload, @Param('id', ParseCuidPipe) id: string) {

@@ -212,8 +212,18 @@ export class GroupsService {
     ]);
   }
 
-  async getGroupPosts(groupId: string, userId: string, query: PaginationDto) {
-    await this.verifyGroupMember(groupId, userId);
+  async getGroupPosts(groupId: string, userId: string | undefined, query: PaginationDto) {
+    // Private groups require membership; public groups are open
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
+      select: { privacy: true },
+    });
+    if (!group) throw new NotFoundException({ code: 'GROUP_NOT_FOUND' });
+
+    if (group.privacy === 'PRIVATE') {
+      if (!userId) throw new ForbiddenException({ code: 'NOT_GROUP_MEMBER' });
+      await this.verifyGroupMember(groupId, userId);
+    }
 
     const [posts, total] = await Promise.all([
       this.prisma.post.findMany({

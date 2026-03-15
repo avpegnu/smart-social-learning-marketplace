@@ -17,7 +17,6 @@ import { CreateCommentDto } from '../dto/create-comment.dto';
 
 @Controller('posts')
 @ApiTags('Posts')
-@ApiBearerAuth()
 export class PostsController {
   constructor(
     @Inject(PostsService) private readonly postsService: PostsService,
@@ -27,6 +26,7 @@ export class PostsController {
     private readonly interactionsService: InteractionsService,
   ) {}
 
+  @ApiBearerAuth()
   @Post()
   @ApiOperation({ summary: 'Create a new post' })
   async create(@CurrentUser() user: JwtPayload, @Body() dto: CreatePostDto) {
@@ -40,6 +40,7 @@ export class PostsController {
     return this.postsService.findById(id, user?.sub);
   }
 
+  @ApiBearerAuth()
   @Put(':id')
   @ApiOperation({ summary: 'Update post (owner only)' })
   async update(
@@ -50,12 +51,14 @@ export class PostsController {
     return this.postsService.update(id, user.sub, dto);
   }
 
+  @ApiBearerAuth()
   @Delete(':id')
   @ApiOperation({ summary: 'Soft delete post (owner only)' })
   async delete(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: JwtPayload) {
     return this.postsService.delete(id, user.sub);
   }
 
+  @ApiBearerAuth()
   @Post(':id/share')
   @ApiOperation({ summary: 'Share a post' })
   async share(
@@ -66,12 +69,14 @@ export class PostsController {
     return this.postsService.share(user.sub, id, content);
   }
 
+  @ApiBearerAuth()
   @Post(':id/like')
   @ApiOperation({ summary: 'Toggle like on a post' })
   async toggleLike(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: JwtPayload) {
     return this.interactionsService.toggleLike(user.sub, id);
   }
 
+  @ApiBearerAuth()
   @Post(':id/bookmark')
   @ApiOperation({ summary: 'Toggle bookmark on a post' })
   async toggleBookmark(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: JwtPayload) {
@@ -85,6 +90,7 @@ export class PostsController {
     return this.commentsService.getByPost(id, query);
   }
 
+  @ApiBearerAuth()
   @Post(':id/comments')
   @ApiOperation({ summary: 'Add a comment to a post' })
   async addComment(
@@ -95,6 +101,7 @@ export class PostsController {
     return this.commentsService.create(user.sub, id, dto);
   }
 
+  @ApiBearerAuth()
   @Delete(':postId/comments/:commentId')
   @ApiOperation({ summary: 'Delete a comment (owner only)' })
   async deleteComment(

@@ -19,7 +19,6 @@ import { CreatePostDto } from '../dto/create-post.dto';
 
 @Controller('groups')
 @ApiTags('Groups')
-@ApiBearerAuth()
 export class GroupsController {
   constructor(
     @Inject(GroupsService) private readonly groupsService: GroupsService,
@@ -33,6 +32,7 @@ export class GroupsController {
     return this.groupsService.findAll(query);
   }
 
+  @ApiBearerAuth()
   @Post()
   @ApiOperation({ summary: 'Create a group' })
   async create(@CurrentUser() user: JwtPayload, @Body() dto: CreateGroupDto) {
@@ -46,6 +46,7 @@ export class GroupsController {
     return this.groupsService.findById(id, user?.sub);
   }
 
+  @ApiBearerAuth()
   @Put(':id')
   @ApiOperation({ summary: 'Update group (owner/admin)' })
   async update(
@@ -56,30 +57,35 @@ export class GroupsController {
     return this.groupsService.update(id, user.sub, dto);
   }
 
+  @ApiBearerAuth()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete group (owner only)' })
   async delete(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: JwtPayload) {
     return this.groupsService.delete(id, user.sub);
   }
 
+  @ApiBearerAuth()
   @Post(':id/join')
   @ApiOperation({ summary: 'Join a group' })
   async join(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: JwtPayload) {
     return this.groupsService.join(id, user.sub);
   }
 
+  @ApiBearerAuth()
   @Post(':id/leave')
   @ApiOperation({ summary: 'Leave a group' })
   async leave(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: JwtPayload) {
     return this.groupsService.leave(id, user.sub);
   }
 
+  @Public()
   @Get(':id/members')
   @ApiOperation({ summary: 'List group members' })
   async getMembers(@Param('id', ParseCuidPipe) id: string, @Query() query: PaginationDto) {
     return this.groupsService.getMembers(id, query);
   }
 
+  @ApiBearerAuth()
   @Put(':id/members/:userId')
   @ApiOperation({ summary: 'Change member role (owner/admin)' })
   async updateMemberRole(
@@ -91,6 +97,7 @@ export class GroupsController {
     return this.groupsService.updateMemberRole(id, user.sub, targetUserId, role);
   }
 
+  @ApiBearerAuth()
   @Delete(':id/members/:userId')
   @ApiOperation({ summary: 'Kick member (owner/admin)' })
   async kickMember(
@@ -101,16 +108,18 @@ export class GroupsController {
     return this.groupsService.kickMember(id, user.sub, targetUserId);
   }
 
+  @Public()
   @Get(':id/posts')
   @ApiOperation({ summary: 'Get group posts' })
   async getGroupPosts(
     @Param('id', ParseCuidPipe) id: string,
-    @CurrentUser() user: JwtPayload,
+    @CurrentUser() user: JwtPayload | undefined,
     @Query() query: PaginationDto,
   ) {
-    return this.groupsService.getGroupPosts(id, user.sub, query);
+    return this.groupsService.getGroupPosts(id, user?.sub, query);
   }
 
+  @ApiBearerAuth()
   @Post(':id/posts')
   @ApiOperation({ summary: 'Create post in group' })
   async createGroupPost(
