@@ -11,7 +11,8 @@
     "next": "Next",
     "submit": "Submit",
     "confirm": "Confirm",
-    "or": "or"
+    "or": "or",
+    "unknownError": "Something went wrong. Please try again."
   },
   "nav": {
     "home": "Home",
@@ -27,7 +28,12 @@
     "logout": "Log out",
     "searchPlaceholder": "Search courses...",
     "learn": "Learn",
-    "search": "Search"
+    "search": "Search",
+    "login": "Login",
+    "register": "Register",
+    "orders": "Orders",
+    "notifications": "Notifications",
+    "cart": "Cart"
   },
   "home": {
     "heroBadge": "#1 Platform in Vietnam",
@@ -326,14 +332,21 @@
     "description": "We sent a verification email to {email}",
     "resend": "Resend email",
     "resendCountdown": "Resend in {seconds}s",
-    "backToLogin": "Back to login"
+    "backToLogin": "Back to login",
+    "verified": "Email verified successfully!",
+    "verifying": "Verifying...",
+    "resendSuccess": "Verification email resent",
+    "enterEmail": "Enter your email to resend verification"
   },
   "forgotPassword": {
     "title": "Forgot password",
     "description": "Enter your email and we'll send you a reset link.",
     "emailPlaceholder": "email@example.com",
     "sendLink": "Send reset link",
-    "backToLogin": "Back to login"
+    "backToLogin": "Back to login",
+    "emailSent": "Password reset email sent",
+    "sentTitle": "Email sent",
+    "sentDescription": "Check your inbox for the password reset link."
   },
   "resetPassword": {
     "title": "Reset password",
@@ -346,7 +359,11 @@
     "weak": "Weak",
     "fair": "Fair",
     "good": "Good",
-    "strong": "Strong"
+    "strong": "Strong",
+    "success": "Password reset successfully!",
+    "invalidToken": "Invalid or expired reset link",
+    "requestNewLink": "Request a new link",
+    "backToLogin": "Back to login"
   },
   "googleCallback": {
     "processing": "Processing login..."
@@ -533,5 +550,43 @@
     "title": "Something went wrong",
     "description": "An error occurred. Please try again later.",
     "retry": "Try again"
+  },
+  "apiErrors": {
+    "INVALID_CREDENTIALS": "Invalid email or password",
+    "EMAIL_ALREADY_EXISTS": "Email is already in use",
+    "EMAIL_NOT_VERIFIED": "Please verify your email before logging in",
+    "ACCOUNT_SUSPENDED": "Account has been suspended",
+    "INVALID_VERIFICATION_TOKEN": "Invalid or expired verification token",
+    "INVALID_RESET_TOKEN": "Invalid or expired reset link",
+    "INVALID_REFRESH_TOKEN": "Session expired",
+    "MISSING_REFRESH_TOKEN": "Please log in again",
+    "TOO_MANY_LOGIN_ATTEMPTS": "Too many attempts. Please wait a moment.",
+    "USER_NOT_FOUND": "User not found",
+    "COURSE_NOT_FOUND": "Course not found",
+    "ALREADY_ENROLLED": "You are already enrolled in this course",
+    "NOT_ENROLLED": "You are not enrolled in this course",
+    "CART_EMPTY": "Cart is empty",
+    "ALREADY_IN_CART": "Course is already in cart",
+    "ALREADY_IN_WISHLIST": "Course is already in wishlist",
+    "COUPON_NOT_FOUND": "Coupon code not found",
+    "COUPON_EXPIRED": "Coupon has expired",
+    "COUPON_USAGE_EXCEEDED": "Coupon usage limit reached",
+    "COUPON_NOT_APPLICABLE": "Coupon not applicable to items in cart",
+    "ORDER_NOT_FOUND": "Order not found",
+    "CANNOT_FOLLOW_SELF": "Cannot follow yourself",
+    "ALREADY_FOLLOWING": "Already following this user",
+    "NOT_FOLLOWING": "Not following this user",
+    "LESSON_ACCESS_DENIED": "You do not have access to this lesson",
+    "AI_DAILY_LIMIT_REACHED": "AI daily question limit reached",
+    "QUESTION_NOT_FOUND": "Question not found",
+    "ANSWER_NOT_FOUND": "Answer not found",
+    "GROUP_NOT_FOUND": "Group not found",
+    "ALREADY_MEMBER": "Already a member of this group",
+    "NOT_GROUP_MEMBER": "Not a member of this group",
+    "REPORT_ALREADY_EXISTS": "You have already reported this content",
+    "APPLICATION_ALREADY_PENDING": "Application is pending review",
+    "INSUFFICIENT_PROGRESS": "Complete at least 30% of the course to review",
+    "ALREADY_REVIEWED": "You have already reviewed this course",
+    "validationError": "Invalid data"
   }
 }

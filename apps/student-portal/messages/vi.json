@@ -11,7 +11,8 @@
     "next": "Tiếp theo",
     "submit": "Gửi",
     "confirm": "Xác nhận",
-    "or": "hoặc"
+    "or": "hoặc",
+    "unknownError": "Có lỗi xảy ra. Vui lòng thử lại."
   },
   "nav": {
     "home": "Trang chủ",
@@ -27,7 +28,12 @@
     "logout": "Đăng xuất",
     "searchPlaceholder": "Tìm kiếm khóa học...",
     "learn": "Học tập",
-    "search": "Tìm kiếm"
+    "search": "Tìm kiếm",
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "orders": "Đơn hàng",
+    "notifications": "Thông báo",
+    "cart": "Giỏ hàng"
   },
   "home": {
     "heroBadge": "Nền tảng #1 Việt Nam",
@@ -326,14 +332,21 @@
     "description": "Chúng tôi đã gửi email xác nhận đến {email}",
     "resend": "Gửi lại email",
     "resendCountdown": "Gửi lại sau {seconds}s",
-    "backToLogin": "Quay lại đăng nhập"
+    "backToLogin": "Quay lại đăng nhập",
+    "verified": "Xác nhận email thành công!",
+    "verifying": "Đang xác nhận...",
+    "resendSuccess": "Đã gửi lại email xác nhận",
+    "enterEmail": "Nhập email để gửi lại xác nhận"
   },
   "forgotPassword": {
     "title": "Quên mật khẩu",
     "description": "Nhập email của bạn và chúng tôi sẽ gửi link đặt lại mật khẩu.",
     "emailPlaceholder": "email@example.com",
     "sendLink": "Gửi link đặt lại",
-    "backToLogin": "Quay lại đăng nhập"
+    "backToLogin": "Quay lại đăng nhập",
+    "emailSent": "Đã gửi email đặt lại mật khẩu",
+    "sentTitle": "Email đã được gửi",
+    "sentDescription": "Kiểm tra hộp thư đến của bạn để đặt lại mật khẩu."
   },
   "resetPassword": {
     "title": "Đặt lại mật khẩu",
@@ -346,7 +359,11 @@
     "weak": "Yếu",
     "fair": "Trung bình",
     "good": "Tốt",
-    "strong": "Mạnh"
+    "strong": "Mạnh",
+    "success": "Đặt lại mật khẩu thành công!",
+    "invalidToken": "Link không hợp lệ hoặc đã hết hạn",
+    "requestNewLink": "Yêu cầu link mới",
+    "backToLogin": "Quay lại đăng nhập"
   },
   "googleCallback": {
     "processing": "Đang xử lý đăng nhập..."
@@ -533,5 +550,43 @@
     "title": "Đã xảy ra lỗi",
     "description": "Đã có lỗi xảy ra. Vui lòng thử lại sau.",
     "retry": "Thử lại"
+  },
+  "apiErrors": {
+    "INVALID_CREDENTIALS": "Email hoặc mật khẩu không đúng",
+    "EMAIL_ALREADY_EXISTS": "Email đã được sử dụng",
+    "EMAIL_NOT_VERIFIED": "Vui lòng xác nhận email trước khi đăng nhập",
+    "ACCOUNT_SUSPENDED": "Tài khoản đã bị tạm khóa",
+    "INVALID_VERIFICATION_TOKEN": "Mã xác nhận không hợp lệ hoặc đã hết hạn",
+    "INVALID_RESET_TOKEN": "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn",
+    "INVALID_REFRESH_TOKEN": "Phiên đăng nhập đã hết hạn",
+    "MISSING_REFRESH_TOKEN": "Vui lòng đăng nhập lại",
+    "TOO_MANY_LOGIN_ATTEMPTS": "Quá nhiều lần thử. Vui lòng đợi một lát.",
+    "USER_NOT_FOUND": "Không tìm thấy người dùng",
+    "COURSE_NOT_FOUND": "Không tìm thấy khóa học",
+    "ALREADY_ENROLLED": "Bạn đã ghi danh khóa học này",
+    "NOT_ENROLLED": "Bạn chưa ghi danh khóa học này",
+    "CART_EMPTY": "Giỏ hàng trống",
+    "ALREADY_IN_CART": "Khóa học đã có trong giỏ hàng",
+    "ALREADY_IN_WISHLIST": "Khóa học đã có trong danh sách yêu thích",
+    "COUPON_NOT_FOUND": "Mã giảm giá không tồn tại",
+    "COUPON_EXPIRED": "Mã giảm giá đã hết hạn",
+    "COUPON_USAGE_EXCEEDED": "Mã giảm giá đã hết lượt sử dụng",
+    "COUPON_NOT_APPLICABLE": "Mã giảm giá không áp dụng cho sản phẩm trong giỏ hàng",
+    "ORDER_NOT_FOUND": "Không tìm thấy đơn hàng",
+    "CANNOT_FOLLOW_SELF": "Không thể theo dõi chính mình",
+    "ALREADY_FOLLOWING": "Bạn đã theo dõi người dùng này",
+    "NOT_FOLLOWING": "Bạn chưa theo dõi người dùng này",
+    "LESSON_ACCESS_DENIED": "Bạn không có quyền truy cập bài học này",
+    "AI_DAILY_LIMIT_REACHED": "Đã đạt giới hạn câu hỏi AI hôm nay",
+    "QUESTION_NOT_FOUND": "Không tìm thấy câu hỏi",
+    "ANSWER_NOT_FOUND": "Không tìm thấy câu trả lời",
+    "GROUP_NOT_FOUND": "Không tìm thấy nhóm",
+    "ALREADY_MEMBER": "Bạn đã là thành viên nhóm này",
+    "NOT_GROUP_MEMBER": "Bạn không phải thành viên nhóm này",
+    "REPORT_ALREADY_EXISTS": "Bạn đã báo cáo nội dung này",
+    "APPLICATION_ALREADY_PENDING": "Đơn đăng ký đang chờ xét duyệt",
+    "INSUFFICIENT_PROGRESS": "Bạn cần hoàn thành ít nhất 30% khóa học để đánh giá",
+    "ALREADY_REVIEWED": "Bạn đã đánh giá khóa học này",
+    "validationError": "Dữ liệu không hợp lệ"
   }
 }
