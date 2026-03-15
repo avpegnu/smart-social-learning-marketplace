@@ -21,6 +21,8 @@ import { WithdrawalsModule } from './modules/withdrawals/withdrawals.module';
 import { LearningModule } from './modules/learning/learning.module';
 import { SocialModule } from './modules/social/social.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { QnaModule } from './modules/qna/qna.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -61,6 +63,8 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
     LearningModule,
     SocialModule,
     ChatModule,
+    QnaModule,
+    NotificationsModule,
   ],
   providers: [
     // Global guards (order: ThrottlerGuard → JwtAuthGuard)
