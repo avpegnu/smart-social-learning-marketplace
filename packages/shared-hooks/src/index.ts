@@ -8,6 +8,7 @@ export { useDebounce } from './use-debounce';
 export { useMediaQuery } from './use-media-query';
 export { useInfiniteScroll } from './use-infinite-scroll';
 export { useApiError } from './use-api-error';
+export { useAuthHydrated } from './use-auth-hydrated';
 export { useChatSocket } from './use-chat-socket';
 export { useNotificationSocket } from './use-notification-socket';
 
@@ -21,3 +22,10 @@ export {
   useResetPassword,
   useLogout,
 } from './api/use-auth';
+
+export {
+  useUnreadNotificationCount,
+  useNotifications,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+} from './api/use-notifications';

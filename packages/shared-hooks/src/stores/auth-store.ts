@@ -59,8 +59,14 @@ export const useAuthStore = create<AuthState>()(
               removeItem: () => {},
             },
       ),
-      // Only persist user profile, NOT accessToken (security)
-      partialize: (state) => ({ user: state.user }),
+      // Persist user + token to sessionStorage (tab-scoped, cleared on tab close)
+      // This prevents unnecessary refresh calls on page reload (F5)
+      // If token expires while stored, apiClient's 401 handler will auto-refresh
+      partialize: (state) => ({
+        user: state.user,
+        accessToken: state.accessToken,
+        isAuthenticated: state.isAuthenticated,
+      }),
     },
   ),
 );
