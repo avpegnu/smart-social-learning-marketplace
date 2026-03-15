@@ -9,9 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@shared/ui": "*",
     "@hookform/resolvers": "^5.2.2",
+    "@shared/ui": "*",
     "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-query-devtools": "^5.91.3",
     "@tiptap/extension-placeholder": "^3.20.1",
     "@tiptap/react": "^3.20.1",
     "@tiptap/starter-kit": "^3.20.1",
