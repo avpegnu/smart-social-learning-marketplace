@@ -1,52 +1,73 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/navigation';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
-import { Button, Input, Separator } from '@shared/ui';
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { useRouter, Link } from '@/i18n/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { Button, Input, Separator, Progress } from '@shared/ui';
+import { useRegister } from '@shared/hooks';
+import { registerSchema, type RegisterValues } from '@/lib/validations/auth';
+
+function getPasswordStrength(password: string): number {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[^a-zA-Z0-9]/.test(password)) score++;
+  return score;
+}
 
 export default function RegisterPage() {
   const t = useTranslations('auth');
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [password, setPassword] = useState('');
-  const [agreed, setAgreed] = useState(false);
 
-  const getPasswordStrength = (pwd: string): { level: number; label: string; color: string } => {
-    if (pwd.length === 0) return { level: 0, label: '', color: '' };
-    let score = 0;
-    if (pwd.length >= 8) score++;
-    if (/[A-Z]/.test(pwd)) score++;
-    if (/[0-9]/.test(pwd)) score++;
-    if (/[^A-Za-z0-9]/.test(pwd)) score++;
-    const labels = [t('weak'), t('fair'), t('good'), t('strong')];
-    const colors = ['bg-destructive', 'bg-warning', 'bg-warning', 'bg-success'];
-    return {
-      level: score,
-      label: labels[score - 1] || t('weak'),
-      color: colors[score - 1] || 'bg-destructive',
-    };
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<RegisterValues>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const password = watch('password', '');
+  const strength = useMemo(() => getPasswordStrength(password), [password]);
+  const strengthLabels = [t('weak'), t('weak'), t('fair'), t('good'), t('strong')];
+
+  const mutation = useRegister();
+
+  const onSubmit = (data: RegisterValues) => {
+    mutation.mutate(
+      { fullName: data.fullName, email: data.email, password: data.password },
+      { onSuccess: () => router.push(`/verify-email?email=${encodeURIComponent(data.email)}`) },
+    );
   };
-
-  const strength = getPasswordStrength(password);
 
   return (
     <div>
       <h1 className="mb-2 text-2xl font-bold">{t('registerTitle')}</h1>
       <p className="text-muted-foreground mb-8">{t('registerSubtitle')}</p>
 
-      <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         {/* Full Name */}
         <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="name">
+          <label className="text-sm font-medium" htmlFor="fullName">
             {t('fullName')}
           </label>
           <div className="relative">
             <User className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input id="name" placeholder={t('fullNamePlaceholder')} className="pl-9" />
+            <Input
+              id="fullName"
+              placeholder={t('fullNamePlaceholder')}
+              className="pl-9"
+              {...register('fullName')}
+            />
           </div>
+          {errors.fullName && <p className="text-destructive text-sm">{errors.fullName.message}</p>}
         </div>
 
         {/* Email */}
@@ -56,8 +77,15 @@ export default function RegisterPage() {
           </label>
           <div className="relative">
             <Mail className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input id="email" type="email" placeholder={t('emailPlaceholder')} className="pl-9" />
+            <Input
+              id="email"
+              type="email"
+              placeholder={t('emailPlaceholder')}
+              className="pl-9"
+              {...register('email')}
+            />
           </div>
+          {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
         </div>
 
         {/* Password */}
@@ -72,8 +100,7 @@ export default function RegisterPage() {
               type={showPassword ? 'text' : 'password'}
               placeholder={t('passwordPlaceholder')}
               className="pr-10 pl-9"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              {...register('password')}
             />
             <button
               type="button"
@@ -83,23 +110,13 @@ export default function RegisterPage() {
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          {/* Password strength */}
-          {password.length > 0 && (
+          {password && (
             <div className="space-y-1">
-              <div className="flex gap-1">
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      'h-1 flex-1 rounded-full transition-colors',
-                      i <= strength.level ? strength.color : 'bg-muted',
-                    )}
-                  />
-                ))}
-              </div>
-              <p className="text-muted-foreground text-xs">{strength.label}</p>
+              <Progress value={strength * 25} className="h-1.5" />
+              <p className="text-muted-foreground text-xs">{strengthLabels[strength]}</p>
             </div>
           )}
+          {errors.password && <p className="text-destructive text-sm">{errors.password.message}</p>}
         </div>
 
         {/* Confirm Password */}
@@ -114,6 +131,7 @@ export default function RegisterPage() {
               type={showConfirm ? 'text' : 'password'}
               placeholder={t('confirmPasswordPlaceholder')}
               className="pr-10 pl-9"
+              {...register('confirmPassword')}
             />
             <button
               type="button"
@@ -123,27 +141,20 @@ export default function RegisterPage() {
               {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
+          {errors.confirmPassword && (
+            <p className="text-destructive text-sm">{errors.confirmPassword.message}</p>
+          )}
         </div>
 
-        {/* Terms */}
-        <div className="flex items-start gap-2">
-          <input
-            type="checkbox"
-            id="terms"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="border-input mt-1 rounded"
-          />
-          <label htmlFor="terms" className="text-muted-foreground cursor-pointer text-sm">
-            {t('agreeTerms')}{' '}
-            <Link href="#" className="text-primary hover:underline">
-              {t('termsLink')}
-            </Link>
-          </label>
-        </div>
-
-        <Button type="submit" className="w-full" disabled={!agreed}>
-          {t('registerButton')}
+        <Button type="submit" className="w-full" disabled={mutation.isPending}>
+          {mutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {t('registerButton')}
+            </>
+          ) : (
+            t('registerButton')
+          )}
         </Button>
       </form>
 
@@ -155,8 +166,8 @@ export default function RegisterPage() {
         </span>
       </div>
 
-      {/* Google OAuth */}
-      <Button variant="outline" className="w-full gap-2">
+      {/* Google OAuth — not yet implemented */}
+      <Button variant="outline" className="w-full gap-2" disabled>
         <svg className="h-4 w-4" viewBox="0 0 24 24">
           <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"

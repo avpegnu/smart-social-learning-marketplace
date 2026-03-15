@@ -1,21 +1,47 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/navigation';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { Button, Input, Separator } from '@shared/ui';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
+import { useRouter, Link } from '@/i18n/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
+import { Button, Input, Separator } from '@shared/ui';
+import { useLogin } from '@shared/hooks';
+import { loginSchema, type LoginValues } from '@/lib/validations/auth';
 
 export default function LoginPage() {
   const t = useTranslations('auth');
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const mutation = useLogin();
+
+  const onSubmit = (data: LoginValues) => {
+    mutation.mutate(data, {
+      onSuccess: () => {
+        const redirect = searchParams.get('redirect') || '/';
+        router.push(redirect);
+      },
+    });
+  };
 
   return (
     <div>
       <h1 className="mb-2 text-2xl font-bold">{t('loginTitle')}</h1>
       <p className="text-muted-foreground mb-8">{t('loginSubtitle')}</p>
 
-      <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         {/* Email */}
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor="email">
@@ -23,8 +49,15 @@ export default function LoginPage() {
           </label>
           <div className="relative">
             <Mail className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input id="email" type="email" placeholder={t('emailPlaceholder')} className="pl-9" />
+            <Input
+              id="email"
+              type="email"
+              placeholder={t('emailPlaceholder')}
+              className="pl-9"
+              {...register('email')}
+            />
           </div>
+          {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
         </div>
 
         {/* Password */}
@@ -33,7 +66,7 @@ export default function LoginPage() {
             <label className="text-sm font-medium" htmlFor="password">
               {t('password')}
             </label>
-            <Link href="#" className="text-primary text-xs hover:underline">
+            <Link href="/forgot-password" className="text-primary text-xs hover:underline">
               {t('forgotPassword')}
             </Link>
           </div>
@@ -44,6 +77,7 @@ export default function LoginPage() {
               type={showPassword ? 'text' : 'password'}
               placeholder={t('passwordPlaceholder')}
               className="pr-10 pl-9"
+              {...register('password')}
             />
             <button
               type="button"
@@ -53,10 +87,18 @@ export default function LoginPage() {
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
+          {errors.password && <p className="text-destructive text-sm">{errors.password.message}</p>}
         </div>
 
-        <Button type="submit" className="w-full">
-          {t('loginButton')}
+        <Button type="submit" className="w-full" disabled={mutation.isPending}>
+          {mutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {t('loginButton')}
+            </>
+          ) : (
+            t('loginButton')
+          )}
         </Button>
       </form>
 
@@ -68,8 +110,8 @@ export default function LoginPage() {
         </span>
       </div>
 
-      {/* Google OAuth */}
-      <Button variant="outline" className="w-full gap-2">
+      {/* Google OAuth — not yet implemented */}
+      <Button variant="outline" className="w-full gap-2" disabled>
         <svg className="h-4 w-4" viewBox="0 0 24 24">
           <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"

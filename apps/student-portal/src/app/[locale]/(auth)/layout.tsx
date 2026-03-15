@@ -1,12 +1,23 @@
 'use client';
 
+import { useEffect } from 'react';
 import { GraduationCap, BookOpen, Users, Bot, Star } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LocaleSwitcher } from '@/components/locale-switcher';
 import { useTranslations } from 'next-intl';
+import { useAuthStore } from '@shared/hooks';
+import { useRouter } from '@/i18n/navigation';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations('auth');
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated) router.replace('/');
+  }, [isAuthenticated, router]);
+
+  if (isAuthenticated) return null;
 
   const features = [
     { icon: BookOpen, title: t('feature1Title'), description: t('feature1Desc') },
