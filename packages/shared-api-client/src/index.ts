@@ -1,2 +1,3 @@
-// API client & TanStack Query hooks will be added incrementally
-export {};
+export { apiClient, serverFetch } from './client';
+export type { ApiResponse, ApiError } from './client';
+export { queryKeys } from './query-keys';
