@@ -130,6 +130,11 @@ enum GroupRole {
   MEMBER
 }
 
+enum GroupPrivacy {
+  PUBLIC
+  PRIVATE
+}
+
 // --- Notifications ---
 enum NotificationType {
   FOLLOW
@@ -1098,9 +1103,10 @@ model Group {
   name        String
   description String?
   avatarUrl   String? @map("avatar_url")
-  ownerId     String  @map("owner_id")
-  courseId    String? @unique @map("course_id")
-  memberCount Int     @default(1) @map("member_count")
+  ownerId     String       @map("owner_id")
+  courseId    String?      @unique @map("course_id")
+  privacy     GroupPrivacy @default(PUBLIC)
+  memberCount Int          @default(1) @map("member_count")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
