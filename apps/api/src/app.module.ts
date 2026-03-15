@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ConfigService } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
+import { BullModule } from '@nestjs/bullmq';
 
 import { AppConfigModule } from './config/config.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -25,6 +27,9 @@ import { QnaModule } from './modules/qna/qna.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AiTutorModule } from './modules/ai-tutor/ai-tutor.module';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { JobsModule } from './modules/jobs/jobs.module';
 
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -51,6 +56,22 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
     // Cron jobs
     ScheduleModule.forRoot(),
 
+    // Bull queues
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const url = config.get<string>('redis.url', 'redis://localhost:6379');
+        const parsed = new URL(url);
+        return {
+          connection: {
+            host: parsed.hostname,
+            port: parseInt(parsed.port || '6379', 10),
+            ...(parsed.password && { password: parsed.password }),
+          },
+        };
+      },
+    }),
+
     // Feature modules
     AuthModule,
     UsersModule,
@@ -69,6 +90,9 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
     NotificationsModule,
     AiTutorModule,
     RecommendationsModule,
+    AdminModule,
+    ReportsModule,
+    JobsModule,
   ],
   providers: [
     // Global guards (order: ThrottlerGuard → JwtAuthGuard)
