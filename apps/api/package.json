@@ -17,6 +17,7 @@
     "prisma:seed": "ts-node src/prisma/seed.ts"
   },
   "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
     "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.1.16",
     "@nestjs/config": "^4.0.3",
