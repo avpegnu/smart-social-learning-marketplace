@@ -9,6 +9,8 @@ import { AppConfigModule } from './config/config.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { MailModule } from './mail/mail.module';
+import { UploadsModule } from './uploads/uploads.module';
+import { MediaModule } from './modules/media/media.module';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -45,6 +47,8 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
     PrismaModule,
     RedisModule,
     MailModule,
+    UploadsModule,
+    MediaModule,
 
     // Rate limiting
     ThrottlerModule.forRoot([
