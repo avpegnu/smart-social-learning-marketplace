@@ -1,6 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from '@/i18n/navigation';
+import { useLogin } from '@shared/hooks';
 import {
   Card,
   CardContent,
@@ -10,13 +14,41 @@ import {
   Input,
   Button,
 } from '@shared/ui';
-import { GraduationCap } from 'lucide-react';
+import { GraduationCap, Loader2 } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LocaleSwitcher } from '@/components/locale-switcher';
+import { loginSchema, type LoginValues } from '@/lib/validations/auth';
 
 export default function LoginPage() {
   const t = useTranslations('auth');
   const tc = useTranslations('common');
+  const router = useRouter();
+  const loginMutation = useLogin();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
+
+  const onSubmit = (data: LoginValues) => {
+    loginMutation.mutate(data, {
+      onSuccess: (res) => {
+        const role = res.data.user.role;
+        if (role === 'ADMIN') {
+          router.push('/admin/dashboard');
+        } else if (role === 'INSTRUCTOR') {
+          router.push('/instructor/dashboard');
+        } else {
+          // Students cannot use management portal
+          router.push('/unauthorized');
+        }
+      },
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -35,36 +67,30 @@ export default function LoginPage() {
           <CardDescription>{t('loginSubtitle')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form
-            className="space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-          >
+          <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 {t('email')}
               </label>
-              <Input id="email" type="email" placeholder="admin@sslm.vn" required />
+              <Input id="email" type="email" placeholder="admin@sslm.vn" {...register('email')} />
+              {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm font-medium">
-                  {t('password')}
-                </label>
-                <a href="#" className="text-primary text-xs hover:underline">
-                  {t('forgotPassword')}
-                </a>
-              </div>
-              <Input id="password" type="password" placeholder="••••••••" required />
-            </div>
-            <div className="flex items-center gap-2">
-              <input type="checkbox" id="remember" className="border-input rounded" />
-              <label htmlFor="remember" className="text-muted-foreground text-sm">
-                {t('rememberMe')}
+              <label htmlFor="password" className="text-sm font-medium">
+                {t('password')}
               </label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                {...register('password')}
+              />
+              {errors.password && (
+                <p className="text-destructive text-sm">{errors.password.message}</p>
+              )}
             </div>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+              {loginMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t('login')}
             </Button>
           </form>
