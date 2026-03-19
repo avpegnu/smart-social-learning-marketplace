@@ -50,8 +50,8 @@ export class CourseManagementService {
   async update(courseId: string, instructorId: string, dto: UpdateCourseDto) {
     const course = await this.verifyOwnership(courseId, instructorId);
 
-    // Only allow editing when DRAFT or REJECTED
-    if (!['DRAFT', 'REJECTED'].includes(course.status)) {
+    // Only block editing when PENDING_REVIEW (admin is reviewing)
+    if (course.status === 'PENDING_REVIEW') {
       throw new BadRequestException({ code: 'COURSE_NOT_EDITABLE' });
     }
 

@@ -130,10 +130,10 @@ describe('CourseManagementService', () => {
   // ==================== update ====================
 
   describe('update', () => {
-    it('should reject update when course is PUBLISHED', async () => {
+    it('should reject update when course is PENDING_REVIEW', async () => {
       mockPrisma.course.findUnique.mockResolvedValue({
         ...MOCK_COURSE,
-        status: 'PUBLISHED',
+        status: 'PENDING_REVIEW',
       });
 
       await expect(

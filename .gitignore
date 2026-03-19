@@ -12,6 +12,7 @@ out/
 
 # Documentation (private, not pushed to GitHub)
 /docs
+/reports
 CLAUDE.md
 .claude
 
