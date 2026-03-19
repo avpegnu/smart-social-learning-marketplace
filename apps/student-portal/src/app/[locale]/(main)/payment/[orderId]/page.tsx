@@ -3,7 +3,8 @@
 import { useTranslations } from 'next-intl';
 import { QrCode, Copy, Loader2, Clock, BookOpen } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Separator, Badge } from '@shared/ui';
-import { mockCartItems, formatPrice } from '@/lib/mock-data';
+import { mockCartItems } from '@/lib/mock-data';
+import { formatPrice } from '@shared/utils';
 import { useState, useEffect } from 'react';
 
 export default function PaymentPage() {

@@ -5,7 +5,8 @@ import { Link } from '@/i18n/navigation';
 import { ShoppingBag, ChevronRight } from 'lucide-react';
 import { Button, Card, CardContent, Badge } from '@shared/ui';
 import { EmptyState } from '@/components/feedback/empty-state';
-import { mockOrders, formatPrice } from '@/lib/mock-data';
+import { mockOrders } from '@/lib/mock-data';
+import { formatPrice } from '@shared/utils';
 
 export default function OrdersPage() {
   const t = useTranslations('orders');

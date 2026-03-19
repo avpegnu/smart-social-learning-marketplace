@@ -6,7 +6,8 @@ import { Trash2, Heart, BookOpen, Tag, ShoppingCart } from 'lucide-react';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, Separator } from '@shared/ui';
 import { PriceDisplay } from '@/components/course/price-display';
 import { EmptyState } from '@/components/feedback/empty-state';
-import { mockCartItems, formatPrice } from '@/lib/mock-data';
+import { mockCartItems } from '@/lib/mock-data';
+import { formatPrice } from '@shared/utils';
 import { useState } from 'react';
 
 export default function CartPage() {

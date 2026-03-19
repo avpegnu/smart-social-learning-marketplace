@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { formatPrice } from '@/lib/mock-data';
+import { formatPrice } from '@shared/utils';
 
 interface PriceDisplayProps {
   price: number;

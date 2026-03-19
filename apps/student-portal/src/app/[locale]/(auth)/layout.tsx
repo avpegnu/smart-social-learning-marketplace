@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { GraduationCap, BookOpen, Users, Bot, Star } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LocaleSwitcher } from '@/components/locale-switcher';
+import { LocaleSwitcher } from '@/components/navigation/locale-switcher';
 import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@shared/hooks';
 import { useRouter } from '@/i18n/navigation';

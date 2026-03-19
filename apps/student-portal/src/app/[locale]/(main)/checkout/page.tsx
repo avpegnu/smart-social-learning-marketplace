@@ -5,7 +5,8 @@ import { Link } from '@/i18n/navigation';
 import { BookOpen, QrCode, Shield } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Separator, Badge } from '@shared/ui';
 import { PriceDisplay } from '@/components/course/price-display';
-import { mockCartItems, formatPrice } from '@/lib/mock-data';
+import { mockCartItems } from '@/lib/mock-data';
+import { formatPrice } from '@shared/utils';
 import { useState } from 'react';
 
 export default function CheckoutPage() {

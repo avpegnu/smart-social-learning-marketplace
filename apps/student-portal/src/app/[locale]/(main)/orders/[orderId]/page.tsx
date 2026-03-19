@@ -4,7 +4,8 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Badge, Separator } from '@shared/ui';
-import { mockOrders, formatPrice } from '@/lib/mock-data';
+import { mockOrders } from '@/lib/mock-data';
+import { formatPrice } from '@shared/utils';
 
 export default function OrderDetailPage() {
   const t = useTranslations('orderDetail');

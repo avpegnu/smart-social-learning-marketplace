@@ -34,7 +34,7 @@ import {
   DropdownMenuLabel,
 } from '@shared/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LocaleSwitcher } from '@/components/locale-switcher';
+import { LocaleSwitcher } from '@/components/navigation/locale-switcher';
 import { useAuthStore, useCartStore, useLogout, useAuthHydrated } from '@shared/hooks';
 import { apiClient, queryKeys } from '@shared/api-client';
 
