@@ -14,7 +14,8 @@ import {
   TableRow,
 } from '@shared/ui';
 import { Check, X, MessageSquare, Image, Eye } from 'lucide-react';
-import { pendingCourseReviews, formatDate, formatCurrency } from '@/lib/mock-data';
+import { pendingCourseReviews } from '@/lib/mock-data';
+import { formatPrice, formatDate } from '@shared/utils';
 
 export default function CourseReviewsPage() {
   const t = useTranslations('approvals');
@@ -56,7 +57,7 @@ export default function CourseReviewsPage() {
                       <span className="text-sm">{course.instructor}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="tabular-nums">{formatCurrency(course.price)}</TableCell>
+                  <TableCell className="tabular-nums">{formatPrice(course.price)}</TableCell>
                   <TableCell className="text-sm">
                     {course.submittedAt ? formatDate(course.submittedAt) : '-'}
                   </TableCell>

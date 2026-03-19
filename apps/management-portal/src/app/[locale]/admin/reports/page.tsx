@@ -6,13 +6,8 @@ import { DataTable, type Column } from '@/components/data-display/data-table';
 import { StatusBadge } from '@/components/data-display/status-badge';
 import { AvatarSimple, Badge, Button, Tabs, TabsList, TabsTrigger, TabsContent } from '@shared/ui';
 import { Eye, ShieldBan, XCircle } from 'lucide-react';
-import {
-  contentReports,
-  userReports,
-  formatDate,
-  type Report,
-  type UserReport,
-} from '@/lib/mock-data';
+import { formatDate } from '@shared/utils';
+import { contentReports, userReports, type Report, type UserReport } from '@/lib/mock-data';
 
 export default function ReportsPage() {
   const t = useTranslations('reports');

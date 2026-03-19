@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
-import { useSidebarStore } from '@/lib/store';
+import { useSidebarStore } from '@shared/hooks';
 import {
   LayoutDashboard,
   BookOpen,

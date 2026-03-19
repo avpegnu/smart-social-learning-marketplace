@@ -8,7 +8,7 @@ import { useDebounce } from '@shared/hooks';
 import { Button, Badge } from '@shared/ui';
 import { DataTable, type Column } from '@/components/data-display/data-table';
 import { StatusBadge } from '@/components/data-display/status-badge';
-import { ConfirmDialog } from '@/components/confirm-dialog';
+import { ConfirmDialog } from '@/components/feedback/confirm-dialog';
 import { Plus, Pencil, Eye, Trash2, Send, Star, Image } from 'lucide-react';
 import { formatPrice } from '@shared/utils';
 

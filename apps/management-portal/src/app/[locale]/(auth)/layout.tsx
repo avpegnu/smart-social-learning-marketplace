@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useAuthStore, useAuthHydrated } from '@shared/hooks';
-import { DesktopGuard } from '@/components/desktop-guard';
+import { DesktopGuard } from '@/components/auth/desktop-guard';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const hydrated = useAuthHydrated();

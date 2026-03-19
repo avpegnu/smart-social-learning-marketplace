@@ -16,7 +16,8 @@ import {
 } from '@shared/ui';
 import { StatusBadge } from '@/components/data-display/status-badge';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { instructorCoupons, formatDate } from '@/lib/mock-data';
+import { formatDate } from '@shared/utils';
+import { instructorCoupons } from '@/lib/mock-data';
 
 export default function CouponsPage() {
   const t = useTranslations('coupons');

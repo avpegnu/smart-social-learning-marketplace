@@ -21,7 +21,8 @@ import {
   DialogFooter,
 } from '@shared/ui';
 import { Check, X, Eye, ExternalLink } from 'lucide-react';
-import { instructorApplications, formatDate, type InstructorApplication } from '@/lib/mock-data';
+import { formatDate } from '@shared/utils';
+import { instructorApplications, type InstructorApplication } from '@/lib/mock-data';
 
 export default function InstructorApprovalsPage() {
   const t = useTranslations('approvals');

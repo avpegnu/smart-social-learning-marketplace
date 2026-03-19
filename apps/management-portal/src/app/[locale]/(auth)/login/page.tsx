@@ -16,7 +16,7 @@ import {
 } from '@shared/ui';
 import { GraduationCap, Loader2 } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LocaleSwitcher } from '@/components/locale-switcher';
+import { LocaleSwitcher } from '@/components/navigation/locale-switcher';
 import { loginSchema, type LoginValues } from '@/lib/validations/auth';
 
 export default function LoginPage() {

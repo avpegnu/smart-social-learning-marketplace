@@ -6,7 +6,8 @@ import { DataTable, type Column } from '@/components/data-display/data-table';
 import { StatusBadge } from '@/components/data-display/status-badge';
 import { AvatarSimple, Badge, Button } from '@shared/ui';
 import { Pencil, Ban, Eye } from 'lucide-react';
-import { adminUsers, formatDate, type User } from '@/lib/mock-data';
+import { formatDate } from '@shared/utils';
+import { adminUsers, type User } from '@/lib/mock-data';
 
 export default function UsersPage() {
   const t = useTranslations('users');

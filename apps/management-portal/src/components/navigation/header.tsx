@@ -3,12 +3,11 @@
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@shared/api-client';
-import { useAuthStore } from '@shared/hooks';
-import { useSidebarStore } from '@/lib/store';
+import { useAuthStore, useSidebarStore } from '@shared/hooks';
 import { cn } from '@/lib/utils';
 import { Input, AvatarSimple } from '@shared/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LocaleSwitcher } from '@/components/locale-switcher';
+import { LocaleSwitcher } from '@/components/navigation/locale-switcher';
 import { Breadcrumb } from '@/components/navigation/breadcrumb';
 import { Bell, Search } from 'lucide-react';
 

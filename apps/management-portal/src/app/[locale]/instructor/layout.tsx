@@ -2,12 +2,11 @@
 
 import { useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
-import { useAuthStore, useAuthHydrated } from '@shared/hooks';
-import { useSidebarStore } from '@/lib/store';
+import { useAuthStore, useAuthHydrated, useSidebarStore } from '@shared/hooks';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/navigation/sidebar';
 import { Header } from '@/components/navigation/header';
-import { DesktopGuard } from '@/components/desktop-guard';
+import { DesktopGuard } from '@/components/auth/desktop-guard';
 
 export default function InstructorLayout({ children }: { children: React.ReactNode }) {
   const { collapsed } = useSidebarStore();

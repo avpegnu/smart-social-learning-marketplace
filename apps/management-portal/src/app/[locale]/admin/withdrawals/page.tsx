@@ -17,12 +17,8 @@ import {
   DialogFooter,
 } from '@shared/ui';
 import { Check, X } from 'lucide-react';
-import {
-  adminWithdrawalRequests,
-  formatCurrency,
-  formatDate,
-  type AdminWithdrawalRequest,
-} from '@/lib/mock-data';
+import { formatPrice, formatDate } from '@shared/utils';
+import { adminWithdrawalRequests, type AdminWithdrawalRequest } from '@/lib/mock-data';
 
 export default function AdminWithdrawalsPage() {
   const t = useTranslations('adminWithdrawals');
@@ -51,21 +47,21 @@ export default function AdminWithdrawalsPage() {
   const stats = [
     {
       label: t('pendingAmount'),
-      value: formatCurrency(pendingAmount),
+      value: formatPrice(pendingAmount),
       change: -15,
       changeLabel: t('vsLastMonth'),
       icon: 'Clock',
     },
     {
       label: t('approvedThisMonth'),
-      value: formatCurrency(approvedThisMonth),
+      value: formatPrice(approvedThisMonth),
       change: 22,
       changeLabel: t('vsLastMonth'),
       icon: 'DollarSign',
     },
     {
       label: t('totalPaidOut'),
-      value: formatCurrency(totalPaidOut),
+      value: formatPrice(totalPaidOut),
       change: 18,
       changeLabel: t('vsLastMonth'),
       icon: 'DollarSign',
@@ -89,7 +85,7 @@ export default function AdminWithdrawalsPage() {
       header: t('amount'),
       sortable: true,
       render: (item) => (
-        <span className="font-semibold tabular-nums">{formatCurrency(item.amount)}</span>
+        <span className="font-semibold tabular-nums">{formatPrice(item.amount)}</span>
       ),
     },
     {
@@ -203,7 +199,7 @@ export default function AdminWithdrawalsPage() {
             <DialogDescription>
               {t('confirmApproveDesc', {
                 name: selectedRequest?.instructorName ?? '',
-                amount: selectedRequest ? formatCurrency(selectedRequest.amount) : '',
+                amount: selectedRequest ? formatPrice(selectedRequest.amount) : '',
               })}
             </DialogDescription>
           </DialogHeader>

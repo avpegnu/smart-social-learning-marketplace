@@ -16,7 +16,8 @@ import {
 } from '@shared/ui';
 import { StatusBadge } from '@/components/data-display/status-badge';
 import { Wallet } from 'lucide-react';
-import { instructorWithdrawals, formatCurrency, formatDate } from '@/lib/mock-data';
+import { instructorWithdrawals } from '@/lib/mock-data';
+import { formatPrice, formatDate } from '@shared/utils';
 
 export default function WithdrawalsPage() {
   const t = useTranslations('withdrawals');
@@ -52,7 +53,7 @@ export default function WithdrawalsPage() {
                 <TableRow key={w.id}>
                   <TableCell>{formatDate(w.requestedAt)}</TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
-                    {formatCurrency(w.amount)}
+                    {formatPrice(w.amount)}
                   </TableCell>
                   <TableCell>{w.bankName}</TableCell>
                   <TableCell className="font-mono text-sm">{w.accountNumber}</TableCell>

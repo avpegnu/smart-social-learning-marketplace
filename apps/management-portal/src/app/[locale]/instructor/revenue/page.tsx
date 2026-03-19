@@ -17,7 +17,8 @@ import {
   TableRow,
 } from '@shared/ui';
 import { Wallet } from 'lucide-react';
-import { instructorRevenueData, instructorCourses, formatCurrency } from '@/lib/mock-data';
+import { instructorRevenueData, instructorCourses } from '@/lib/mock-data';
+import { formatPrice } from '@shared/utils';
 
 export default function RevenuePage() {
   const t = useTranslations('revenue');
@@ -102,7 +103,7 @@ export default function RevenuePage() {
                   <TableCell className="font-medium">{course.title}</TableCell>
                   <TableCell className="text-right tabular-nums">{course.students}</TableCell>
                   <TableCell className="text-right tabular-nums">
-                    {formatCurrency(course.revenue)}
+                    {formatPrice(course.revenue)}
                   </TableCell>
                 </TableRow>
               ))}

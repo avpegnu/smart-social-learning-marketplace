@@ -8,7 +8,8 @@ import { StatCard } from '@/components/data-display/stat-card';
 import { StatusBadge } from '@/components/data-display/status-badge';
 import { AvatarSimple, Badge, Button, Progress } from '@shared/ui';
 import { ArrowLeft } from 'lucide-react';
-import { courseStudents, instructorCourses, formatDate, type CourseStudent } from '@/lib/mock-data';
+import { formatDate } from '@shared/utils';
+import { courseStudents, instructorCourses, type CourseStudent } from '@/lib/mock-data';
 
 export default function CourseStudentsPage() {
   const t = useTranslations('students');
