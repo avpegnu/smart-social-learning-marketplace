@@ -34,6 +34,7 @@ export {
 } from './components/dropdown-menu';
 export { Input } from './components/input';
 export type { InputProps } from './components/input';
+export { Label } from './components/label';
 export { Progress } from './components/progress';
 export { Separator } from './components/separator';
 export {
@@ -56,3 +57,4 @@ export {
   TableCaption,
 } from './components/table';
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './components/tabs';
+export { ThemeToggle } from './components/theme-toggle';
