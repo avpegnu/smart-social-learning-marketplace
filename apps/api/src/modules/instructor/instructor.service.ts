@@ -89,7 +89,7 @@ export class InstructorService {
           select: { totalStudents: true, totalCourses: true, totalRevenue: true },
         }),
         this.prisma.course.count({
-          where: { instructorId: userId, deletedAt: null },
+          where: { instructorId: userId, deletedAt: null, status: 'PUBLISHED' },
         }),
         this.prisma.earning.aggregate({
           where: { instructorId: userId, status: 'AVAILABLE' },
@@ -113,7 +113,7 @@ export class InstructorService {
       ]);
 
     const courseStats = await this.prisma.course.findMany({
-      where: { instructorId: userId, deletedAt: null },
+      where: { instructorId: userId, deletedAt: null, status: 'PUBLISHED' },
       select: {
         id: true,
         title: true,

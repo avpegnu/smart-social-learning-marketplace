@@ -23,6 +23,11 @@ export class CreateLessonDto {
   @IsString()
   textContent?: string;
 
+  @ApiPropertyOptional({ description: 'Cloudinary video URL (for VIDEO type)' })
+  @IsOptional()
+  @IsString()
+  videoUrl?: string;
+
   @ApiPropertyOptional({ description: 'Duration in seconds' })
   @IsOptional()
   @IsInt()
@@ -52,6 +57,11 @@ export class UpdateLessonDto {
   @IsOptional()
   @IsString()
   textContent?: string;
+
+  @ApiPropertyOptional({ description: 'Cloudinary video URL' })
+  @IsOptional()
+  @IsString()
+  videoUrl?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

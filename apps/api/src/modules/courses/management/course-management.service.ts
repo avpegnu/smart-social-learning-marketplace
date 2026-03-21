@@ -114,8 +114,35 @@ export class CourseManagementService {
                     type: true,
                     order: true,
                     textContent: true,
+                    videoUrl: true,
                     estimatedDuration: true,
                     chapterId: true,
+                    quiz: {
+                      select: {
+                        id: true,
+                        passingScore: true,
+                        maxAttempts: true,
+                        timeLimitSeconds: true,
+                        questions: {
+                          orderBy: { order: 'asc' },
+                          select: {
+                            id: true,
+                            question: true,
+                            explanation: true,
+                            order: true,
+                            options: {
+                              orderBy: { order: 'asc' },
+                              select: {
+                                id: true,
+                                text: true,
+                                isCorrect: true,
+                                order: true,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 },
               },

@@ -479,6 +479,7 @@ model Lesson {
   type              LessonType @default(VIDEO)
   order             Int        @default(0)
   textContent       String?    @map("text_content")
+  videoUrl          String?    @map("video_url")
   estimatedDuration Int?       @map("estimated_duration")
   chapterId         String     @map("chapter_id")
 

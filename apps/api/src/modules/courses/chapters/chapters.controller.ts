@@ -9,6 +9,7 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ChaptersService } from './chapters.service';
 import { CurrentUser, Roles } from '@/common/decorators';
@@ -25,6 +26,7 @@ import { ReorderDto } from '../dto/reorder.dto';
 @ApiBearerAuth()
 @UseGuards(RolesGuard)
 @Roles('INSTRUCTOR')
+@SkipThrottle()
 export class ChaptersController {
   constructor(@Inject(ChaptersService) private readonly chaptersService: ChaptersService) {}
 
