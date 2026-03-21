@@ -22,10 +22,22 @@ export class AdminCoursesController {
     private readonly service: AdminCoursesService,
   ) {}
 
+  @Get()
+  @ApiOperation({ summary: 'List all courses (admin)' })
+  async getAll(@Query() query: PaginationDto) {
+    return this.service.getAllCourses(query);
+  }
+
   @Get('pending')
   @ApiOperation({ summary: 'List courses pending review' })
   async getPending(@Query() query: PaginationDto) {
     return this.service.getPendingCourses(query);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get course detail (admin — no ownership check)' })
+  async getDetail(@Param('id', ParseCuidPipe) id: string) {
+    return this.service.getCourseDetail(id);
   }
 
   @Patch(':id/review')

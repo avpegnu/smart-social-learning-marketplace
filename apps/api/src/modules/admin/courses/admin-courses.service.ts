@@ -10,6 +10,92 @@ import { ReviewCourseDto } from '../dto/review-course.dto';
 export class AdminCoursesService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
+  async getAllCourses(query: PaginationDto) {
+    const where = { deletedAt: null };
+
+    const [courses, total] = await Promise.all([
+      this.prisma.course.findMany({
+        where,
+        include: {
+          instructor: { select: { id: true, fullName: true } },
+          category: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: query.skip,
+        take: query.limit,
+      }),
+      this.prisma.course.count({ where }),
+    ]);
+
+    return createPaginatedResult(courses, total, query.page, query.limit);
+  }
+
+  async getCourseDetail(courseId: string) {
+    const course = await this.prisma.course.findUnique({
+      where: { id: courseId },
+      include: {
+        category: { select: { id: true, name: true, slug: true } },
+        courseTags: { include: { tag: true } },
+        instructor: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+        sections: {
+          orderBy: { order: 'asc' },
+          include: {
+            chapters: {
+              orderBy: { order: 'asc' },
+              include: {
+                lessons: {
+                  orderBy: { order: 'asc' },
+                  select: {
+                    id: true,
+                    title: true,
+                    type: true,
+                    order: true,
+                    textContent: true,
+                    videoUrl: true,
+                    estimatedDuration: true,
+                    chapterId: true,
+                    quiz: {
+                      select: {
+                        id: true,
+                        passingScore: true,
+                        maxAttempts: true,
+                        timeLimitSeconds: true,
+                        questions: {
+                          orderBy: { order: 'asc' },
+                          select: {
+                            id: true,
+                            question: true,
+                            explanation: true,
+                            order: true,
+                            options: {
+                              orderBy: { order: 'asc' },
+                              select: {
+                                id: true,
+                                text: true,
+                                isCorrect: true,
+                                order: true,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!course || course.deletedAt) {
+      throw new NotFoundException({ code: 'COURSE_NOT_FOUND' });
+    }
+
+    return course;
+  }
+
   async getPendingCourses(query: PaginationDto) {
     const where = {
       status: 'PENDING_REVIEW' as const,
