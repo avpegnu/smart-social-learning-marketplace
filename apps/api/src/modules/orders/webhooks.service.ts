@@ -23,8 +23,8 @@ export class WebhooksService {
     // 2. Only process incoming transfers
     if (payload.transferType !== 'in') return { success: true };
 
-    // 3. Extract order code from content
-    const orderCodeMatch = payload.content.match(/SSLM-[a-z0-9]+/i);
+    // 3. Extract order code from content (format: SSLM20260321xxxxx)
+    const orderCodeMatch = payload.content.match(/SSLM\d{13}/i);
     if (!orderCodeMatch) return { success: true };
     const orderCode = orderCodeMatch[0]!;
 
@@ -98,6 +98,10 @@ export class WebhooksService {
             if (!existing) {
               await tx.enrollment.create({
                 data: { userId, courseId: item.courseId, type: 'PARTIAL' },
+              });
+              await tx.course.update({
+                where: { id: item.courseId },
+                data: { totalStudents: { increment: 1 } },
               });
             }
           }

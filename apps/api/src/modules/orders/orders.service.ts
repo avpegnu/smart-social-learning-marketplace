@@ -103,6 +103,13 @@ export class OrdersService {
     if (!order || order.userId !== userId) {
       throw new NotFoundException({ code: 'ORDER_NOT_FOUND' });
     }
+
+    // Include payment info for pending orders so payment page can work without sessionStorage
+    if (order.status === 'PENDING') {
+      const payment = this.generatePaymentInfo(order.orderCode, order.finalAmount);
+      return { ...order, payment };
+    }
+
     return order;
   }
 
@@ -134,9 +141,14 @@ export class OrdersService {
   // ==================== PRIVATE HELPERS ====================
 
   private generateOrderCode(): string {
-    const timestamp = Date.now().toString(36);
-    const random = Math.random().toString(36).substring(2, 6);
-    return `SSLM-${timestamp}${random}`;
+    const now = new Date();
+    const date = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0'),
+    ].join('');
+    const seq = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
+    return `SSLM${date}${seq}`;
   }
 
   private generatePaymentInfo(orderCode: string, amount: number) {
