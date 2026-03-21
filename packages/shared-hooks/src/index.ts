@@ -84,6 +84,30 @@ export { useQuiz, useUpsertQuiz, useDeleteQuiz } from './queries/use-quiz';
 
 export { useCategories } from './queries/use-categories';
 
+export {
+  useAdminDashboard,
+  useAdminUsers,
+  useAdminPendingApps,
+  useAdminCourses,
+  useAdminCourseDetail,
+  useAdminPendingCourses,
+  useAdminWithdrawals,
+  useAdminSettings,
+  useUpdateUserStatus,
+  useReviewApplication,
+  useReviewCourse,
+  useProcessWithdrawal,
+  useCreateCategory,
+  useUpdateCategory,
+  useDeleteCategory,
+  useCreateTag,
+  useUpdateTag,
+  useDeleteTag,
+  useUpdateSetting,
+} from './queries/use-admin';
+
+export { adminService } from './services/admin.service';
+
 // Stores (Layer 3 — Zustand client state)
 export { useAuthStore } from './stores/auth-store';
 export { useCartStore } from './stores/cart-store';

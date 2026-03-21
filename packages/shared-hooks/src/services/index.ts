@@ -27,3 +27,5 @@ export type { QuizOptionPayload, QuizQuestionPayload, UpsertQuizPayload } from '
 
 export { uploadService } from './upload.service';
 export type { SignUploadResponse, CompleteUploadPayload } from './upload.service';
+
+export { adminService } from './admin.service';
