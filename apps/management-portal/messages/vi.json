@@ -103,7 +103,15 @@
     "days7": "7 ngày",
     "days30": "30 ngày",
     "months12": "12 tháng",
-    "vsLastMonth": "so với tháng trước"
+    "vsLastMonth": "so với tháng trước",
+    "thisWeek": "tuần này",
+    "todayOrders": "Đơn hàng hôm nay",
+    "instructorApps": "Đơn giảng viên",
+    "courseReviews": "Khóa chờ duyệt",
+    "pendingReports": "Báo cáo chờ",
+    "pendingWithdrawals": "Rút tiền chờ",
+    "topCourses": "Khóa học nổi bật",
+    "students": "học viên"
   },
   "courses": {
     "title": "Khóa học của tôi",
@@ -229,7 +237,11 @@
     "confirmApproveDesc": "Bạn có chắc chắn muốn duyệt yêu cầu rút tiền {amount} của {name}?",
     "confirmReject": "Từ chối yêu cầu",
     "confirmRejectDesc": "Vui lòng nhập lý do từ chối yêu cầu rút tiền này.",
-    "rejectReasonPlaceholder": "Nhập lý do từ chối..."
+    "rejectReasonPlaceholder": "Nhập lý do từ chối...",
+    "approve": "Duyệt",
+    "reject": "Từ chối",
+    "withdrawalApproved": "Đã duyệt yêu cầu rút tiền",
+    "withdrawalRejected": "Đã từ chối yêu cầu rút tiền"
   },
   "reports": {
     "title": "Báo cáo & Vi phạm",
@@ -275,12 +287,35 @@
     "contentSettings": "Cài đặt nội dung",
     "autoApproveCourses": "Tự động duyệt khóa học",
     "autoApproveCoursesDesc": "Khóa học sẽ được tự động duyệt mà không cần phê duyệt thủ công",
-    "maxUploadSize": "Kích thước upload tối đa"
+    "maxUploadSize": "Kích thước upload tối đa",
+    "platformDescription": "Mô tả nền tảng",
+    "supportEmail": "Email hỗ trợ",
+    "minimumPayout": "Thanh toán tối thiểu",
+    "allowFreeCourses": "Cho phép khóa miễn phí",
+    "enabled": "Bật",
+    "disabled": "Tắt",
+    "save": "Lưu",
+    "settingSaved": "Đã lưu cài đặt"
+  },
+  "adminCourses": {
+    "pageTitle": "Quản lý khóa học",
+    "title": "Tiêu đề",
+    "instructor": "Giảng viên",
+    "category": "Danh mục",
+    "price": "Giá",
+    "free": "Miễn phí",
+    "status": "Trạng thái",
+    "students": "Học viên",
+    "createdDate": "Ngày tạo",
+    "view": "Xem",
+    "searchPlaceholder": "Tìm khóa học...",
+    "allStatuses": "Tất cả"
   },
   "courseDetail": {
     "notFound": "Không tìm thấy khóa học",
     "backToCourses": "Quay lại",
     "editCourse": "Chỉnh sửa",
+    "instructor": "Giảng viên",
     "students": "Học viên",
     "rating": "Đánh giá",
     "totalDuration": "Thời lượng",
@@ -527,7 +562,20 @@
     "banned": "Bị khóa",
     "filterByRole": "Lọc theo vai trò",
     "filterByStatus": "Lọc theo trạng thái",
-    "searchPlaceholder": "Tìm người dùng..."
+    "searchPlaceholder": "Tìm người dùng...",
+    "allRoles": "Tất cả",
+    "allStatuses": "Tất cả",
+    "suspended": "Bị khóa",
+    "courses": "Khóa học",
+    "suspend": "Khóa",
+    "activate": "Mở khóa",
+    "confirmSuspend": "Xác nhận khóa tài khoản",
+    "confirmActivate": "Xác nhận mở khóa",
+    "confirmSuspendDesc": "Bạn có chắc muốn khóa tài khoản {name}?",
+    "confirmActivateDesc": "Bạn có chắc muốn mở khóa tài khoản {name}?",
+    "reasonPlaceholder": "Nhập lý do (tùy chọn)...",
+    "userSuspended": "Đã khóa tài khoản",
+    "userActivated": "Đã mở khóa tài khoản"
   },
   "approvals": {
     "title": "Phê duyệt",
@@ -549,7 +597,23 @@
     "linkedIn": "LinkedIn",
     "portfolio": "Portfolio",
     "pendingApplications": "đơn chờ duyệt",
-    "pendingCourses": "khóa học chờ duyệt"
+    "pendingCourses": "khóa học chờ duyệt",
+    "confirmApprove": "Xác nhận duyệt",
+    "confirmReject": "Xác nhận từ chối",
+    "confirmApproveDesc": "Bạn có chắc muốn duyệt đơn của {name}?",
+    "confirmRejectDesc": "Bạn có chắc muốn từ chối đơn của {name}?",
+    "confirmApproveCourseDesc": "Duyệt khóa học \"{title}\"?",
+    "confirmRejectCourseDesc": "Từ chối khóa học \"{title}\"?",
+    "reviewNotePlaceholder": "Nhập ghi chú (tùy chọn)...",
+    "feedbackPlaceholder": "Nhập phản hồi cho giảng viên...",
+    "applicationApproved": "Đã duyệt đơn đăng ký",
+    "applicationRejected": "Đã từ chối đơn đăng ký",
+    "courseApproved": "Đã duyệt khóa học",
+    "courseRejected": "Đã từ chối khóa học",
+    "category": "Danh mục",
+    "price": "Giá",
+    "free": "Miễn phí",
+    "view": "Xem"
   },
   "categories": {
     "title": "Quản lý danh mục",
@@ -561,7 +625,17 @@
     "actions": "Hành động",
     "editCategory": "Sửa danh mục",
     "deleteCategory": "Xóa danh mục",
-    "confirmDelete": "Bạn có chắc chắn muốn xóa danh mục này?"
+    "confirmDelete": "Xác nhận xóa",
+    "confirmDeleteDesc": "Bạn có chắc muốn xóa danh mục \"{name}\"?",
+    "delete": "Xóa",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "create": "Tạo",
+    "categoryNamePlaceholder": "Nhập tên danh mục",
+    "categoryDescPlaceholder": "Nhập mô tả (tùy chọn)",
+    "categoryCreated": "Đã tạo danh mục",
+    "categoryUpdated": "Đã cập nhật danh mục",
+    "categoryDeleted": "Đã xóa danh mục"
   },
   "analytics": {
     "title": "Phân tích",

@@ -103,7 +103,15 @@
     "days7": "7 days",
     "days30": "30 days",
     "months12": "12 months",
-    "vsLastMonth": "vs last month"
+    "vsLastMonth": "vs last month",
+    "thisWeek": "this week",
+    "todayOrders": "Today's Orders",
+    "instructorApps": "Instructor Apps",
+    "courseReviews": "Course Reviews",
+    "pendingReports": "Pending Reports",
+    "pendingWithdrawals": "Pending Withdrawals",
+    "topCourses": "Top Courses",
+    "students": "students"
   },
   "courses": {
     "title": "My Courses",
@@ -229,7 +237,11 @@
     "confirmApproveDesc": "Are you sure you want to approve the withdrawal of {amount} for {name}?",
     "confirmReject": "Reject Request",
     "confirmRejectDesc": "Please enter the reason for rejecting this withdrawal request.",
-    "rejectReasonPlaceholder": "Enter rejection reason..."
+    "rejectReasonPlaceholder": "Enter rejection reason...",
+    "approve": "Approve",
+    "reject": "Reject",
+    "withdrawalApproved": "Withdrawal approved",
+    "withdrawalRejected": "Withdrawal rejected"
   },
   "reports": {
     "title": "Reports & Violations",
@@ -275,12 +287,34 @@
     "contentSettings": "Content Settings",
     "autoApproveCourses": "Auto-approve Courses",
     "autoApproveCoursesDesc": "Courses will be automatically approved without manual review",
-    "maxUploadSize": "Max Upload Size"
+    "maxUploadSize": "Max Upload Size",
+    "supportEmail": "Support Email",
+    "minimumPayout": "Minimum Payout",
+    "allowFreeCourses": "Allow Free Courses",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "save": "Save",
+    "settingSaved": "Setting saved"
+  },
+  "adminCourses": {
+    "pageTitle": "Course Management",
+    "title": "Title",
+    "instructor": "Instructor",
+    "category": "Category",
+    "price": "Price",
+    "free": "Free",
+    "status": "Status",
+    "students": "Students",
+    "createdDate": "Created",
+    "view": "View",
+    "searchPlaceholder": "Search courses...",
+    "allStatuses": "All"
   },
   "courseDetail": {
     "notFound": "Course not found",
     "backToCourses": "Back",
     "editCourse": "Edit",
+    "instructor": "Instructor",
     "students": "Students",
     "rating": "Rating",
     "totalDuration": "Duration",
@@ -527,7 +561,20 @@
     "banned": "Banned",
     "filterByRole": "Filter by role",
     "filterByStatus": "Filter by status",
-    "searchPlaceholder": "Search users..."
+    "searchPlaceholder": "Search users...",
+    "allRoles": "All",
+    "allStatuses": "All",
+    "suspended": "Suspended",
+    "courses": "Courses",
+    "suspend": "Suspend",
+    "activate": "Activate",
+    "confirmSuspend": "Confirm Suspend",
+    "confirmActivate": "Confirm Activate",
+    "confirmSuspendDesc": "Are you sure you want to suspend {name}?",
+    "confirmActivateDesc": "Are you sure you want to activate {name}?",
+    "reasonPlaceholder": "Enter reason (optional)...",
+    "userSuspended": "User suspended",
+    "userActivated": "User activated"
   },
   "approvals": {
     "title": "Approvals",
@@ -549,7 +596,23 @@
     "linkedIn": "LinkedIn",
     "portfolio": "Portfolio",
     "pendingApplications": "pending applications",
-    "pendingCourses": "pending courses"
+    "pendingCourses": "pending courses",
+    "confirmApprove": "Confirm Approval",
+    "confirmReject": "Confirm Rejection",
+    "confirmApproveDesc": "Are you sure you want to approve {name}'s application?",
+    "confirmRejectDesc": "Are you sure you want to reject {name}'s application?",
+    "confirmApproveCourseDesc": "Approve course \"{title}\"?",
+    "confirmRejectCourseDesc": "Reject course \"{title}\"?",
+    "reviewNotePlaceholder": "Enter review note (optional)...",
+    "feedbackPlaceholder": "Enter feedback for instructor...",
+    "applicationApproved": "Application approved",
+    "applicationRejected": "Application rejected",
+    "courseApproved": "Course approved",
+    "courseRejected": "Course rejected",
+    "category": "Category",
+    "price": "Price",
+    "free": "Free",
+    "view": "View"
   },
   "categories": {
     "title": "Category Management",
@@ -561,7 +624,17 @@
     "actions": "Actions",
     "editCategory": "Edit Category",
     "deleteCategory": "Delete Category",
-    "confirmDelete": "Are you sure you want to delete this category?"
+    "confirmDelete": "Confirm Delete",
+    "confirmDeleteDesc": "Are you sure you want to delete category \"{name}\"?",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create",
+    "categoryNamePlaceholder": "Enter category name",
+    "categoryDescPlaceholder": "Enter description (optional)",
+    "categoryCreated": "Category created",
+    "categoryUpdated": "Category updated",
+    "categoryDeleted": "Category deleted"
   },
   "analytics": {
     "title": "Analytics",

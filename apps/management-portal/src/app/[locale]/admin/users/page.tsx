@@ -1,39 +1,88 @@
 'use client';
 
-import * as React from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { DataTable, type Column } from '@/components/data-display/data-table';
-import { StatusBadge } from '@/components/data-display/status-badge';
-import { AvatarSimple, Badge, Button } from '@shared/ui';
-import { Pencil, Ban, Eye } from 'lucide-react';
+import { ConfirmDialog } from '@/components/feedback/confirm-dialog';
+import { AvatarSimple, Badge, Button, Input } from '@shared/ui';
+import { Ban, ShieldCheck } from 'lucide-react';
 import { formatDate } from '@shared/utils';
-import { adminUsers, type User } from '@/lib/mock-data';
+import { useAdminUsers, useUpdateUserStatus, useDebounce } from '@shared/hooks';
+import { toast } from 'sonner';
+
+interface UserRow {
+  id: string;
+  fullName: string;
+  email: string;
+  avatarUrl: string | null;
+  role: string;
+  status: string;
+  createdAt: string;
+  _count?: { enrollments: number };
+}
 
 export default function UsersPage() {
   const t = useTranslations('users');
-  const [roleFilter, setRoleFilter] = React.useState('ALL');
-  const [statusFilter, setStatusFilter] = React.useState('ALL');
 
-  let filteredData = adminUsers;
-  if (roleFilter !== 'ALL') filteredData = filteredData.filter((u) => u.role === roleFilter);
-  if (statusFilter !== 'ALL') filteredData = filteredData.filter((u) => u.status === statusFilter);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [page, setPage] = useState(1);
+  const debouncedSearch = useDebounce(search, 300);
 
-  const roleLabel: Record<string, string> = {
+  // Action state
+  const [actionTarget, setActionTarget] = useState<{
+    user: UserRow;
+    action: 'SUSPEND' | 'ACTIVATE';
+  } | null>(null);
+  const [reason, setReason] = useState('');
+
+  const params = useMemo(() => {
+    const p: Record<string, string> = { page: String(page), limit: '10' };
+    if (debouncedSearch) p.search = debouncedSearch;
+    if (roleFilter !== 'ALL') p.role = roleFilter;
+    if (statusFilter !== 'ALL') p.status = statusFilter;
+    return p;
+  }, [page, debouncedSearch, roleFilter, statusFilter]);
+
+  const { data, isLoading } = useAdminUsers(params);
+  const updateStatus = useUpdateUserStatus();
+
+  const users = (data?.data as UserRow[]) ?? [];
+  const meta = data?.meta as { page: number; totalPages: number; total: number } | undefined;
+
+  const roleLabels: Record<string, string> = {
     STUDENT: t('student'),
     INSTRUCTOR: t('instructor'),
     ADMIN: t('admin'),
   };
 
-  const columns: Column<User>[] = [
+  const handleAction = () => {
+    if (!actionTarget) return;
+    const newStatus = actionTarget.action === 'SUSPEND' ? 'SUSPENDED' : 'ACTIVE';
+    updateStatus.mutate(
+      { userId: actionTarget.user.id, data: { status: newStatus, reason: reason || undefined } },
+      {
+        onSuccess: () => {
+          toast.success(
+            actionTarget.action === 'SUSPEND' ? t('userSuspended') : t('userActivated'),
+          );
+          setActionTarget(null);
+          setReason('');
+        },
+      },
+    );
+  };
+
+  const columns: Column<UserRow>[] = [
     {
-      key: 'name',
+      key: 'fullName',
       header: t('name'),
-      sortable: true,
       render: (user) => (
         <div className="flex items-center gap-3">
-          <AvatarSimple alt={user.name} size="sm" />
+          <AvatarSimple src={user.avatarUrl ?? undefined} alt={user.fullName} size="sm" />
           <div>
-            <p className="font-medium">{user.name}</p>
+            <p className="font-medium">{user.fullName}</p>
             <p className="text-muted-foreground text-xs">{user.email}</p>
           </div>
         </div>
@@ -42,35 +91,53 @@ export default function UsersPage() {
     {
       key: 'role',
       header: t('role'),
-      render: (user) => <Badge variant="secondary">{roleLabel[user.role] || user.role}</Badge>,
+      render: (user) => <Badge variant="secondary">{roleLabels[user.role] ?? user.role}</Badge>,
     },
     {
       key: 'status',
       header: t('status'),
-      render: (user) => <StatusBadge status={user.status} />,
+      render: (user) => (
+        <Badge variant={user.status === 'ACTIVE' ? 'default' : 'destructive'}>
+          {user.status === 'ACTIVE' ? t('active') : t('suspended')}
+        </Badge>
+      ),
     },
     {
-      key: 'joinedAt',
+      key: 'createdAt',
       header: t('joinedDate'),
-      sortable: true,
-      render: (user) => <span className="text-sm">{formatDate(user.joinedAt)}</span>,
+      render: (user) => <span className="text-sm">{formatDate(user.createdAt)}</span>,
+    },
+    {
+      key: 'enrollments',
+      header: t('courses'),
+      render: (user) => <span className="text-sm">{user._count?.enrollments ?? 0}</span>,
     },
     {
       key: 'actions',
-      header: t('actions'),
-      render: () => (
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <Eye className="h-4 w-4" />
+      header: '',
+      render: (user) => {
+        if (user.role === 'ADMIN') return null;
+        return user.status === 'ACTIVE' ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive"
+            onClick={() => setActionTarget({ user, action: 'SUSPEND' })}
+          >
+            <Ban className="mr-1 h-3.5 w-3.5" />
+            {t('suspend')}
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <Pencil className="h-4 w-4" />
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActionTarget({ user, action: 'ACTIVATE' })}
+          >
+            <ShieldCheck className="mr-1 h-3.5 w-3.5" />
+            {t('activate')}
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <Ban className="text-destructive h-4 w-4" />
-          </Button>
-        </div>
-      ),
+        );
+      },
     },
   ];
 
@@ -80,42 +147,83 @@ export default function UsersPage() {
 
       <DataTable
         columns={columns}
-        data={filteredData}
-        searchable
+        data={users}
+        isLoading={isLoading}
+        searchValue={search}
+        onSearchChange={(v) => {
+          setSearch(v);
+          setPage(1);
+        }}
         searchPlaceholder={t('searchPlaceholder')}
-        searchKey="name"
-        pageSize={8}
+        serverPage={meta?.page}
+        serverTotalPages={meta?.totalPages}
+        serverTotal={meta?.total}
+        onServerPageChange={setPage}
         filterSlot={
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               {['ALL', 'STUDENT', 'INSTRUCTOR', 'ADMIN'].map((r) => (
                 <Badge
                   key={r}
                   variant={roleFilter === r ? 'default' : 'outline'}
                   className="cursor-pointer"
-                  onClick={() => setRoleFilter(r)}
+                  onClick={() => {
+                    setRoleFilter(r);
+                    setPage(1);
+                  }}
                 >
-                  {r === 'ALL' ? t('filterByRole') : roleLabel[r] || r}
+                  {r === 'ALL' ? t('allRoles') : (roleLabels[r] ?? r)}
                 </Badge>
               ))}
             </div>
-            <div className="flex items-center gap-2">
-              {['ALL', 'ACTIVE', 'INACTIVE', 'BANNED'].map((s) => (
+            <div className="flex items-center gap-1">
+              {['ALL', 'ACTIVE', 'SUSPENDED'].map((s) => (
                 <Badge
                   key={s}
                   variant={statusFilter === s ? 'default' : 'outline'}
                   className="cursor-pointer"
-                  onClick={() => setStatusFilter(s)}
+                  onClick={() => {
+                    setStatusFilter(s);
+                    setPage(1);
+                  }}
                 >
-                  {s === 'ALL'
-                    ? t('filterByStatus')
-                    : t(s.toLowerCase() as 'active' | 'inactive' | 'banned')}
+                  {s === 'ALL' ? t('allStatuses') : s === 'ACTIVE' ? t('active') : t('suspended')}
                 </Badge>
               ))}
             </div>
           </div>
         }
       />
+
+      {/* Suspend/Activate Dialog */}
+      <ConfirmDialog
+        open={!!actionTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setActionTarget(null);
+            setReason('');
+          }
+        }}
+        title={actionTarget?.action === 'SUSPEND' ? t('confirmSuspend') : t('confirmActivate')}
+        description={
+          actionTarget?.action === 'SUSPEND'
+            ? t('confirmSuspendDesc', { name: actionTarget?.user.fullName ?? '' })
+            : t('confirmActivateDesc', { name: actionTarget?.user.fullName ?? '' })
+        }
+        confirmLabel={actionTarget?.action === 'SUSPEND' ? t('suspend') : t('activate')}
+        variant={actionTarget?.action === 'SUSPEND' ? 'destructive' : 'default'}
+        isLoading={updateStatus.isPending}
+        onConfirm={handleAction}
+      >
+        {actionTarget?.action === 'SUSPEND' && (
+          <Input
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder={t('reasonPlaceholder')}
+            className="mt-2"
+          />
+        )}
+      </ConfirmDialog>
     </div>
   );
 }

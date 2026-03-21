@@ -1,149 +1,107 @@
 'use client';
 
-import * as React from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { DataTable, type Column } from '@/components/data-display/data-table';
-import { StatCard } from '@/components/data-display/stat-card';
-import { StatusBadge } from '@/components/data-display/status-badge';
-import {
-  AvatarSimple,
-  Badge,
-  Button,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@shared/ui';
+import { ConfirmDialog } from '@/components/feedback/confirm-dialog';
+import { Button, Input } from '@shared/ui';
 import { Check, X } from 'lucide-react';
-import { formatPrice, formatDate } from '@shared/utils';
-import { adminWithdrawalRequests, type AdminWithdrawalRequest } from '@/lib/mock-data';
+import { formatDate, formatPrice } from '@shared/utils';
+import { useAdminWithdrawals, useProcessWithdrawal } from '@shared/hooks';
+import { toast } from 'sonner';
 
-export default function AdminWithdrawalsPage() {
+interface WithdrawalRow {
+  id: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+  instructor: { id: string; fullName: string; email: string };
+}
+
+export default function WithdrawalsPage() {
   const t = useTranslations('adminWithdrawals');
-  const tc = useTranslations('common');
-  const [statusFilter, setStatusFilter] = React.useState('ALL');
-  const [approveDialogOpen, setApproveDialogOpen] = React.useState(false);
-  const [rejectDialogOpen, setRejectDialogOpen] = React.useState(false);
-  const [selectedRequest, setSelectedRequest] = React.useState<AdminWithdrawalRequest | null>(null);
-  const [rejectReason, setRejectReason] = React.useState('');
+  const [page, setPage] = useState(1);
+  const [actionTarget, setActionTarget] = useState<{
+    withdrawal: WithdrawalRow;
+    action: 'approve' | 'reject';
+  } | null>(null);
+  const [reviewNote, setReviewNote] = useState('');
 
-  let filteredData = adminWithdrawalRequests;
-  if (statusFilter !== 'ALL') {
-    filteredData = filteredData.filter((w) => w.status === statusFilter);
-  }
+  const params = useMemo(() => ({ page: String(page), limit: '10' }), [page]);
+  const { data, isLoading } = useAdminWithdrawals(params);
+  const processMutation = useProcessWithdrawal();
 
-  const pendingAmount = adminWithdrawalRequests
-    .filter((w) => w.status === 'PENDING')
-    .reduce((sum, w) => sum + w.amount, 0);
-  const approvedThisMonth = adminWithdrawalRequests
-    .filter((w) => w.status === 'APPROVED' || w.status === 'COMPLETED')
-    .reduce((sum, w) => sum + w.amount, 0);
-  const totalPaidOut = adminWithdrawalRequests
-    .filter((w) => w.status === 'COMPLETED')
-    .reduce((sum, w) => sum + w.amount, 0);
+  const withdrawals = (data?.data as WithdrawalRow[]) ?? [];
+  const meta = data?.meta as { page: number; totalPages: number; total: number } | undefined;
 
-  const stats = [
-    {
-      label: t('pendingAmount'),
-      value: formatPrice(pendingAmount),
-      change: -15,
-      changeLabel: t('vsLastMonth'),
-      icon: 'Clock',
-    },
-    {
-      label: t('approvedThisMonth'),
-      value: formatPrice(approvedThisMonth),
-      change: 22,
-      changeLabel: t('vsLastMonth'),
-      icon: 'DollarSign',
-    },
-    {
-      label: t('totalPaidOut'),
-      value: formatPrice(totalPaidOut),
-      change: 18,
-      changeLabel: t('vsLastMonth'),
-      icon: 'DollarSign',
-    },
-  ];
+  const handleProcess = () => {
+    if (!actionTarget) return;
+    processMutation.mutate(
+      {
+        id: actionTarget.withdrawal.id,
+        data: {
+          status: actionTarget.action === 'approve' ? 'COMPLETED' : 'REJECTED',
+          reviewNote: reviewNote || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success(
+            actionTarget.action === 'approve' ? t('withdrawalApproved') : t('withdrawalRejected'),
+          );
+          setActionTarget(null);
+          setReviewNote('');
+        },
+      },
+    );
+  };
 
-  const columns: Column<AdminWithdrawalRequest>[] = [
+  const columns: Column<WithdrawalRow>[] = [
     {
-      key: 'instructorName',
+      key: 'instructor',
       header: t('instructorName'),
-      sortable: true,
-      render: (item) => (
-        <div className="flex items-center gap-3">
-          <AvatarSimple alt={item.instructorName} size="sm" />
-          <span className="font-medium">{item.instructorName}</span>
+      render: (w) => (
+        <div>
+          <p className="font-medium">{w.instructor.fullName}</p>
+          <p className="text-muted-foreground text-xs">{w.instructor.email}</p>
         </div>
       ),
     },
     {
       key: 'amount',
       header: t('amount'),
-      sortable: true,
-      render: (item) => (
-        <span className="font-semibold tabular-nums">{formatPrice(item.amount)}</span>
-      ),
+      render: (w) => <span className="font-medium">{formatPrice(w.amount)}</span>,
     },
     {
-      key: 'bankInfo',
-      header: t('bankInfo'),
-      render: (item) => (
-        <div>
-          <p className="text-sm">{item.bankName}</p>
-          <p className="text-muted-foreground text-xs">{item.accountNumber}</p>
-        </div>
-      ),
-    },
-    {
-      key: 'requestedAt',
+      key: 'createdAt',
       header: t('requestedDate'),
-      sortable: true,
-      render: (item) => <span className="text-sm">{formatDate(item.requestedAt)}</span>,
-    },
-    {
-      key: 'status',
-      header: t('status'),
-      render: (item) => <StatusBadge status={item.status} />,
+      render: (w) => <span className="text-sm">{formatDate(w.createdAt)}</span>,
     },
     {
       key: 'actions',
-      header: tc('actions'),
-      render: (item) =>
-        item.status === 'PENDING' ? (
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-success hover:text-success"
-              onClick={() => {
-                setSelectedRequest(item);
-                setApproveDialogOpen(true);
-              }}
-            >
-              <Check className="h-4 w-4" />
-              {tc('approve')}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive"
-              onClick={() => {
-                setSelectedRequest(item);
-                setRejectReason('');
-                setRejectDialogOpen(true);
-              }}
-            >
-              <X className="h-4 w-4" />
-              {tc('reject')}
-            </Button>
-          </div>
-        ) : item.status === 'REJECTED' && item.rejectReason ? (
-          <span className="text-muted-foreground text-xs">{item.rejectReason}</span>
-        ) : null,
+      header: '',
+      render: (w) => (
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-green-600"
+            onClick={() => setActionTarget({ withdrawal: w, action: 'approve' })}
+          >
+            <Check className="mr-1 h-3.5 w-3.5" />
+            {t('approve')}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive"
+            onClick={() => setActionTarget({ withdrawal: w, action: 'reject' })}
+          >
+            <X className="mr-1 h-3.5 w-3.5" />
+            {t('reject')}
+          </Button>
+        </div>
+      ),
     },
   ];
 
@@ -151,92 +109,47 @@ export default function AdminWithdrawalsPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t('title')}</h1>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        {stats.map((stat) => (
-          <StatCard
-            key={stat.label}
-            label={stat.label}
-            value={stat.value}
-            change={stat.change}
-            changeLabel={stat.changeLabel}
-            icon={stat.icon}
-          />
-        ))}
-      </div>
-
-      {/* Table */}
       <DataTable
         columns={columns}
-        data={filteredData}
-        searchable
-        searchPlaceholder={t('searchPlaceholder')}
-        searchKey="instructorName"
-        pageSize={8}
-        filterSlot={
-          <div className="flex items-center gap-2">
-            {['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'COMPLETED'].map((s) => (
-              <Badge
-                key={s}
-                variant={statusFilter === s ? 'default' : 'outline'}
-                className="cursor-pointer"
-                onClick={() => setStatusFilter(s)}
-              >
-                {s === 'ALL'
-                  ? t('allStatuses')
-                  : t(s.toLowerCase() as 'pending' | 'approved' | 'rejected' | 'completed')}
-              </Badge>
-            ))}
-          </div>
-        }
+        data={withdrawals}
+        isLoading={isLoading}
+        serverPage={meta?.page}
+        serverTotalPages={meta?.totalPages}
+        serverTotal={meta?.total}
+        onServerPageChange={setPage}
       />
 
-      {/* Approve Dialog */}
-      <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('confirmApprove')}</DialogTitle>
-            <DialogDescription>
-              {t('confirmApproveDesc', {
-                name: selectedRequest?.instructorName ?? '',
-                amount: selectedRequest ? formatPrice(selectedRequest.amount) : '',
-              })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setApproveDialogOpen(false)}>
-              {tc('cancel')}
-            </Button>
-            <Button onClick={() => setApproveDialogOpen(false)}>{tc('approve')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reject Dialog */}
-      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('confirmReject')}</DialogTitle>
-            <DialogDescription>{t('confirmRejectDesc')}</DialogDescription>
-          </DialogHeader>
-          <div className="mt-2">
-            <textarea
-              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              placeholder={t('rejectReasonPlaceholder')}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
-              {tc('cancel')}
-            </Button>
-            <Button variant="destructive" onClick={() => setRejectDialogOpen(false)}>
-              {tc('reject')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={!!actionTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setActionTarget(null);
+            setReviewNote('');
+          }
+        }}
+        title={actionTarget?.action === 'approve' ? t('confirmApprove') : t('confirmReject')}
+        description={
+          actionTarget?.action === 'approve'
+            ? t('confirmApproveDesc', {
+                amount: formatPrice(actionTarget?.withdrawal.amount ?? 0),
+                name: actionTarget?.withdrawal.instructor.fullName ?? '',
+              })
+            : t('confirmRejectDesc', { name: actionTarget?.withdrawal.instructor.fullName ?? '' })
+        }
+        confirmLabel={actionTarget?.action === 'approve' ? t('approve') : t('reject')}
+        variant={actionTarget?.action === 'reject' ? 'destructive' : 'default'}
+        isLoading={processMutation.isPending}
+        onConfirm={handleProcess}
+      >
+        {actionTarget?.action === 'reject' && (
+          <Input
+            value={reviewNote}
+            onChange={(e) => setReviewNote(e.target.value)}
+            placeholder={t('rejectReasonPlaceholder')}
+            className="mt-2"
+          />
+        )}
+      </ConfirmDialog>
     </div>
   );
 }

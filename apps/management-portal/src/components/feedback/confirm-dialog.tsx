@@ -15,6 +15,7 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   isLoading?: boolean;
   variant?: 'destructive' | 'default';
+  children?: React.ReactNode;
 }
 
 export function ConfirmDialog({
@@ -26,6 +27,7 @@ export function ConfirmDialog({
   onConfirm,
   isLoading = false,
   variant = 'default',
+  children,
 }: ConfirmDialogProps) {
   const t = useTranslations('common');
 
@@ -65,6 +67,7 @@ export function ConfirmDialog({
         <div className="mb-4 space-y-1.5">
           <h2 className="text-lg font-semibold">{title}</h2>
           <p className="text-muted-foreground text-sm">{description}</p>
+          {children}
         </div>
 
         <div className="flex justify-end gap-2">
