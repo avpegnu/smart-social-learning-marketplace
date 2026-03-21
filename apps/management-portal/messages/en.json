@@ -60,7 +60,11 @@
       "UNANSWERED": "Unanswered",
       "APPROVED": "Approved",
       "REVIEWED": "Reviewed",
-      "DISMISSED": "Dismissed"
+      "DISMISSED": "Dismissed",
+      "AVAILABLE": "Available",
+      "WITHDRAWN": "Withdrawn",
+      "FAILED": "Failed",
+      "SCHEDULED": "Scheduled"
     }
   },
   "auth": {
@@ -214,32 +218,6 @@
     "active": "Active",
     "inactive": "Inactive",
     "completed": "Completed"
-  },
-  "createCoupon": {
-    "title": "Create Coupon",
-    "couponInfo": "Coupon Information",
-    "couponCode": "Coupon Code",
-    "autoGenerate": "Auto Generate",
-    "discountType": "Discount Type",
-    "percentage": "Percentage",
-    "fixedAmount": "Fixed Amount",
-    "discountValue": "Discount Value",
-    "applicableCourses": "Applicable Courses",
-    "allCourses": "All Courses",
-    "specificCourses": "Specific Courses",
-    "usageLimit": "Usage Limit",
-    "validFrom": "Valid From",
-    "validTo": "Valid To",
-    "activateImmediately": "Activate Immediately",
-    "activateDescription": "The coupon will be active immediately after creation",
-    "preview": "Preview",
-    "percentOff": "percent off",
-    "fixedOff": "fixed discount",
-    "limitLabel": "Limit",
-    "uses": "uses",
-    "coursesSelected": "courses selected",
-    "active": "Active",
-    "inactive": "Inactive"
   },
   "adminWithdrawals": {
     "title": "Withdrawal Management",
@@ -502,15 +480,22 @@
   "revenue": {
     "title": "Revenue",
     "totalRevenue": "Total Revenue",
+    "totalStudents": "Total Students",
     "thisMonth": "This Month",
     "pendingWithdrawal": "Pending Withdrawal",
     "availableBalance": "Available Balance",
     "revenueChart": "Revenue Chart",
     "revenueByCourse": "Revenue by Course",
+    "recentEarnings": "Recent Earnings",
+    "noEarnings": "No earnings yet",
+    "noCourses": "No published courses",
     "withdraw": "Withdraw",
     "course": "Course",
     "enrollments": "Enrollments",
-    "amount": "Amount"
+    "amount": "Amount",
+    "date": "Date",
+    "status": "Status",
+    "rating": "Rating"
   },
   "withdrawals": {
     "title": "Withdrawals",
@@ -524,7 +509,19 @@
     "pending": "Processing",
     "rejected": "Rejected",
     "bank": "Bank",
-    "account": "Account"
+    "account": "Account",
+    "requestAmount": "Withdrawal Amount",
+    "minAmount": "Minimum: {amount}",
+    "maxAmount": "Available: {amount}",
+    "bankName": "Bank Name",
+    "accountNumber": "Account Number",
+    "accountName": "Account Holder",
+    "confirm": "Submit Request",
+    "success": "Withdrawal request submitted",
+    "reviewNote": "Admin Note",
+    "availableBalance": "Available Balance",
+    "noWithdrawals": "No withdrawal history",
+    "cancel": "Cancel"
   },
   "coupons": {
     "title": "Coupons",
@@ -539,7 +536,51 @@
     "expired": "Expired",
     "disabled": "Disabled",
     "percent": "Percent",
-    "fixed": "Fixed"
+    "fixed": "Fixed",
+    "deactivate": "Deactivate",
+    "confirmDeactivateDesc": "This coupon will no longer be usable by students.",
+    "couponDeactivated": "Coupon deactivated",
+    "noCoupons": "No coupons yet",
+    "scheduled": "Scheduled"
+  },
+  "couponForm": {
+    "createTitle": "Create Coupon",
+    "editTitle": "Edit Coupon",
+    "code": "Coupon Code",
+    "codePlaceholder": "e.g., REACT2024",
+    "generateCode": "Generate",
+    "discountType": "Discount Type",
+    "percentage": "Percentage (%)",
+    "fixedAmount": "Fixed Amount (₫)",
+    "discountValue": "Discount Value",
+    "usageLimit": "Total Usage Limit",
+    "usageLimitPlaceholder": "Leave empty for unlimited",
+    "maxUsesPerUser": "Max Uses Per User",
+    "minOrderAmount": "Minimum Order Amount",
+    "maxDiscount": "Max Discount Cap",
+    "maxDiscountHelp": "Maximum discount amount for percentage coupons",
+    "applicableCourses": "Applicable Courses",
+    "allCourses": "All my courses",
+    "specificCourses": "Specific courses",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "preview": "Preview",
+    "create": "Create Coupon",
+    "update": "Update Coupon",
+    "couponCreated": "Coupon created successfully",
+    "couponUpdated": "Coupon updated successfully"
+  },
+  "courseStudents": {
+    "title": "Students",
+    "searchPlaceholder": "Search students...",
+    "student": "Student",
+    "enrolled": "Enrolled",
+    "progress": "Progress",
+    "type": "Type",
+    "full": "Full Course",
+    "partial": "Partial",
+    "noStudents": "No students enrolled yet",
+    "totalStudents": "Total Students"
   },
   "qna": {
     "title": "Q&A",
@@ -551,7 +592,15 @@
     "student": "Student",
     "answers": "answers",
     "reply": "Reply",
-    "filterByCourse": "Filter by course"
+    "filterByCourse": "Filter by course",
+    "noQuestions": "No questions yet",
+    "answerDialog": "Reply to Question",
+    "answerPlaceholder": "Write your answer...",
+    "submitAnswer": "Submit Answer",
+    "answerSubmitted": "Answer submitted",
+    "bestAnswer": "Best Answer",
+    "allCourses": "All Courses",
+    "cancel": "Cancel"
   },
   "settings": {
     "title": "Settings",
@@ -569,7 +618,16 @@
     "newReview": "New Review",
     "newQuestion": "New Question",
     "withdrawalUpdate": "Withdrawal Update",
-    "saveChanges": "Save Changes"
+    "saveChanges": "Save Changes",
+    "headline": "Headline",
+    "headlinePlaceholder": "e.g., Senior React Developer",
+    "biography": "Biography",
+    "expertise": "Expertise",
+    "expertisePlaceholder": "Add expertise (press Enter)",
+    "payoutInfo": "Bank information is provided when making withdrawal requests.",
+    "goToWithdrawals": "Go to Withdrawals",
+    "notificationsComingSoon": "Notification preferences coming soon",
+    "profileSaved": "Profile saved"
   },
   "users": {
     "title": "User Management",

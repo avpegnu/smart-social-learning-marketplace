@@ -60,7 +60,11 @@
       "UNANSWERED": "Chưa trả lời",
       "APPROVED": "Đã duyệt",
       "REVIEWED": "Đã xem xét",
-      "DISMISSED": "Đã bỏ qua"
+      "DISMISSED": "Đã bỏ qua",
+      "AVAILABLE": "Khả dụng",
+      "WITHDRAWN": "Đã rút",
+      "FAILED": "Thất bại",
+      "SCHEDULED": "Đã lên lịch"
     }
   },
   "auth": {
@@ -214,32 +218,6 @@
     "active": "Hoạt động",
     "inactive": "Không hoạt động",
     "completed": "Hoàn thành"
-  },
-  "createCoupon": {
-    "title": "Tạo mã giảm giá",
-    "couponInfo": "Thông tin mã giảm giá",
-    "couponCode": "Mã giảm giá",
-    "autoGenerate": "Tạo tự động",
-    "discountType": "Loại giảm giá",
-    "percentage": "Phần trăm",
-    "fixedAmount": "Số tiền cố định",
-    "discountValue": "Giá trị giảm",
-    "applicableCourses": "Khóa học áp dụng",
-    "allCourses": "Tất cả khóa học",
-    "specificCourses": "Khóa học cụ thể",
-    "usageLimit": "Giới hạn sử dụng",
-    "validFrom": "Ngày bắt đầu",
-    "validTo": "Ngày kết thúc",
-    "activateImmediately": "Kích hoạt ngay",
-    "activateDescription": "Mã giảm giá sẽ có hiệu lực ngay sau khi tạo",
-    "preview": "Xem trước",
-    "percentOff": "giảm phần trăm",
-    "fixedOff": "giảm cố định",
-    "limitLabel": "Giới hạn",
-    "uses": "lượt",
-    "coursesSelected": "khóa học được chọn",
-    "active": "Hoạt động",
-    "inactive": "Chưa kích hoạt"
   },
   "adminWithdrawals": {
     "title": "Quản lý rút tiền",
@@ -503,15 +481,22 @@
   "revenue": {
     "title": "Doanh thu",
     "totalRevenue": "Tổng doanh thu",
+    "totalStudents": "Tổng học viên",
     "thisMonth": "Tháng này",
     "pendingWithdrawal": "Chờ rút",
     "availableBalance": "Số dư khả dụng",
     "revenueChart": "Biểu đồ doanh thu",
     "revenueByCourse": "Doanh thu theo khóa học",
+    "recentEarnings": "Thu nhập gần đây",
+    "noEarnings": "Chưa có thu nhập",
+    "noCourses": "Chưa có khóa học đã xuất bản",
     "withdraw": "Rút tiền",
     "course": "Khóa học",
     "enrollments": "Lượt đăng ký",
-    "amount": "Số tiền"
+    "amount": "Số tiền",
+    "date": "Ngày",
+    "status": "Trạng thái",
+    "rating": "Đánh giá"
   },
   "withdrawals": {
     "title": "Rút tiền",
@@ -525,7 +510,19 @@
     "pending": "Đang xử lý",
     "rejected": "Bị từ chối",
     "bank": "Ngân hàng",
-    "account": "Tài khoản"
+    "account": "Tài khoản",
+    "requestAmount": "Số tiền rút",
+    "minAmount": "Tối thiểu: {amount}",
+    "maxAmount": "Khả dụng: {amount}",
+    "bankName": "Ngân hàng",
+    "accountNumber": "Số tài khoản",
+    "accountName": "Chủ tài khoản",
+    "confirm": "Gửi yêu cầu",
+    "success": "Yêu cầu rút tiền đã được gửi",
+    "reviewNote": "Ghi chú admin",
+    "availableBalance": "Số dư khả dụng",
+    "noWithdrawals": "Chưa có lịch sử rút tiền",
+    "cancel": "Hủy"
   },
   "coupons": {
     "title": "Mã giảm giá",
@@ -540,7 +537,51 @@
     "expired": "Hết hạn",
     "disabled": "Tắt",
     "percent": "Phần trăm",
-    "fixed": "Cố định"
+    "fixed": "Cố định",
+    "deactivate": "Vô hiệu hóa",
+    "confirmDeactivateDesc": "Mã giảm giá này sẽ không thể sử dụng nữa.",
+    "couponDeactivated": "Đã vô hiệu hóa mã giảm giá",
+    "noCoupons": "Chưa có mã giảm giá",
+    "scheduled": "Đã lên lịch"
+  },
+  "couponForm": {
+    "createTitle": "Tạo mã giảm giá",
+    "editTitle": "Sửa mã giảm giá",
+    "code": "Mã giảm giá",
+    "codePlaceholder": "VD: REACT2024",
+    "generateCode": "Tạo tự động",
+    "discountType": "Loại giảm giá",
+    "percentage": "Phần trăm (%)",
+    "fixedAmount": "Số tiền cố định (₫)",
+    "discountValue": "Giá trị giảm",
+    "usageLimit": "Giới hạn sử dụng",
+    "usageLimitPlaceholder": "Để trống cho không giới hạn",
+    "maxUsesPerUser": "Số lần tối đa mỗi người",
+    "minOrderAmount": "Đơn hàng tối thiểu",
+    "maxDiscount": "Giảm tối đa",
+    "maxDiscountHelp": "Số tiền giảm tối đa cho mã phần trăm",
+    "applicableCourses": "Áp dụng cho khóa học",
+    "allCourses": "Tất cả khóa học",
+    "specificCourses": "Chọn khóa học",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
+    "preview": "Xem trước",
+    "create": "Tạo mã giảm giá",
+    "update": "Cập nhật",
+    "couponCreated": "Tạo mã giảm giá thành công",
+    "couponUpdated": "Cập nhật mã giảm giá thành công"
+  },
+  "courseStudents": {
+    "title": "Học viên",
+    "searchPlaceholder": "Tìm học viên...",
+    "student": "Học viên",
+    "enrolled": "Ngày đăng ký",
+    "progress": "Tiến độ",
+    "type": "Loại",
+    "full": "Toàn bộ",
+    "partial": "Từng phần",
+    "noStudents": "Chưa có học viên",
+    "totalStudents": "Tổng học viên"
   },
   "qna": {
     "title": "Hỏi đáp",
@@ -552,7 +593,15 @@
     "student": "Học viên",
     "answers": "câu trả lời",
     "reply": "Trả lời",
-    "filterByCourse": "Lọc theo khóa học"
+    "filterByCourse": "Lọc theo khóa học",
+    "noQuestions": "Chưa có câu hỏi",
+    "answerDialog": "Trả lời câu hỏi",
+    "answerPlaceholder": "Viết câu trả lời...",
+    "submitAnswer": "Gửi câu trả lời",
+    "answerSubmitted": "Đã gửi câu trả lời",
+    "bestAnswer": "Câu trả lời hay nhất",
+    "allCourses": "Tất cả khóa học",
+    "cancel": "Hủy"
   },
   "settings": {
     "title": "Cài đặt",
@@ -570,7 +619,16 @@
     "newReview": "Đánh giá mới",
     "newQuestion": "Câu hỏi mới",
     "withdrawalUpdate": "Cập nhật rút tiền",
-    "saveChanges": "Lưu thay đổi"
+    "saveChanges": "Lưu thay đổi",
+    "headline": "Tiêu đề",
+    "headlinePlaceholder": "VD: Lập trình viên React Senior",
+    "biography": "Tiểu sử",
+    "expertise": "Chuyên môn",
+    "expertisePlaceholder": "Thêm chuyên môn (nhấn Enter)",
+    "payoutInfo": "Thông tin ngân hàng được cung cấp khi yêu cầu rút tiền.",
+    "goToWithdrawals": "Đi tới Rút tiền",
+    "notificationsComingSoon": "Cài đặt thông báo sẽ có sớm",
+    "profileSaved": "Đã lưu hồ sơ"
   },
   "users": {
     "title": "Quản lý người dùng",

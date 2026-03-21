@@ -1,6 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
+import { ExternalLink } from 'lucide-react';
+import { Link } from '@/i18n/navigation';
 import {
   Card,
   CardContent,
@@ -8,15 +12,78 @@ import {
   CardTitle,
   Input,
   Button,
-  Separator,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
+  Textarea,
+  Label,
+  Skeleton,
 } from '@shared/ui';
+import { useInstructorProfile, useUpdateInstructorProfile, useAuthStore } from '@shared/hooks';
+
+interface InstructorProfile {
+  headline: string | null;
+  biography: string | null;
+  expertise: string[];
+  experience: string | null;
+  socialLinks: Record<string, string> | null;
+  user: { fullName: string; email: string; avatarUrl: string | null };
+}
 
 export default function SettingsPage() {
   const t = useTranslations('settings');
+  const user = useAuthStore((s) => s.user);
+  const { data, isLoading } = useInstructorProfile();
+  const updateProfile = useUpdateInstructorProfile();
+
+  const profile = data?.data as InstructorProfile | undefined;
+
+  const [headline, setHeadline] = useState('');
+  const [biography, setBiography] = useState('');
+  const [expertiseInput, setExpertiseInput] = useState('');
+  const [expertise, setExpertise] = useState<string[]>([]);
+
+  // Populate form when profile loads
+  useEffect(() => {
+    if (profile) {
+      setHeadline(profile.headline ?? '');
+      setBiography(profile.biography ?? '');
+      setExpertise(profile.expertise ?? []);
+    }
+  }, [profile]);
+
+  const handleAddExpertise = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && expertiseInput.trim()) {
+      e.preventDefault();
+      if (!expertise.includes(expertiseInput.trim())) {
+        setExpertise([...expertise, expertiseInput.trim()]);
+      }
+      setExpertiseInput('');
+    }
+  };
+
+  const removeExpertise = (item: string) => {
+    setExpertise(expertise.filter((e) => e !== item));
+  };
+
+  const handleSaveProfile = () => {
+    updateProfile.mutate(
+      { headline, biography, expertise },
+      {
+        onSuccess: () => toast.success(t('profileSaved')),
+      },
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-64" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -29,6 +96,7 @@ export default function SettingsPage() {
           <TabsTrigger value="notifications">{t('notifications')}</TabsTrigger>
         </TabsList>
 
+        {/* Profile Tab */}
         <TabsContent value="profile">
           <Card>
             <CardHeader>
@@ -37,85 +105,91 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('fullName')}</label>
-                  <Input defaultValue="Nguyen Van An" />
+                  <Label>{t('fullName')}</Label>
+                  <Input value={profile?.user.fullName ?? user?.fullName ?? ''} disabled />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Email</label>
-                  <Input defaultValue="an.nguyen@email.com" disabled />
+                  <Label>Email</Label>
+                  <Input value={profile?.user.email ?? user?.email ?? ''} disabled />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">{t('phone')}</label>
-                <Input defaultValue="0912345678" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('bio')}</label>
-                <textarea
-                  className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[100px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
-                  defaultValue="Senior Software Engineer voi 10 nam kinh nghiem. Dam me chia se kien thuc lap trinh."
+                <Label>{t('headline')}</Label>
+                <Input
+                  value={headline}
+                  onChange={(e) => setHeadline(e.target.value)}
+                  placeholder={t('headlinePlaceholder')}
                 />
               </div>
-              <Button>{t('saveChanges')}</Button>
+              <div className="space-y-2">
+                <Label>{t('biography')}</Label>
+                <Textarea
+                  value={biography}
+                  onChange={(e) => setBiography(e.target.value)}
+                  rows={4}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('expertise')}</Label>
+                <Input
+                  value={expertiseInput}
+                  onChange={(e) => setExpertiseInput(e.target.value)}
+                  onKeyDown={handleAddExpertise}
+                  placeholder={t('expertisePlaceholder')}
+                />
+                {expertise.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {expertise.map((item) => (
+                      <span
+                        key={item}
+                        className="bg-secondary text-secondary-foreground inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs"
+                      >
+                        {item}
+                        <button
+                          type="button"
+                          onClick={() => removeExpertise(item)}
+                          className="hover:text-destructive ml-1"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <Button onClick={handleSaveProfile} disabled={updateProfile.isPending}>
+                {t('saveChanges')}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Payout Tab */}
         <TabsContent value="payout">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t('payout')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('bankName')}</label>
-                  <Input defaultValue="Vietcombank" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('accountNumber')}</label>
-                  <Input defaultValue="1234567890" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('accountHolder')}</label>
-                <Input defaultValue="NGUYEN VAN AN" />
-              </div>
-              <Button>{t('saveChanges')}</Button>
+              <p className="text-muted-foreground text-sm">{t('payoutInfo')}</p>
+              <Link href="/instructor/withdrawals">
+                <Button variant="outline" className="gap-2">
+                  <ExternalLink className="h-4 w-4" />
+                  {t('goToWithdrawals')}
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Notifications Tab */}
         <TabsContent value="notifications">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t('emailNotifications')}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                { key: 'newEnrollment', default: true },
-                { key: 'newReview', default: true },
-                { key: 'newQuestion', default: true },
-                { key: 'withdrawalUpdate', default: false },
-              ].map((item) => (
-                <div key={item.key} className="flex items-center justify-between">
-                  <label className="text-sm font-medium">
-                    {t(
-                      item.key as
-                        | 'newEnrollment'
-                        | 'newReview'
-                        | 'newQuestion'
-                        | 'withdrawalUpdate',
-                    )}
-                  </label>
-                  <label className="relative inline-flex cursor-pointer items-center">
-                    <input type="checkbox" defaultChecked={item.default} className="peer sr-only" />
-                    <div className="peer bg-muted peer-checked:bg-primary h-6 w-11 rounded-full after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full" />
-                  </label>
-                </div>
-              ))}
-              <Separator />
-              <Button>{t('saveChanges')}</Button>
+            <CardContent>
+              <p className="text-muted-foreground text-sm">{t('notificationsComingSoon')}</p>
             </CardContent>
           </Card>
         </TabsContent>

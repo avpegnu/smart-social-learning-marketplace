@@ -193,7 +193,7 @@ export function Navbar() {
           <Link href="/cart">
             <Button variant="ghost" size="icon" className="relative">
               <ShoppingCart className="h-5 w-5" />
-              {cartCount > 0 && (
+              {hydrated && cartCount > 0 && (
                 <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold">
                   {cartCount > 9 ? '9+' : cartCount}
                 </span>
