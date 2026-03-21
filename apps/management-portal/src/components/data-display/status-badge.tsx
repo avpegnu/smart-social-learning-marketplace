@@ -1,15 +1,18 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Badge } from '@shared/ui';
 
 type StatusType =
   | 'DRAFT'
   | 'PENDING'
+  | 'PENDING_REVIEW'
   | 'PUBLISHED'
   | 'REJECTED'
   | 'ACTIVE'
   | 'INACTIVE'
   | 'BANNED'
+  | 'SUSPENDED'
   | 'COMPLETED'
   | 'EXPIRED'
   | 'DISABLED'
@@ -19,37 +22,45 @@ type StatusType =
   | 'REVIEWED'
   | 'DISMISSED';
 
-const statusConfig: Record<
-  StatusType,
-  {
-    variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info';
-    label: string;
-  }
-> = {
-  DRAFT: { variant: 'secondary', label: 'Draft' },
-  PENDING: { variant: 'warning', label: 'Pending' },
-  PUBLISHED: { variant: 'success', label: 'Published' },
-  REJECTED: { variant: 'destructive', label: 'Rejected' },
-  ACTIVE: { variant: 'success', label: 'Active' },
-  INACTIVE: { variant: 'secondary', label: 'Inactive' },
-  BANNED: { variant: 'destructive', label: 'Banned' },
-  COMPLETED: { variant: 'success', label: 'Completed' },
-  EXPIRED: { variant: 'secondary', label: 'Expired' },
-  DISABLED: { variant: 'outline', label: 'Disabled' },
-  ANSWERED: { variant: 'success', label: 'Answered' },
-  UNANSWERED: { variant: 'warning', label: 'Unanswered' },
-  APPROVED: { variant: 'success', label: 'Approved' },
-  REVIEWED: { variant: 'info', label: 'Reviewed' },
-  DISMISSED: { variant: 'secondary', label: 'Dismissed' },
+const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  DRAFT: 'secondary',
+  PENDING: 'outline',
+  PENDING_REVIEW: 'outline',
+  PUBLISHED: 'default',
+  REJECTED: 'destructive',
+  ACTIVE: 'default',
+  INACTIVE: 'secondary',
+  BANNED: 'destructive',
+  SUSPENDED: 'destructive',
+  COMPLETED: 'default',
+  EXPIRED: 'secondary',
+  DISABLED: 'outline',
+  ANSWERED: 'default',
+  UNANSWERED: 'outline',
+  APPROVED: 'default',
+  REVIEWED: 'secondary',
+  DISMISSED: 'secondary',
 };
 
 interface StatusBadgeProps {
-  status: StatusType;
+  status: StatusType | string;
   label?: string;
 }
 
 export function StatusBadge({ status, label }: StatusBadgeProps) {
-  const config = statusConfig[status] || { variant: 'secondary' as const, label: status };
+  const t = useTranslations('common');
+  const variant = statusVariants[status] ?? 'secondary';
 
-  return <Badge variant={config.variant}>{label || config.label}</Badge>;
+  // Try to get localized label from common.statusLabels
+  let displayLabel = label ?? status;
+  try {
+    const localized = t(`statusLabels.${status}`);
+    if (localized && !localized.startsWith('common.statusLabels.')) {
+      displayLabel = localized;
+    }
+  } catch {
+    // Key not found, use raw status
+  }
+
+  return <Badge variant={variant}>{displayLabel}</Badge>;
 }

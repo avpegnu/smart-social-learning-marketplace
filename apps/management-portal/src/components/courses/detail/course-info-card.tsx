@@ -18,6 +18,7 @@ interface CourseInfoCardProps {
 
 export function CourseInfoCard({ course, category }: CourseInfoCardProps) {
   const t = useTranslations('courseDetail');
+  const tc = useTranslations('common');
   const status = course.status as string;
 
   return (
@@ -35,7 +36,9 @@ export function CourseInfoCard({ course, category }: CourseInfoCardProps) {
           }
         />
         <InfoItem label={t('status')} value="">
-          <Badge variant={STATUS_VARIANTS[status] ?? 'secondary'}>{status}</Badge>
+          <Badge variant={STATUS_VARIANTS[status] ?? 'secondary'}>
+            {tc(`courseStatus.${status}`)}
+          </Badge>
         </InfoItem>
       </div>
 

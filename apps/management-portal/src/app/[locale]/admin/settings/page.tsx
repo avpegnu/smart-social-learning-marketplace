@@ -54,6 +54,7 @@ export default function SettingsPage() {
   const { data, isLoading } = useAdminSettings();
   const updateMutation = useUpdateSetting();
 
+  const [serverValues, setServerValues] = useState<Record<string, unknown>>({});
   const [localValues, setLocalValues] = useState<Record<string, unknown>>({});
   const [dirty, setDirty] = useState<Set<string>>(new Set());
 
@@ -66,32 +67,55 @@ export default function SettingsPage() {
       for (const s of settings) {
         values[s.key] = s.value;
       }
+      setServerValues(values);
       setLocalValues(values);
+      setDirty(new Set());
     }
   }, [data]); // Only re-init when server data changes, not on local edits
 
   const updateLocal = (key: string, value: unknown) => {
     setLocalValues((prev) => ({ ...prev, [key]: value }));
-    setDirty((prev) => new Set(prev).add(key));
+    // Compare with server value — treat undefined/null/"" as equivalent
+    const serverVal = serverValues[key];
+    const normalize = (v: unknown) => (v == null || v === '' ? '' : String(v));
+    setDirty((prev) => {
+      const next = new Set(prev);
+      if (normalize(value) === normalize(serverVal)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
   };
 
-  const saveSetting = (key: string) => {
-    updateMutation.mutate(
-      { key, value: localValues[key] },
-      {
-        onSuccess: () => {
-          toast.success(t('settingSaved'));
-          setDirty((prev) => {
-            const next = new Set(prev);
-            next.delete(key);
-            return next;
-          });
-        },
-      },
-    );
+  const [savingGroup, setSavingGroup] = useState<string | null>(null);
+
+  const saveGroup = async (groupKey: string, keys: string[]) => {
+    const dirtyKeys = keys.filter((k) => dirty.has(k));
+    if (dirtyKeys.length === 0) return;
+    setSavingGroup(groupKey);
+    try {
+      for (const key of dirtyKeys) {
+        await updateMutation.mutateAsync({ key, value: localValues[key] });
+      }
+      toast.success(t('settingSaved'));
+      setDirty((prev) => {
+        const next = new Set(prev);
+        for (const key of dirtyKeys) next.delete(key);
+        return next;
+      });
+    } catch {
+      // Error handled by mutation onError
+    } finally {
+      setSavingGroup(null);
+    }
   };
 
-  if (isLoading) {
+  const hasInitialized =
+    Object.keys(serverValues).length > 0 || (settings.length === 0 && !isLoading);
+
+  if (isLoading || !hasInitialized) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
@@ -114,52 +138,56 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             {group.settings.map((setting) => {
               const value = localValues[setting.key];
-              const isDirty = dirty.has(setting.key);
 
               return (
-                <div key={setting.key} className="flex items-center gap-4">
-                  <div className="flex-1 space-y-1">
-                    <Label className="text-sm">{t(setting.label)}</Label>
-                    {setting.type === 'text' && (
-                      <Input
-                        value={(value as string) ?? ''}
-                        onChange={(e) => updateLocal(setting.key, e.target.value)}
+                <div key={setting.key} className="space-y-1">
+                  <Label className="text-sm">{t(setting.label)}</Label>
+                  {setting.type === 'text' && (
+                    <Input
+                      value={(value as string) ?? ''}
+                      onChange={(e) => updateLocal(setting.key, e.target.value)}
+                    />
+                  )}
+                  {setting.type === 'number' && (
+                    <Input
+                      type="number"
+                      value={(value as number) ?? 0}
+                      onChange={(e) => updateLocal(setting.key, Number(e.target.value))}
+                    />
+                  )}
+                  {setting.type === 'toggle' && (
+                    <label className="flex cursor-pointer items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={!!value}
+                        onChange={(e) => updateLocal(setting.key, e.target.checked)}
+                        className="h-4 w-4 rounded"
                       />
-                    )}
-                    {setting.type === 'number' && (
-                      <Input
-                        type="number"
-                        value={(value as number) ?? 0}
-                        onChange={(e) => updateLocal(setting.key, Number(e.target.value))}
-                      />
-                    )}
-                    {setting.type === 'toggle' && (
-                      <label className="flex cursor-pointer items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={!!value}
-                          onChange={(e) => updateLocal(setting.key, e.target.checked)}
-                          className="h-4 w-4 rounded"
-                        />
-                        <span className="text-muted-foreground text-sm">
-                          {value ? t('enabled') : t('disabled')}
-                        </span>
-                      </label>
-                    )}
-                  </div>
-                  {isDirty && (
-                    <Button
-                      size="sm"
-                      onClick={() => saveSetting(setting.key)}
-                      disabled={updateMutation.isPending}
-                    >
-                      <Save className="mr-1 h-3.5 w-3.5" />
-                      {t('save')}
-                    </Button>
+                      <span className="text-muted-foreground text-sm">
+                        {value ? t('enabled') : t('disabled')}
+                      </span>
+                    </label>
                   )}
                 </div>
               );
             })}
+            <div className="flex justify-end pt-2">
+              <Button
+                variant={group.settings.some((s) => dirty.has(s.key)) ? 'default' : 'outline'}
+                onClick={() =>
+                  saveGroup(
+                    group.key,
+                    group.settings.map((s) => s.key),
+                  )
+                }
+                disabled={
+                  !group.settings.some((s) => dirty.has(s.key)) || savingGroup === group.key
+                }
+              >
+                <Save className="mr-1 h-4 w-4" />
+                {savingGroup === group.key ? t('saving') : t('save')}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ))}

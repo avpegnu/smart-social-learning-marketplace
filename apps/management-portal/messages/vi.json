@@ -36,7 +36,32 @@
     "no": "Không",
     "saveDraft": "Lưu nháp",
     "desktopRequired": "Vui lòng sử dụng máy tính để truy cập cổng quản lý",
-    "desktopRequiredDesc": "Cổng quản lý được thiết kế cho màn hình lớn (tối thiểu 1024px)"
+    "desktopRequiredDesc": "Cổng quản lý được thiết kế cho màn hình lớn (tối thiểu 1024px)",
+    "courseStatus": {
+      "DRAFT": "Nháp",
+      "PENDING_REVIEW": "Chờ duyệt",
+      "PUBLISHED": "Đã xuất bản",
+      "REJECTED": "Bị từ chối"
+    },
+    "statusLabels": {
+      "DRAFT": "Nháp",
+      "PENDING": "Chờ xử lý",
+      "PENDING_REVIEW": "Chờ duyệt",
+      "PUBLISHED": "Đã xuất bản",
+      "REJECTED": "Bị từ chối",
+      "ACTIVE": "Hoạt động",
+      "INACTIVE": "Không hoạt động",
+      "BANNED": "Bị khóa",
+      "SUSPENDED": "Bị khóa",
+      "COMPLETED": "Hoàn thành",
+      "EXPIRED": "Hết hạn",
+      "DISABLED": "Vô hiệu",
+      "ANSWERED": "Đã trả lời",
+      "UNANSWERED": "Chưa trả lời",
+      "APPROVED": "Đã duyệt",
+      "REVIEWED": "Đã xem xét",
+      "DISMISSED": "Đã bỏ qua"
+    }
   },
   "auth": {
     "login": "Đăng nhập",
@@ -295,6 +320,7 @@
     "enabled": "Bật",
     "disabled": "Tắt",
     "save": "Lưu",
+    "saving": "Đang lưu...",
     "settingSaved": "Đã lưu cài đặt"
   },
   "adminCourses": {

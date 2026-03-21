@@ -22,6 +22,7 @@ const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'destructive' | 
 export default function CourseDetailPage({ params }: { params: Promise<{ courseId: string }> }) {
   const { courseId } = use(params);
   const t = useTranslations('courseDetail');
+  const tc = useTranslations('common');
   const router = useRouter();
   const { data: courseData, isLoading } = useInstructorCourseDetail(courseId);
 
@@ -93,7 +94,9 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
       <div className="space-y-1">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold">{course.title as string}</h1>
-          <Badge variant={STATUS_VARIANTS[status] ?? 'secondary'}>{status}</Badge>
+          <Badge variant={STATUS_VARIANTS[status] ?? 'secondary'}>
+            {tc(`courseStatus.${status}`)}
+          </Badge>
         </div>
         {(course.shortDescription as string) && (
           <p className="text-muted-foreground">{course.shortDescription as string}</p>

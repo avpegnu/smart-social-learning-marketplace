@@ -29,6 +29,7 @@ interface CourseRow {
 
 export default function AdminCoursesPage() {
   const t = useTranslations('adminCourses');
+  const tc = useTranslations('common');
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -76,7 +77,11 @@ export default function AdminCoursesPage() {
     {
       key: 'status',
       header: t('status'),
-      render: (c) => <Badge variant={STATUS_VARIANTS[c.status] ?? 'secondary'}>{c.status}</Badge>,
+      render: (c) => (
+        <Badge variant={STATUS_VARIANTS[c.status] ?? 'secondary'}>
+          {tc(`courseStatus.${c.status}`)}
+        </Badge>
+      ),
     },
     {
       key: 'totalStudents',
@@ -120,17 +125,17 @@ export default function AdminCoursesPage() {
         onServerPageChange={setPage}
         filterSlot={
           <div className="flex items-center gap-1">
-            {['ALL', 'DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'REJECTED'].map((s) => (
+            {['ALL', 'PENDING_REVIEW', 'PUBLISHED', 'REJECTED'].map((s) => (
               <Badge
                 key={s}
                 variant={statusFilter === s ? 'default' : 'outline'}
-                className="cursor-pointer"
+                className="cursor-pointer px-3 py-1 text-sm"
                 onClick={() => {
                   setStatusFilter(s);
                   setPage(1);
                 }}
               >
-                {s === 'ALL' ? t('allStatuses') : s}
+                {s === 'ALL' ? t('allStatuses') : tc(`courseStatus.${s}`)}
               </Badge>
             ))}
           </div>

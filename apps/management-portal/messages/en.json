@@ -36,7 +36,32 @@
     "no": "No",
     "saveDraft": "Save Draft",
     "desktopRequired": "Please use a desktop to access the management portal",
-    "desktopRequiredDesc": "The management portal is designed for large screens (minimum 1024px)"
+    "desktopRequiredDesc": "The management portal is designed for large screens (minimum 1024px)",
+    "courseStatus": {
+      "DRAFT": "Draft",
+      "PENDING_REVIEW": "Pending Review",
+      "PUBLISHED": "Published",
+      "REJECTED": "Rejected"
+    },
+    "statusLabels": {
+      "DRAFT": "Draft",
+      "PENDING": "Pending",
+      "PENDING_REVIEW": "Pending Review",
+      "PUBLISHED": "Published",
+      "REJECTED": "Rejected",
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "BANNED": "Banned",
+      "SUSPENDED": "Suspended",
+      "COMPLETED": "Completed",
+      "EXPIRED": "Expired",
+      "DISABLED": "Disabled",
+      "ANSWERED": "Answered",
+      "UNANSWERED": "Unanswered",
+      "APPROVED": "Approved",
+      "REVIEWED": "Reviewed",
+      "DISMISSED": "Dismissed"
+    }
   },
   "auth": {
     "login": "Login",
@@ -294,6 +319,7 @@
     "enabled": "Enabled",
     "disabled": "Disabled",
     "save": "Save",
+    "saving": "Saving...",
     "settingSaved": "Setting saved"
   },
   "adminCourses": {

@@ -26,6 +26,7 @@ export default function AdminCourseDetailPage({
 }) {
   const { courseId } = use(params);
   const t = useTranslations('courseDetail');
+  const tc = useTranslations('common');
   const router = useRouter();
   const { data: courseData, isLoading } = useAdminCourseDetail(courseId);
 
@@ -89,7 +90,9 @@ export default function AdminCourseDetailPage({
       <div className="space-y-1">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold">{course.title as string}</h1>
-          <Badge variant={STATUS_VARIANTS[status] ?? 'secondary'}>{status}</Badge>
+          <Badge variant={STATUS_VARIANTS[status] ?? 'secondary'}>
+            {tc(`courseStatus.${status}`)}
+          </Badge>
         </div>
         {instructor && (
           <p className="text-muted-foreground text-sm">

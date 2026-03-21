@@ -11,7 +11,7 @@ export class AdminCoursesService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async getAllCourses(query: PaginationDto) {
-    const where = { deletedAt: null };
+    const where = { deletedAt: null, status: { not: 'DRAFT' as const } };
 
     const [courses, total] = await Promise.all([
       this.prisma.course.findMany({

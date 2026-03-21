@@ -11,7 +11,9 @@ export class CategoriesService {
       orderBy: { order: 'asc' },
       include: {
         children: { orderBy: { order: 'asc' } },
-        _count: { select: { courses: true } },
+        _count: {
+          select: { courses: { where: { status: 'PUBLISHED', deletedAt: null } } },
+        },
       },
     });
   }
@@ -21,7 +23,9 @@ export class CategoriesService {
       where: { slug },
       include: {
         children: { orderBy: { order: 'asc' } },
-        _count: { select: { courses: true } },
+        _count: {
+          select: { courses: { where: { status: 'PUBLISHED', deletedAt: null } } },
+        },
       },
     });
     if (!category) {

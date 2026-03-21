@@ -19,8 +19,7 @@ interface CategoryRow {
   id: string;
   name: string;
   slug: string;
-  description: string | null;
-  courseCount: number;
+  _count?: { courses: number };
   children?: CategoryRow[];
 }
 
@@ -35,7 +34,6 @@ export default function CategoriesPage() {
   const [editTarget, setEditTarget] = useState<CategoryRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CategoryRow | null>(null);
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
 
   const categories = (data?.data as CategoryRow[]) ?? [];
 
@@ -52,14 +50,12 @@ export default function CategoriesPage() {
   const openCreate = () => {
     setEditTarget(null);
     setName('');
-    setDescription('');
     setFormOpen(true);
   };
 
   const openEdit = (cat: CategoryRow) => {
     setEditTarget(cat);
     setName(cat.name);
-    setDescription(cat.description ?? '');
     setFormOpen(true);
   };
 
@@ -69,7 +65,7 @@ export default function CategoriesPage() {
       updateMutation.mutate(
         {
           id: editTarget.id,
-          data: { name: name.trim(), description: description.trim() || undefined },
+          data: { name: name.trim() },
         },
         {
           onSuccess: () => {
@@ -80,7 +76,7 @@ export default function CategoriesPage() {
       );
     } else {
       createMutation.mutate(
-        { name: name.trim(), description: description.trim() || undefined },
+        { name: name.trim() },
         {
           onSuccess: () => {
             toast.success(t('categoryCreated'));
@@ -120,16 +116,7 @@ export default function CategoriesPage() {
     {
       key: 'courseCount',
       header: t('courseCount'),
-      render: (cat) => <Badge variant="secondary">{cat.courseCount}</Badge>,
-    },
-    {
-      key: 'description',
-      header: t('description'),
-      render: (cat) => (
-        <span className="text-muted-foreground max-w-50 truncate text-sm">
-          {cat.description ?? '—'}
-        </span>
-      ),
+      render: (cat) => <Badge variant="secondary">{cat._count?.courses ?? 0}</Badge>,
     },
     {
       key: 'actions',
@@ -144,7 +131,7 @@ export default function CategoriesPage() {
             size="sm"
             className="text-destructive"
             onClick={() => setDeleteTarget(cat)}
-            disabled={cat.courseCount > 0}
+            disabled={(cat._count?.courses ?? 0) > 0}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -194,14 +181,6 @@ export default function CategoriesPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder={t('categoryNamePlaceholder')}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label>{t('description')}</Label>
-                  <Input
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder={t('categoryDescPlaceholder')}
                   />
                 </div>
               </div>

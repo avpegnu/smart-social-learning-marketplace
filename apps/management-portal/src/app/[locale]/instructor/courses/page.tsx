@@ -111,7 +111,7 @@ export default function InstructorCoursesPage() {
     {
       key: 'status',
       header: t('status'),
-      render: (course) => <StatusBadge status={course.status as 'DRAFT'} />,
+      render: (course) => <StatusBadge status={course.status} />,
     },
     {
       key: 'actions',
@@ -198,7 +198,7 @@ export default function InstructorCoursesPage() {
               <Badge
                 key={s}
                 variant={statusFilter === s ? 'default' : 'outline'}
-                className="cursor-pointer"
+                className="cursor-pointer px-3 py-1 text-sm"
                 onClick={() => {
                   setStatusFilter(s);
                   setPage(1);
