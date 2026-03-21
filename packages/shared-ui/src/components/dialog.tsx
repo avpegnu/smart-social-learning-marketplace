@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 import { cn } from '../lib/utils';
 import { X } from 'lucide-react';
 
@@ -53,12 +54,16 @@ function DialogTrigger({
 
 function DialogContent({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   const { open, setOpen } = React.useContext(DialogContext);
+
   if (!open) return null;
 
-  return (
+  const content = (
     <>
       <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setOpen(false)} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        onClick={() => setOpen(false)}
+      >
         <div
           className={cn(
             'border-border bg-background relative w-full max-w-lg rounded-xl border p-6 shadow-lg',
@@ -79,6 +84,13 @@ function DialogContent({ children, className, ...props }: React.HTMLAttributes<H
       </div>
     </>
   );
+
+  // Portal to document.body to escape any parent transform/overflow context
+  if (typeof document !== 'undefined') {
+    return ReactDOM.createPortal(content, document.body);
+  }
+
+  return content;
 }
 
 function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
