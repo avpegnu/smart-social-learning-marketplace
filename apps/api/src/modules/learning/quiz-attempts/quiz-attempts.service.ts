@@ -60,7 +60,9 @@ export class QuizAttemptsService {
 
     const totalQuestions = quiz.questions.length;
     const score = totalQuestions > 0 ? correctCount / totalQuestions : 0;
-    const passed = score >= quiz.passingScore;
+    // passingScore stored as decimal (0.7) or percentage (70) — normalize
+    const passingThreshold = quiz.passingScore > 1 ? quiz.passingScore / 100 : quiz.passingScore;
+    const passed = score >= passingThreshold;
 
     // 5. Save attempt
     const attempt = await this.prisma.quizAttempt.create({

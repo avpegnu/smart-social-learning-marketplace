@@ -52,6 +52,7 @@ export class CoursePlayerService {
         title: lesson.title,
         type: lesson.type,
         textContent: lesson.textContent,
+        videoUrl: lesson.videoUrl,
         estimatedDuration: lesson.estimatedDuration,
         media: lesson.media,
         attachments: lesson.attachments,

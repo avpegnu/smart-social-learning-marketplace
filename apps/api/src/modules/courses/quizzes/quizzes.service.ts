@@ -31,7 +31,7 @@ export class QuizzesService {
       return tx.quiz.create({
         data: {
           lessonId,
-          passingScore: dto.passingScore !== undefined ? dto.passingScore / 100 : 0.7,
+          passingScore: dto.passingScore ?? 0.7,
           maxAttempts: dto.maxAttempts,
           timeLimitSeconds: dto.timeLimitSeconds,
           questions: {

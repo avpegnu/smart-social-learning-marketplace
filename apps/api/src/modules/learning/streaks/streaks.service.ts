@@ -145,13 +145,26 @@ export class StreaksService {
       }),
     );
 
-    return {
-      activeCourses,
-      completedCourses: completedEnrollments.map((e) => ({
-        ...e,
-        certificate: certificates.find((c) => c.courseId === e.courseId) ?? null,
-      })),
-      streak,
-    };
+    // Get first lesson for completed courses (for "Review" button)
+    const completedCourses = await Promise.all(
+      completedEnrollments.map(async (e) => {
+        const firstLesson = await this.prisma.lesson.findFirst({
+          where: { chapter: { section: { courseId: e.courseId } } },
+          orderBy: [
+            { chapter: { section: { order: 'asc' } } },
+            { chapter: { order: 'asc' } },
+            { order: 'asc' },
+          ],
+          select: { id: true, title: true, type: true },
+        });
+        return {
+          ...e,
+          firstLesson,
+          certificate: certificates.find((c) => c.courseId === e.courseId) ?? null,
+        };
+      }),
+    );
+
+    return { activeCourses, completedCourses, streak };
   }
 }
