@@ -5,13 +5,18 @@ import { usePathname } from '@/i18n/navigation';
 import { Link } from '@/i18n/navigation';
 import { ChevronRight, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useInstructorCourseDetail } from '@shared/hooks';
+
+// CUID pattern: starts with c + 25 alphanumeric chars
+function isCuid(segment: string): boolean {
+  return /^c[a-z0-9]{24,}$/i.test(segment);
+}
 
 export function Breadcrumb() {
   const t = useTranslations('nav');
   const pathname = usePathname();
 
   const allSegments = pathname.split('/').filter(Boolean);
-  // Skip the first segment (instructor/admin) for display but keep in href
   const skipSegments = new Set(['instructor', 'admin']);
   const segments = allSegments.filter((s) => !skipSegments.has(s));
 
@@ -29,8 +34,10 @@ export function Breadcrumb() {
     categories: t('categories'),
     analytics: t('analytics'),
     reports: t('reports'),
-    new: 'New',
-    curriculum: 'Curriculum',
+    new: t('new'),
+    edit: t('edit'),
+    curriculum: t('curriculum'),
+    students: t('students'),
   };
 
   const basePath = allSegments[0] ? `/${allSegments[0]}` : '';
@@ -43,7 +50,13 @@ export function Breadcrumb() {
       {segments.map((segment, index) => {
         const href = basePath + '/' + segments.slice(0, index + 1).join('/');
         const isLast = index === segments.length - 1;
-        const label = labelMap[segment] || segment;
+
+        // For CUID segments, show course title instead
+        const label = isCuid(segment) ? (
+          <CourseTitle courseId={segment} />
+        ) : (
+          labelMap[segment] || segment
+        );
 
         return (
           <span key={segment + index} className="flex items-center gap-1.5">
@@ -60,4 +73,15 @@ export function Breadcrumb() {
       })}
     </nav>
   );
+}
+
+function CourseTitle({ courseId }: { courseId: string }) {
+  const { data } = useInstructorCourseDetail(courseId);
+  const title = (data?.data as Record<string, unknown>)?.title as string | undefined;
+
+  if (!title) return <span className="animate-pulse">...</span>;
+
+  // Truncate long titles
+  const truncated = title.length > 30 ? title.slice(0, 30) + '...' : title;
+  return <>{truncated}</>;
 }
