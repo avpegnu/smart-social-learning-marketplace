@@ -43,4 +43,11 @@ export const courseService = {
   browse: (params?: Record<string, string>) => apiClient.get('/courses', params),
 
   getBySlug: (slug: string) => apiClient.get(`/courses/${slug}`),
+
+  // Reviews
+  getReviews: (courseId: string, params?: Record<string, string>) =>
+    apiClient.get(`/courses/${courseId}/reviews`, params),
+
+  createReview: (courseId: string, data: { rating: number; comment?: string }) =>
+    apiClient.post(`/courses/${courseId}/reviews`, data),
 };

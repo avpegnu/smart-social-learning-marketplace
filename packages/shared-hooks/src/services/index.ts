@@ -29,3 +29,5 @@ export { uploadService } from './upload.service';
 export type { SignUploadResponse, CompleteUploadPayload } from './upload.service';
 
 export { adminService } from './admin.service';
+
+export { enrollmentService } from './enrollment.service';

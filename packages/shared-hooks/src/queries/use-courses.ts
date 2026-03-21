@@ -6,6 +6,35 @@ import { useApiError } from '../use-api-error';
 import { courseService } from '../services/course.service';
 import type { CourseListParams } from '../services/course.service';
 
+// ── Public Course Browse ──
+
+export function useCourses(params: Record<string, string>) {
+  return useQuery({
+    queryKey: ['courses', params],
+    queryFn: () => courseService.browse(params),
+  });
+}
+
+// ── Course Detail by Slug ──
+
+export function useCourseDetail(slug: string) {
+  return useQuery({
+    queryKey: ['courses', 'detail', slug],
+    queryFn: () => courseService.getBySlug(slug),
+    enabled: !!slug,
+  });
+}
+
+// ── Course Reviews (paginated) ──
+
+export function useCourseReviews(courseId: string, params: Record<string, string>) {
+  return useQuery({
+    queryKey: ['courses', courseId, 'reviews', params],
+    queryFn: () => courseService.getReviews(courseId, params),
+    enabled: !!courseId,
+  });
+}
+
 // ── Instructor Course List ──
 
 export function useInstructorCourses(params?: CourseListParams) {

@@ -50,6 +50,9 @@ export {
 } from './queries/use-instructor';
 
 export {
+  useCourses,
+  useCourseDetail,
+  useCourseReviews,
   useInstructorCourses,
   useInstructorCourseDetail,
   useCreateCourse,
@@ -58,6 +61,8 @@ export {
   useSubmitCourseForReview,
   useUpdateCourseTags,
 } from './queries/use-courses';
+
+export { useEnrollmentCheck, useEnrollFree, useMyLearning } from './queries/use-enrollments';
 
 export {
   useCreateSection,
@@ -107,6 +112,7 @@ export {
 } from './queries/use-admin';
 
 export { adminService } from './services/admin.service';
+export { enrollmentService } from './services/enrollment.service';
 
 // Stores (Layer 3 — Zustand client state)
 export { useAuthStore } from './stores/auth-store';
