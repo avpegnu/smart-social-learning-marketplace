@@ -128,17 +128,15 @@ export default function InstructorCoursesPage() {
           >
             <Pencil className="h-4 w-4" />
           </Button>
-          {course.status === 'PUBLISHED' && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              title={t('view')}
-              onClick={() => router.push(`/instructor/courses/${course.id}/curriculum`)}
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            title={t('view')}
+            onClick={() => router.push(`/instructor/courses/${course.id}`)}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
           {(course.status === 'DRAFT' || course.status === 'REJECTED') && (
             <>
               <Button
