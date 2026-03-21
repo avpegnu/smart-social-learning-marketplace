@@ -110,7 +110,8 @@
     "bestseller": "Bestseller",
     "new": "New",
     "lessons": "lessons",
-    "free": "Free"
+    "free": "Free",
+    "students": "students"
   },
   "courses": {
     "searchPlaceholder": "Search courses, topics, instructors...",
@@ -131,11 +132,16 @@
     "sortBy": "Sort by:",
     "sort_popular": "Most popular",
     "sort_newest": "Newest",
-    "sort_rating": "Highest rated",
-    "sort_priceAsc": "Price: Low to High",
-    "sort_priceDesc": "Price: High to Low",
+    "sort_highest_rated": "Highest rated",
+    "sort_price_asc": "Price: Low to High",
+    "sort_price_desc": "Price: High to Low",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "noResults": "No courses found",
+    "noResultsDesc": "Try changing your filters or search terms",
+    "clearFilters": "Clear filters",
+    "allCategories": "All categories",
+    "allLevels": "All levels"
   },
   "courseDetail": {
     "bestseller": "Bestseller",
@@ -155,6 +161,7 @@
     "preview": "Preview",
     "helpful": "Helpful",
     "addToCart": "Add to cart",
+    "addedToCart": "Added to cart",
     "buyNow": "Buy now",
     "wishlist": "Wishlist",
     "share": "Share",
@@ -163,7 +170,20 @@
     "lifetime": "Lifetime access",
     "qnaEmpty": "No questions yet",
     "qnaEmptyDesc": "Be the first to ask a question",
-    "askQuestion": "Ask a question"
+    "askQuestion": "Ask a question",
+    "notFound": "Course not found",
+    "chapters": "chapters",
+    "continueLearning": "Continue Learning",
+    "goToCart": "Go to Cart",
+    "enrollFree": "Enroll Free",
+    "enrolling": "Enrolling...",
+    "enrolled": "Successfully enrolled",
+    "freePreview": "Free Preview",
+    "noReviews": "No reviews yet",
+    "noReviewsDesc": "Be the first to review this course",
+    "previousReviews": "Previous",
+    "nextReviews": "Next",
+    "previewComingSoon": "Preview feature coming soon"
   },
   "myLearning": {
     "title": "My Learning",

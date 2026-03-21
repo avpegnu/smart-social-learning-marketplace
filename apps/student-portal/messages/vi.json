@@ -110,7 +110,8 @@
     "bestseller": "Bán chạy",
     "new": "Mới",
     "lessons": "bài học",
-    "free": "Miễn phí"
+    "free": "Miễn phí",
+    "students": "học viên"
   },
   "courses": {
     "searchPlaceholder": "Tìm kiếm khóa học, chủ đề, giảng viên...",
@@ -131,11 +132,16 @@
     "sortBy": "Sắp xếp:",
     "sort_popular": "Phổ biến nhất",
     "sort_newest": "Mới nhất",
-    "sort_rating": "Đánh giá cao",
-    "sort_priceAsc": "Giá thấp đến cao",
-    "sort_priceDesc": "Giá cao đến thấp",
+    "sort_highest_rated": "Đánh giá cao",
+    "sort_price_asc": "Giá thấp đến cao",
+    "sort_price_desc": "Giá cao đến thấp",
     "previous": "Trước",
-    "next": "Sau"
+    "next": "Sau",
+    "noResults": "Không tìm thấy khóa học nào",
+    "noResultsDesc": "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm",
+    "clearFilters": "Xóa bộ lọc",
+    "allCategories": "Tất cả danh mục",
+    "allLevels": "Tất cả cấp độ"
   },
   "courseDetail": {
     "bestseller": "Bán chạy",
@@ -155,6 +161,7 @@
     "preview": "Xem trước",
     "helpful": "Hữu ích",
     "addToCart": "Thêm vào giỏ",
+    "addedToCart": "Đã thêm vào giỏ hàng",
     "buyNow": "Mua ngay",
     "wishlist": "Yêu thích",
     "share": "Chia sẻ",
@@ -163,7 +170,20 @@
     "lifetime": "Truy cập trọn đời",
     "qnaEmpty": "Chưa có câu hỏi nào",
     "qnaEmptyDesc": "Hãy là người đầu tiên đặt câu hỏi",
-    "askQuestion": "Đặt câu hỏi"
+    "askQuestion": "Đặt câu hỏi",
+    "notFound": "Không tìm thấy khóa học",
+    "chapters": "chương",
+    "continueLearning": "Tiếp tục học",
+    "goToCart": "Xem giỏ hàng",
+    "enrollFree": "Đăng ký miễn phí",
+    "enrolling": "Đang đăng ký...",
+    "enrolled": "Đã đăng ký thành công",
+    "freePreview": "Xem trước miễn phí",
+    "noReviews": "Chưa có đánh giá nào",
+    "noReviewsDesc": "Hãy là người đầu tiên đánh giá khóa học này",
+    "previousReviews": "Trước",
+    "nextReviews": "Sau",
+    "previewComingSoon": "Tính năng xem trước sẽ sớm ra mắt"
   },
   "myLearning": {
     "title": "Học tập của tôi",

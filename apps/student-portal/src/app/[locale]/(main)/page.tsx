@@ -1,38 +1,47 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { ArrowRight, Star, Users, Bot, Sparkles, GraduationCap, ChevronRight } from 'lucide-react';
-import { Button, Badge } from '@shared/ui';
+import { Button, Badge, Skeleton } from '@shared/ui';
 import { CourseGrid } from '@/components/course/course-grid';
-import { mockCourses, categories } from '@/lib/mock-data';
+import { useCourses, useCategories } from '@shared/hooks';
 import { cn } from '@/lib/utils';
 
 export default function HomePage() {
   const t = useTranslations('home');
 
-  const featuredCourses = mockCourses.filter((c) => c.isBestseller);
-  const newCourses = mockCourses.filter((c) => c.isNew);
-  const allCourses = mockCourses.slice(0, 4);
+  const popularParams = useMemo(() => ({ sort: 'popular', limit: '4' }), []);
+  const newestParams = useMemo(() => ({ sort: 'newest', limit: '4' }), []);
+
+  const { data: popularData, isLoading: popularLoading } = useCourses(popularParams);
+  const { data: newestData, isLoading: newestLoading } = useCourses(newestParams);
+  const { data: categoriesData, isLoading: categoriesLoading } = useCategories();
+
+  const popularCourses = (popularData?.data as Record<string, unknown>[]) ?? [];
+  const newestCourses = (newestData?.data as Record<string, unknown>[]) ?? [];
+  const categories =
+    (categoriesData?.data as Array<{ id: string; name: string; slug: string }>) ?? [];
 
   const features = [
     {
       icon: Users,
       title: t('whyUs.social.title'),
       description: t('whyUs.social.desc'),
-      color: 'text-blue-500 bg-blue-500/10',
+      color: 'text-primary bg-primary/10',
     },
     {
       icon: Bot,
       title: t('whyUs.ai.title'),
       description: t('whyUs.ai.desc'),
-      color: 'text-blue-500 bg-blue-500/10',
+      color: 'text-primary bg-primary/10',
     },
     {
       icon: GraduationCap,
       title: t('whyUs.quality.title'),
       description: t('whyUs.quality.desc'),
-      color: 'text-green-500 bg-green-500/10',
+      color: 'text-success bg-success/10',
     },
   ];
 
@@ -91,19 +100,22 @@ export default function HomePage() {
       <section className="border-border bg-background border-b">
         <div className="container mx-auto px-4">
           <div className="scrollbar-hide flex items-center gap-3 overflow-x-auto py-4">
-            {categories.map((cat) => (
-              <Link key={cat.id} href={`/courses?category=${cat.id}`}>
-                <Button variant="outline" size="sm" className="gap-1.5 whitespace-nowrap">
-                  <span>{cat.icon}</span>
-                  {cat.name}
-                </Button>
-              </Link>
-            ))}
+            {categoriesLoading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-9 w-24 rounded-md" />
+                ))
+              : categories.map((cat) => (
+                  <Link key={cat.id} href={`/courses?category=${cat.slug}`}>
+                    <Button variant="outline" size="sm" className="whitespace-nowrap">
+                      {cat.name}
+                    </Button>
+                  </Link>
+                ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Courses */}
+      {/* Popular Courses */}
       <section className="py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <div className="mb-8 flex items-center justify-between">
@@ -111,7 +123,7 @@ export default function HomePage() {
               <h2 className="text-2xl font-bold">{t('featuredTitle')}</h2>
               <p className="text-muted-foreground mt-1">{t('featuredSubtitle')}</p>
             </div>
-            <Link href="/courses">
+            <Link href="/courses?sort=popular">
               <Button variant="ghost" className="gap-1">
                 {t('viewAll')}
                 <ChevronRight className="h-4 w-4" />
@@ -119,7 +131,9 @@ export default function HomePage() {
             </Link>
           </div>
           <CourseGrid
-            courses={featuredCourses.length > 0 ? featuredCourses : allCourses.slice(0, 4)}
+            courses={popularCourses as never[]}
+            isLoading={popularLoading}
+            skeletonCount={4}
           />
         </div>
       </section>
@@ -132,14 +146,18 @@ export default function HomePage() {
               <h2 className="text-2xl font-bold">{t('newCoursesTitle')}</h2>
               <p className="text-muted-foreground mt-1">{t('newCoursesSubtitle')}</p>
             </div>
-            <Link href="/courses">
+            <Link href="/courses?sort=newest">
               <Button variant="ghost" className="gap-1">
                 {t('viewAll')}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
           </div>
-          <CourseGrid courses={newCourses.length > 0 ? newCourses : allCourses.slice(0, 4)} />
+          <CourseGrid
+            courses={newestCourses as never[]}
+            isLoading={newestLoading}
+            skeletonCount={4}
+          />
         </div>
       </section>
 

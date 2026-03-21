@@ -1,15 +1,17 @@
 'use client';
 
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { Search, SlidersHorizontal, X, BookOpen } from 'lucide-react';
 import {
-  Button,
   Input,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  Separator,
+  Badge,
   Sheet,
   SheetTrigger,
   SheetContent,
@@ -17,130 +19,104 @@ import {
   SheetTitle,
 } from '@shared/ui';
 import { CourseGrid } from '@/components/course/course-grid';
-import { mockCourses, categories } from '@/lib/mock-data';
-import { useState } from 'react';
+import { CourseFilterSidebar, DEFAULT_FILTERS } from '@/components/course/course-filters';
+import { Pagination } from '@/components/course/pagination';
+import { EmptyState } from '@/components/feedback/empty-state';
+import { useCourses, useCategories, useDebounce } from '@shared/hooks';
+import type { CourseFilters } from '@/components/course/course-filters';
 
-const levels = ['beginner', 'intermediate', 'advanced'] as const;
-const priceOptions = ['all', 'free', 'paid'] as const;
-const ratingOptions = [4.5, 4.0, 3.5, 3.0] as const;
-const sortOptions = ['popular', 'newest', 'rating', 'priceAsc', 'priceDesc'] as const;
-
-function FilterSidebar({ t }: { t: (key: string) => string }) {
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
-  const [selectedPrice, setSelectedPrice] = useState<string>('all');
-  const [selectedRating, setSelectedRating] = useState<number | null>(null);
-
-  const toggleCategory = (id: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
-    );
-  };
-
-  const toggleLevel = (level: string) => {
-    setSelectedLevels((prev) =>
-      prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level],
-    );
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Categories */}
-      <div>
-        <h3 className="mb-3 text-sm font-semibold">{t('category')}</h3>
-        <div className="space-y-2">
-          {categories.map((cat) => (
-            <label key={cat.id} className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={selectedCategories.includes(cat.id)}
-                onChange={() => toggleCategory(cat.id)}
-                className="border-input rounded"
-              />
-              <span className="flex-1 text-sm">{cat.name}</span>
-              <span className="text-muted-foreground text-xs">{cat.count}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Level */}
-      <div>
-        <h3 className="mb-3 text-sm font-semibold">{t('level')}</h3>
-        <div className="space-y-2">
-          {levels.map((level) => (
-            <label key={level} className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={selectedLevels.includes(level)}
-                onChange={() => toggleLevel(level)}
-                className="border-input rounded"
-              />
-              <span className="text-sm">{t(level)}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Price */}
-      <div>
-        <h3 className="mb-3 text-sm font-semibold">{t('price')}</h3>
-        <div className="space-y-2">
-          {priceOptions.map((option) => (
-            <label key={option} className="flex cursor-pointer items-center gap-2">
-              <input
-                type="radio"
-                name="price"
-                checked={selectedPrice === option}
-                onChange={() => setSelectedPrice(option)}
-                className="border-input"
-              />
-              <span className="text-sm">{t(`price_${option}`)}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Rating */}
-      <div>
-        <h3 className="mb-3 text-sm font-semibold">{t('rating')}</h3>
-        <div className="space-y-2">
-          {ratingOptions.map((rating) => (
-            <label key={rating} className="flex cursor-pointer items-center gap-2">
-              <input
-                type="radio"
-                name="rating"
-                checked={selectedRating === rating}
-                onChange={() => setSelectedRating(rating)}
-                className="border-input"
-              />
-              <span className="text-sm">
-                {rating}+ {t('stars')}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+const SORT_OPTIONS = ['popular', 'newest', 'highest_rated', 'price_asc', 'price_desc'] as const;
+const PAGE_SIZE = 12;
 
 export default function CoursesPage() {
   const t = useTranslations('courses');
-  const [sortBy, setSortBy] = useState<string>('popular');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [filters, setFilters] = useState<CourseFilters>(() => ({
+    search: searchParams.get('search') ?? '',
+    category: searchParams.get('category') ?? '',
+    level: searchParams.get('level') ?? '',
+    price: searchParams.get('price') ?? 'all',
+    sort: searchParams.get('sort') ?? 'popular',
+    page: Number(searchParams.get('page') ?? '1'),
+  }));
+
+  const debouncedSearch = useDebounce(filters.search, 300);
+
+  const apiParams = useMemo(() => {
+    const p: Record<string, string> = {
+      page: String(filters.page),
+      limit: String(PAGE_SIZE),
+    };
+    if (debouncedSearch) p.search = debouncedSearch;
+    if (filters.category) p.categorySlug = filters.category;
+    if (filters.level) p.level = filters.level;
+    if (filters.sort) p.sort = filters.sort;
+    if (filters.price === 'free') p.maxPrice = '0';
+    if (filters.price === 'paid') p.minPrice = '1';
+    return p;
+  }, [debouncedSearch, filters.category, filters.level, filters.sort, filters.price, filters.page]);
+
+  const { data, isLoading } = useCourses(apiParams);
+  const { data: categoriesData } = useCategories();
+
+  const courses = (data?.data as Record<string, unknown>[]) ?? [];
+  const meta = data?.meta as { page: number; totalPages: number; total: number } | undefined;
+  const categories =
+    (categoriesData?.data as Array<{ id: string; name: string; slug: string }>) ?? [];
+
+  // Sync filters → URL
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.search) params.set('search', filters.search);
+    if (filters.category) params.set('category', filters.category);
+    if (filters.level) params.set('level', filters.level);
+    if (filters.price && filters.price !== 'all') params.set('price', filters.price);
+    if (filters.sort !== 'popular') params.set('sort', filters.sort);
+    if (filters.page > 1) params.set('page', String(filters.page));
+    const qs = params.toString();
+    router.replace(qs ? `/courses?${qs}` : '/courses', { scroll: false });
+  }, [filters, router]);
+
+  const handleFilterChange = useCallback((key: keyof CourseFilters, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value, page: key === 'page' ? prev.page : 1 }));
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setFilters((prev) => ({ ...DEFAULT_FILTERS, search: prev.search, sort: prev.sort }));
+  }, []);
+
+  const handlePageChange = useCallback((page: number) => {
+    setFilters((prev) => ({ ...prev, page }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const activeFilterCount = [
+    filters.category !== '',
+    filters.level !== '',
+    filters.price !== 'all',
+  ].filter(Boolean).length;
 
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Search bar */}
       <div className="relative mb-8">
         <Search className="text-muted-foreground absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2" />
-        <Input placeholder={t('searchPlaceholder')} className="h-12 rounded-xl pl-12 text-base" />
+        <Input
+          value={filters.search}
+          onChange={(e) => handleFilterChange('search', e.target.value)}
+          placeholder={t('searchPlaceholder')}
+          className="h-12 rounded-xl pl-12 text-base"
+        />
+        {filters.search && (
+          <button
+            onClick={() => handleFilterChange('search', '')}
+            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-4 -translate-y-1/2"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       <div className="flex gap-8">
@@ -154,7 +130,12 @@ export default function CoursesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <FilterSidebar t={t} />
+              <CourseFilterSidebar
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onClear={handleClearFilters}
+                categories={categories}
+              />
             </CardContent>
           </Card>
         </aside>
@@ -164,26 +145,33 @@ export default function CoursesPage() {
           {/* Toolbar */}
           <div className="mb-6 flex items-center justify-between">
             <p className="text-muted-foreground text-sm">
-              {t('showing')}{' '}
-              <span className="text-foreground font-medium">{mockCourses.length}</span>{' '}
+              {t('showing')} <span className="text-foreground font-medium">{meta?.total ?? 0}</span>{' '}
               {t('results')}
             </p>
 
             <div className="flex items-center gap-3">
-              {/* Mobile filter button */}
+              {/* Mobile filter */}
               <Sheet>
-                <SheetTrigger className="lg:hidden">
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <SlidersHorizontal className="h-4 w-4" />
-                    {t('filters')}
-                  </Button>
+                <SheetTrigger className="border-input bg-background hover:bg-accent hover:text-accent-foreground hidden gap-2 rounded-md border px-3 py-1.5 text-sm max-lg:inline-flex lg:hidden">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {t('filters')}
+                  {activeFilterCount > 0 && (
+                    <Badge variant="default" className="ml-1 h-5 w-5 rounded-full p-0 text-xs">
+                      {activeFilterCount}
+                    </Badge>
+                  )}
                 </SheetTrigger>
                 <SheetContent side="left">
                   <SheetHeader>
                     <SheetTitle>{t('filters')}</SheetTitle>
                   </SheetHeader>
                   <div className="mt-4">
-                    <FilterSidebar t={t} />
+                    <CourseFilterSidebar
+                      filters={filters}
+                      onFilterChange={handleFilterChange}
+                      onClear={handleClearFilters}
+                      categories={categories}
+                    />
                   </div>
                 </SheetContent>
               </Sheet>
@@ -194,11 +182,11 @@ export default function CoursesPage() {
                   {t('sortBy')}
                 </span>
                 <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  value={filters.sort}
+                  onChange={(e) => handleFilterChange('sort', e.target.value)}
                   className="border-input bg-background h-9 cursor-pointer rounded-lg border px-3 text-sm"
                 >
-                  {sortOptions.map((option) => (
+                  {SORT_OPTIONS.map((option) => (
                     <option key={option} value={option}>
                       {t(`sort_${option}`)}
                     </option>
@@ -209,27 +197,31 @@ export default function CoursesPage() {
           </div>
 
           {/* Course Grid */}
-          <CourseGrid courses={mockCourses} columns={3} />
+          {!isLoading && courses.length === 0 ? (
+            <EmptyState
+              icon={BookOpen}
+              title={t('noResults')}
+              description={t('noResultsDesc')}
+              actionLabel={activeFilterCount > 0 ? t('clearFilters') : undefined}
+              onAction={activeFilterCount > 0 ? handleClearFilters : undefined}
+            />
+          ) : (
+            <CourseGrid
+              courses={courses as never[]}
+              isLoading={isLoading}
+              skeletonCount={PAGE_SIZE}
+              columns={3}
+            />
+          )}
 
           {/* Pagination */}
-          <div className="mt-8 flex items-center justify-center gap-2">
-            <Button variant="outline" size="sm" disabled>
-              {t('previous')}
-            </Button>
-            {[1, 2, 3].map((page) => (
-              <Button
-                key={page}
-                variant={page === 1 ? 'default' : 'outline'}
-                size="sm"
-                className="w-9"
-              >
-                {page}
-              </Button>
-            ))}
-            <Button variant="outline" size="sm">
-              {t('next')}
-            </Button>
-          </div>
+          {meta && (
+            <Pagination
+              page={meta.page}
+              totalPages={meta.totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
       </div>
     </div>
