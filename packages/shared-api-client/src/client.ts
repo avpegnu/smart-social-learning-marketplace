@@ -62,7 +62,7 @@ class ApiClient {
     return this.accessToken;
   }
 
-  async fetch<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
+  async fetch<T>(path: string, options?: RequestInit, _isRetry = false): Promise<ApiResponse<T>> {
     const res = await fetch(`${API_BASE}${path}`, {
       ...options,
       credentials: 'include',
@@ -75,11 +75,11 @@ class ApiClient {
       },
     });
 
-    // 401 → try refresh (deduplicate concurrent refreshes)
-    if (res.status === 401 && this.accessToken) {
+    // 401 → token expired, try refresh once
+    if (res.status === 401 && this.accessToken && !_isRetry) {
       const refreshed = await this.tryRefresh();
       if (refreshed) {
-        return this.fetch<T>(path, options);
+        return this.fetch<T>(path, options, true);
       }
       this.handleLogout();
       throw {
