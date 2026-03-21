@@ -31,3 +31,9 @@ export type { SignUploadResponse, CompleteUploadPayload } from './upload.service
 export { adminService } from './admin.service';
 
 export { enrollmentService } from './enrollment.service';
+
+export { cartService } from './cart.service';
+
+export { orderService } from './order.service';
+
+export { wishlistService } from './wishlist.service';

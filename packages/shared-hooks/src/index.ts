@@ -111,8 +111,24 @@ export {
   useUpdateSetting,
 } from './queries/use-admin';
 
+export {
+  useServerCart,
+  useAddCartItem,
+  useRemoveCartItem,
+  useClearCart,
+  useMergeCart,
+  useApplyCoupon,
+} from './queries/use-cart';
+
+export { useCreateOrder, useOrders, useOrderDetail, useOrderStatus } from './queries/use-orders';
+
+export { useWishlist, useAddToWishlist, useRemoveFromWishlist } from './queries/use-wishlist';
+
 export { adminService } from './services/admin.service';
 export { enrollmentService } from './services/enrollment.service';
+export { cartService } from './services/cart.service';
+export { orderService } from './services/order.service';
+export { wishlistService } from './services/wishlist.service';
 
 // Stores (Layer 3 — Zustand client state)
 export { useAuthStore } from './stores/auth-store';
