@@ -35,7 +35,14 @@ import {
 } from '@shared/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LocaleSwitcher } from '@/components/navigation/locale-switcher';
-import { useAuthStore, useCartStore, useLogout, useAuthHydrated } from '@shared/hooks';
+import {
+  useAuthStore,
+  useCartStore,
+  useServerCart,
+  useWishlist,
+  useLogout,
+  useAuthHydrated,
+} from '@shared/hooks';
 import { apiClient, queryKeys } from '@shared/api-client';
 
 export function Navbar() {
@@ -43,7 +50,15 @@ export function Navbar() {
   const router = useRouter();
   const hydrated = useAuthHydrated();
   const { user, isAuthenticated } = useAuthStore();
-  const cartCount = useCartStore((s) => s.itemCount());
+  const localCartCount = useCartStore((s) => s.itemCount());
+  const { data: serverCartData } = useServerCart();
+  const serverCartCount =
+    (serverCartData?.data as { items: unknown[] } | undefined)?.items?.length ?? 0;
+  // After login+merge, localStorage is cleared → use server count
+  const cartCount = isAuthenticated ? serverCartCount : localCartCount;
+
+  const { data: wishlistData } = useWishlist();
+  const wishlistCount = (wishlistData?.data as unknown[] | undefined)?.length ?? 0;
 
   const { data: unreadData } = useQuery({
     queryKey: queryKeys.notifications.unreadCount,
@@ -174,20 +189,31 @@ export function Navbar() {
             </Button>
           </Link>
 
+          {/* Cart — always visible (guest uses localStorage, auth uses server) */}
+          <Link href="/cart">
+            <Button variant="ghost" size="icon" className="relative">
+              <ShoppingCart className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
+            </Button>
+          </Link>
+
           {!hydrated ? (
-            /* Placeholder while Zustand hydrates — prevents flash of guest UI */
             <div className="ml-2 flex items-center gap-2">
               <div className="bg-muted h-8 w-8 animate-pulse rounded-full" />
             </div>
           ) : isAuthenticated ? (
             <>
-              {/* Cart */}
-              <Link href="/cart">
+              {/* Wishlist */}
+              <Link href="/wishlist">
                 <Button variant="ghost" size="icon" className="relative">
-                  <ShoppingCart className="h-5 w-5" />
-                  {cartCount > 0 && (
+                  <Heart className="h-5 w-5" />
+                  {wishlistCount > 0 && (
                     <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold">
-                      {cartCount > 9 ? '9+' : cartCount}
+                      {wishlistCount > 9 ? '9+' : wishlistCount}
                     </span>
                   )}
                 </Button>

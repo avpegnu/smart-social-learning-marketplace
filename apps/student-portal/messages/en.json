@@ -183,7 +183,8 @@
     "noReviewsDesc": "Be the first to review this course",
     "previousReviews": "Previous",
     "nextReviews": "Next",
-    "previewComingSoon": "Preview feature coming soon"
+    "previewComingSoon": "Preview feature coming soon",
+    "chapterAddedToCart": "Chapter added to cart"
   },
   "myLearning": {
     "title": "My Learning",
@@ -241,7 +242,10 @@
     "checkout": "Checkout",
     "emptyTitle": "Your cart is empty",
     "emptyDesc": "Browse courses and add them to your cart",
-    "browseCourses": "Browse courses"
+    "browseCourses": "Browse courses",
+    "loginRequired": "Please login to use this feature",
+    "couponApplied": "Coupon applied",
+    "addedToWishlist": "Added to wishlist"
   },
   "learning": {
     "curriculum": "Curriculum",
@@ -478,7 +482,15 @@
     "waitingPaymentDesc": "The system will automatically confirm after receiving payment",
     "orderDetails": "Order details",
     "couponDiscount": "Coupon discount",
-    "total": "Total"
+    "total": "Total",
+    "copied": "Copied",
+    "paymentSuccess": "Payment successful!",
+    "paymentSuccessDesc": "Your payment has been confirmed. Start learning now!",
+    "goToLearning": "Start Learning",
+    "paymentExpired": "Order expired",
+    "paymentExpiredDesc": "Your order has exceeded the payment deadline",
+    "backToCourses": "Back to courses",
+    "orderNotFound": "Order not found"
   },
   "orders": {
     "title": "Order History",
@@ -502,12 +514,20 @@
     "totalBreakdown": "Payment breakdown",
     "subtotal": "Subtotal",
     "discount": "Discount",
-    "total": "Total"
+    "total": "Total",
+    "notFound": "Order not found",
+    "backToOrders": "Back to orders",
+    "pendingPayment": "Order pending payment",
+    "continuePayment": "Continue Payment",
+    "continueLearning": "Start Learning"
   },
   "wishlist": {
     "title": "Wishlist",
     "emptyTitle": "No courses in wishlist",
-    "emptyDesc": "Add courses to your wishlist to save them for later"
+    "emptyDesc": "Add courses to your wishlist to save them for later",
+    "addToCart": "Add to cart",
+    "addedToCart": "Added to cart",
+    "free": "Free"
   },
   "profile": {
     "joined": "Joined",

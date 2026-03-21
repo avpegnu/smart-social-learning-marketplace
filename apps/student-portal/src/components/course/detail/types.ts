@@ -13,6 +13,7 @@ export interface ApiChapter {
   id: string;
   title: string;
   order: number;
+  price: number | null;
   isFreePreview: boolean;
   lessons: ApiLesson[];
 }

@@ -2,20 +2,26 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
-import { Badge } from '@shared/ui';
-import { formatDuration } from '@shared/utils';
+import { ChevronDown, ChevronRight, BookOpen, ShoppingCart } from 'lucide-react';
+import { Badge, Button } from '@shared/ui';
+import { formatDuration, formatPrice } from '@shared/utils';
 import { toast } from 'sonner';
-import type { ApiSection } from './types';
+import type { ApiSection, ApiChapter } from './types';
 import { LESSON_ICONS } from './types';
 
 interface CourseCurriculumProps {
   sections: ApiSection[];
   totalLessons: number;
   totalDuration: number;
+  onAddChapterToCart?: (chapter: ApiChapter) => void;
 }
 
-export function CourseCurriculum({ sections, totalLessons, totalDuration }: CourseCurriculumProps) {
+export function CourseCurriculum({
+  sections,
+  totalLessons,
+  totalDuration,
+  onAddChapterToCart,
+}: CourseCurriculumProps) {
   const t = useTranslations('courseDetail');
   const [expandedSections, setExpandedSections] = useState<string[]>(
     sections.length > 0 ? [sections[0].id] : [],
@@ -69,6 +75,17 @@ export function CourseCurriculum({ sections, totalLessons, totalDuration }: Cour
                         <Badge variant="outline" className="text-xs">
                           {t('freePreview')}
                         </Badge>
+                      )}
+                      {chapter.price != null && chapter.price > 0 && !chapter.isFreePreview && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 gap-1 text-xs"
+                          onClick={() => onAddChapterToCart?.(chapter)}
+                        >
+                          <ShoppingCart className="h-3 w-3" />
+                          {formatPrice(chapter.price)}
+                        </Button>
                       )}
                       <span className="text-muted-foreground text-xs">
                         {chapter.lessons.length} {t('lessons')}

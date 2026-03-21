@@ -64,10 +64,6 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
   }
 
   const handleAddToCart = () => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
     addToCart({
       courseId: course.id,
       title: course.title,
@@ -77,6 +73,20 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
       type: 'FULL_COURSE',
     });
     toast.success(t('addedToCart'));
+  };
+
+  const handleAddChapterToCart = (chapter: { id: string; title: string; price: number | null }) => {
+    if (!chapter.price) return;
+    addToCart({
+      courseId: course.id,
+      title: course.title,
+      instructorName: course.instructor.fullName,
+      thumbnailUrl: course.thumbnailUrl ?? '',
+      price: chapter.price,
+      type: 'CHAPTER',
+      chapterId: chapter.id,
+    });
+    toast.success(t('chapterAddedToCart'));
   };
 
   const handleEnrollFree = () => {
@@ -237,6 +247,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
                   sections={course.sections}
                   totalLessons={course.totalLessons}
                   totalDuration={course.totalDuration}
+                  onAddChapterToCart={handleAddChapterToCart}
                 />
               </TabsContent>
 

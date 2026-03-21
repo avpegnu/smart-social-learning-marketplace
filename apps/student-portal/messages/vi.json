@@ -183,7 +183,8 @@
     "noReviewsDesc": "Hãy là người đầu tiên đánh giá khóa học này",
     "previousReviews": "Trước",
     "nextReviews": "Sau",
-    "previewComingSoon": "Tính năng xem trước sẽ sớm ra mắt"
+    "previewComingSoon": "Tính năng xem trước sẽ sớm ra mắt",
+    "chapterAddedToCart": "Đã thêm chương vào giỏ hàng"
   },
   "myLearning": {
     "title": "Học tập của tôi",
@@ -241,7 +242,10 @@
     "checkout": "Thanh toán",
     "emptyTitle": "Giỏ hàng trống",
     "emptyDesc": "Khám phá các khóa học và thêm vào giỏ hàng",
-    "browseCourses": "Khám phá khóa học"
+    "browseCourses": "Khám phá khóa học",
+    "loginRequired": "Vui lòng đăng nhập để sử dụng tính năng này",
+    "couponApplied": "Đã áp dụng mã giảm giá",
+    "addedToWishlist": "Đã thêm vào yêu thích"
   },
   "learning": {
     "curriculum": "Nội dung",
@@ -478,7 +482,15 @@
     "waitingPaymentDesc": "Hệ thống sẽ tự động xác nhận sau khi nhận được thanh toán",
     "orderDetails": "Chi tiết đơn hàng",
     "couponDiscount": "Giảm giá mã coupon",
-    "total": "Tổng cộng"
+    "total": "Tổng cộng",
+    "copied": "Đã sao chép",
+    "paymentSuccess": "Thanh toán thành công!",
+    "paymentSuccessDesc": "Bạn đã thanh toán thành công. Bắt đầu học ngay!",
+    "goToLearning": "Bắt đầu học",
+    "paymentExpired": "Đơn hàng đã hết hạn",
+    "paymentExpiredDesc": "Đơn hàng của bạn đã quá thời hạn thanh toán",
+    "backToCourses": "Quay lại khám phá",
+    "orderNotFound": "Không tìm thấy đơn hàng"
   },
   "orders": {
     "title": "Lịch sử đơn hàng",
@@ -502,12 +514,20 @@
     "totalBreakdown": "Chi tiết thanh toán",
     "subtotal": "Tạm tính",
     "discount": "Giảm giá",
-    "total": "Tổng cộng"
+    "total": "Tổng cộng",
+    "notFound": "Không tìm thấy đơn hàng",
+    "backToOrders": "Quay lại đơn hàng",
+    "pendingPayment": "Đơn hàng đang chờ thanh toán",
+    "continuePayment": "Tiếp tục thanh toán",
+    "continueLearning": "Bắt đầu học"
   },
   "wishlist": {
     "title": "Yêu thích",
     "emptyTitle": "Chưa có khóa học yêu thích",
-    "emptyDesc": "Thêm khóa học vào danh sách yêu thích để xem sau"
+    "emptyDesc": "Thêm khóa học vào danh sách yêu thích để xem sau",
+    "addToCart": "Thêm vào giỏ",
+    "addedToCart": "Đã thêm vào giỏ hàng",
+    "free": "Miễn phí"
   },
   "profile": {
     "joined": "Tham gia",
