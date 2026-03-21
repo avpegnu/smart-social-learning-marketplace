@@ -15,3 +15,15 @@ export { instructorService } from './instructor.service';
 export { notificationService } from './notification.service';
 
 export { categoryService } from './category.service';
+
+export { sectionService } from './section.service';
+
+export { chapterService } from './chapter.service';
+
+export { lessonService } from './lesson.service';
+
+export { quizService } from './quiz.service';
+export type { QuizOptionPayload, QuizQuestionPayload, UpsertQuizPayload } from './quiz.service';
+
+export { uploadService } from './upload.service';
+export type { SignUploadResponse, CompleteUploadPayload } from './upload.service';

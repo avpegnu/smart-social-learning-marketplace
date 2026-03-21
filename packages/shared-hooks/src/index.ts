@@ -12,6 +12,17 @@ export type { CourseListParams } from './services/course.service';
 export { instructorService } from './services/instructor.service';
 export { notificationService } from './services/notification.service';
 export { categoryService } from './services/category.service';
+export { sectionService } from './services/section.service';
+export { chapterService } from './services/chapter.service';
+export { lessonService } from './services/lesson.service';
+export { quizService } from './services/quiz.service';
+export type {
+  QuizOptionPayload,
+  QuizQuestionPayload,
+  UpsertQuizPayload,
+} from './services/quiz.service';
+export { uploadService } from './services/upload.service';
+export type { SignUploadResponse, CompleteUploadPayload } from './services/upload.service';
 
 // Query Hooks (Layer 2 — TanStack Query wrappers)
 export {
@@ -47,6 +58,31 @@ export {
   useSubmitCourseForReview,
   useUpdateCourseTags,
 } from './queries/use-courses';
+
+export {
+  useCreateSection,
+  useUpdateSection,
+  useDeleteSection,
+  useReorderSections,
+} from './queries/use-sections';
+
+export {
+  useCreateChapter,
+  useUpdateChapter,
+  useDeleteChapter,
+  useReorderChapters,
+} from './queries/use-chapters';
+
+export {
+  useCreateLesson,
+  useUpdateLesson,
+  useDeleteLesson,
+  useReorderLessons,
+} from './queries/use-lessons';
+
+export { useQuiz, useUpsertQuiz, useDeleteQuiz } from './queries/use-quiz';
+
+export { useCategories } from './queries/use-categories';
 
 // Stores (Layer 3 — Zustand client state)
 export { useAuthStore } from './stores/auth-store';
