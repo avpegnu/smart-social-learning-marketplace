@@ -41,3 +41,12 @@ export { wishlistService } from './wishlist.service';
 export { learningService } from './learning.service';
 
 export { certificateService } from './certificate.service';
+
+export { couponService } from './coupon.service';
+export type { CreateCouponPayload, UpdateCouponPayload } from './coupon.service';
+
+export { withdrawalService } from './withdrawal.service';
+export type { CreateWithdrawalPayload } from './withdrawal.service';
+
+export { qnaService } from './qna.service';
+export type { QueryQuestionsParams } from './qna.service';

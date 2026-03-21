@@ -47,6 +47,7 @@ export {
   useInstructorProfile,
   useUpdateInstructorProfile,
   useInstructorApplicationStatus,
+  useInstructorCourseStudents,
 } from './queries/use-instructor';
 
 export {
@@ -137,6 +138,22 @@ export {
 
 export { useMyCertificates } from './queries/use-certificates';
 
+export {
+  useInstructorCoupons,
+  useCreateCoupon,
+  useUpdateCoupon,
+  useDeactivateCoupon,
+} from './queries/use-coupons';
+
+export { useInstructorWithdrawals, useRequestWithdrawal } from './queries/use-withdrawals';
+
+export {
+  useQuestions,
+  useQuestionDetail,
+  useCreateAnswer,
+  useMarkBestAnswer,
+} from './queries/use-qna';
+
 export { adminService } from './services/admin.service';
 export { enrollmentService } from './services/enrollment.service';
 export { cartService } from './services/cart.service';
@@ -144,6 +161,12 @@ export { orderService } from './services/order.service';
 export { wishlistService } from './services/wishlist.service';
 export { learningService } from './services/learning.service';
 export { certificateService } from './services/certificate.service';
+export { couponService } from './services/coupon.service';
+export type { CreateCouponPayload, UpdateCouponPayload } from './services/coupon.service';
+export { withdrawalService } from './services/withdrawal.service';
+export type { CreateWithdrawalPayload } from './services/withdrawal.service';
+export { qnaService } from './services/qna.service';
+export type { QueryQuestionsParams } from './services/qna.service';
 
 // Stores (Layer 3 — Zustand client state)
 export { useAuthStore } from './stores/auth-store';

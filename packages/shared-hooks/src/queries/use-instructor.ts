@@ -36,6 +36,19 @@ export function useUpdateInstructorProfile() {
   });
 }
 
+// ── Course Students ──
+
+export function useInstructorCourseStudents(
+  courseId: string,
+  params?: { page?: number; limit?: number; search?: string },
+) {
+  return useQuery({
+    queryKey: ['instructor', 'courses', courseId, 'students', params],
+    queryFn: () => instructorService.getCourseStudents(courseId, params),
+    enabled: !!courseId,
+  });
+}
+
 // ── Application ──
 
 export function useInstructorApplicationStatus() {
