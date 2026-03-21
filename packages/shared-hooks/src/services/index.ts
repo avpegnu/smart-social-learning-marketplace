@@ -37,3 +37,7 @@ export { cartService } from './cart.service';
 export { orderService } from './order.service';
 
 export { wishlistService } from './wishlist.service';
+
+export { learningService } from './learning.service';
+
+export { certificateService } from './certificate.service';

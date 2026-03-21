@@ -124,11 +124,26 @@ export { useCreateOrder, useOrders, useOrderDetail, useOrderStatus } from './que
 
 export { useWishlist, useAddToWishlist, useRemoveFromWishlist } from './queries/use-wishlist';
 
+export {
+  useLesson,
+  useUpdateProgress,
+  useCompleteLesson,
+  useCourseProgress,
+  useSubmitQuiz,
+  useQuizAttempts,
+  useLearningDashboard,
+  useStreak,
+} from './queries/use-learning';
+
+export { useMyCertificates } from './queries/use-certificates';
+
 export { adminService } from './services/admin.service';
 export { enrollmentService } from './services/enrollment.service';
 export { cartService } from './services/cart.service';
 export { orderService } from './services/order.service';
 export { wishlistService } from './services/wishlist.service';
+export { learningService } from './services/learning.service';
+export { certificateService } from './services/certificate.service';
 
 // Stores (Layer 3 — Zustand client state)
 export { useAuthStore } from './stores/auth-store';
