@@ -53,6 +53,7 @@ export class WebhooksService {
       courseId: string | null;
       chapterId: string | null;
       price: number;
+      discount: number;
     }[],
     paymentRef?: string,
   ) {
@@ -66,6 +67,9 @@ export class WebhooksService {
           paidAt: new Date(),
         },
       });
+
+      // Track which instructors got a new student in this order
+      const instructorStudentAdded = new Set<string>();
 
       // 2. Process each order item
       for (const item of items) {
@@ -114,20 +118,40 @@ export class WebhooksService {
             select: { instructorId: true },
           });
           if (course) {
+            const actualPrice = item.price - item.discount;
             const commissionRate = await this.getCommissionRate(course.instructorId, tx);
-            const commissionAmount = Math.round(item.price * commissionRate);
-            const netAmount = item.price - commissionAmount;
+            const commissionAmount = Math.round(actualPrice * commissionRate);
+            const netAmount = actualPrice - commissionAmount;
 
             await tx.earning.create({
               data: {
                 instructorId: course.instructorId,
                 orderItemId: item.id,
-                amount: item.price,
+                amount: actualPrice,
                 commissionRate,
                 commissionAmount,
                 netAmount,
                 status: 'PENDING',
                 availableAt: new Date(Date.now() + EARNING_HOLD_DAYS * 24 * 60 * 60 * 1000),
+              },
+            });
+
+            // Update instructor profile counters
+            const studentIncrement = instructorStudentAdded.has(course.instructorId) ? 0 : 1;
+            instructorStudentAdded.add(course.instructorId);
+
+            await tx.instructorProfile.upsert({
+              where: { userId: course.instructorId },
+              update: {
+                totalRevenue: { increment: netAmount },
+                ...(studentIncrement > 0 && {
+                  totalStudents: { increment: 1 },
+                }),
+              },
+              create: {
+                userId: course.instructorId,
+                totalRevenue: netAmount,
+                totalStudents: studentIncrement,
               },
             });
           }

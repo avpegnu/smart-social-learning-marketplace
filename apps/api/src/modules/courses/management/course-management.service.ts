@@ -12,6 +12,7 @@ import { generateSlug, generateUniqueSlug } from '@/common/utils/slug.util';
 import type { QueryCoursesDto } from '../dto/query-courses.dto';
 import type { CreateCourseDto } from '../dto/create-course.dto';
 import type { UpdateCourseDto } from '../dto/update-course.dto';
+import type { QueryCourseStudentsDto } from './dto/query-course-students.dto';
 
 @Injectable()
 export class CourseManagementService {
@@ -202,6 +203,38 @@ export class CourseManagementService {
     ]);
 
     return createPaginatedResult(courses, total, query.page, query.limit);
+  }
+
+  // ==================== STUDENTS ====================
+
+  async getCourseStudents(courseId: string, instructorId: string, query: QueryCourseStudentsDto) {
+    await this.verifyOwnership(courseId, instructorId);
+
+    const where: Prisma.EnrollmentWhereInput = {
+      courseId,
+      ...(query.search && {
+        user: {
+          fullName: { contains: query.search, mode: 'insensitive' as const },
+        },
+      }),
+    };
+
+    const [enrollments, total] = await Promise.all([
+      this.prisma.enrollment.findMany({
+        where,
+        include: {
+          user: {
+            select: { id: true, fullName: true, email: true, avatarUrl: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: query.skip,
+        take: query.limit,
+      }),
+      this.prisma.enrollment.count({ where }),
+    ]);
+
+    return createPaginatedResult(enrollments, total, query.page, query.limit);
   }
 
   // ==================== PUBLISHING FLOW ====================

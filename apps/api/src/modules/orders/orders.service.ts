@@ -34,6 +34,7 @@ export class OrdersService {
     const totalAmount = cartItems.reduce((sum, item) => sum + item.price, 0);
     let discountAmount = 0;
     let couponId: string | undefined;
+    let applicableCourseIds: string[] | null = null;
 
     // 4. Apply coupon if provided
     if (dto.couponCode) {
@@ -44,12 +45,16 @@ export class OrdersService {
       );
       discountAmount = couponResult.discount;
       couponId = couponResult.couponId;
+      applicableCourseIds = couponResult.applicableCourseIds;
     }
 
     const finalAmount = totalAmount - discountAmount;
     const orderCode = this.generateOrderCode();
 
-    // 5. Create order in transaction
+    // 5. Distribute discount per-item (proportionally among applicable items)
+    const itemDiscounts = this.distributeDiscount(cartItems, discountAmount, applicableCourseIds);
+
+    // 6. Create order in transaction
     const order = await this.prisma.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
         data: {
@@ -60,11 +65,12 @@ export class OrdersService {
           finalAmount,
           expiresAt: new Date(Date.now() + ORDER_EXPIRY_MINUTES * 60 * 1000),
           items: {
-            create: cartItems.map((item) => ({
+            create: cartItems.map((item, i) => ({
               type: item.chapterId ? 'CHAPTER' : 'COURSE',
               courseId: item.courseId,
               chapterId: item.chapterId,
               price: item.price,
+              discount: itemDiscounts[i] ?? 0,
               title: item.course?.title ?? item.chapter?.title ?? '',
             })),
           },
@@ -139,6 +145,46 @@ export class OrdersService {
   }
 
   // ==================== PRIVATE HELPERS ====================
+
+  private distributeDiscount(
+    cartItems: { courseId: string | null; price: number }[],
+    discountAmount: number,
+    applicableCourseIds: string[] | null,
+  ): number[] {
+    if (discountAmount === 0) return cartItems.map(() => 0);
+
+    // Find applicable items
+    const applicableItems = cartItems.map((item, i) => {
+      const isApplicable =
+        !applicableCourseIds || (item.courseId && applicableCourseIds.includes(item.courseId));
+      return { index: i, price: item.price, isApplicable };
+    });
+
+    const applicableTotal = applicableItems
+      .filter((a) => a.isApplicable)
+      .reduce((sum, a) => sum + a.price, 0);
+
+    if (applicableTotal === 0) return cartItems.map(() => 0);
+
+    // Distribute proportionally among applicable items
+    const discounts = cartItems.map(() => 0);
+    let remaining = discountAmount;
+
+    const applicable = applicableItems.filter((a) => a.isApplicable);
+    for (let i = 0; i < applicable.length; i++) {
+      const item = applicable[i]!;
+      if (i === applicable.length - 1) {
+        // Last item gets remainder to avoid rounding errors
+        discounts[item.index] = remaining;
+      } else {
+        const itemDiscount = Math.round((item.price / applicableTotal) * discountAmount);
+        discounts[item.index] = itemDiscount;
+        remaining -= itemDiscount;
+      }
+    }
+
+    return discounts;
+  }
 
   private generateOrderCode(): string {
     const now = new Date();

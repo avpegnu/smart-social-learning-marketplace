@@ -18,18 +18,18 @@ export class WithdrawalsService {
       throw new ConflictException({ code: 'WITHDRAWAL_PENDING_EXISTS' });
     }
 
-    // 2. Check available balance (only AVAILABLE earnings)
-    const available = await this.prisma.earning.aggregate({
-      where: { instructorId, status: 'AVAILABLE' },
-      _sum: { netAmount: true },
+    // 2. Check available balance from instructor profile
+    const profile = await this.prisma.instructorProfile.findUnique({
+      where: { userId: instructorId },
+      select: { availableBalance: true },
     });
-    const balance = available._sum.netAmount ?? 0;
+    const balance = profile?.availableBalance ?? 0;
 
     if (dto.amount > balance) {
       throw new BadRequestException({ code: 'INSUFFICIENT_BALANCE' });
     }
 
-    // 3. Create withdrawal + lock earnings in transaction
+    // 3. Create withdrawal + deduct balance
     return this.prisma.$transaction(async (tx) => {
       const withdrawal = await tx.withdrawal.create({
         data: {
@@ -39,21 +39,11 @@ export class WithdrawalsService {
         },
       });
 
-      // Lock earnings: mark enough AVAILABLE earnings as WITHDRAWN (FIFO)
-      let remaining = dto.amount;
-      const availableEarnings = await tx.earning.findMany({
-        where: { instructorId, status: 'AVAILABLE' },
-        orderBy: { createdAt: 'asc' },
+      // Deduct from available balance
+      await tx.instructorProfile.update({
+        where: { userId: instructorId },
+        data: { availableBalance: { decrement: dto.amount } },
       });
-
-      for (const earning of availableEarnings) {
-        if (remaining <= 0) break;
-        await tx.earning.update({
-          where: { id: earning.id },
-          data: { status: 'WITHDRAWN' },
-        });
-        remaining -= earning.netAmount;
-      }
 
       return withdrawal;
     });

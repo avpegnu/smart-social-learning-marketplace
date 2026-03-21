@@ -19,7 +19,7 @@ export class BankInfoDto {
 export class CreateWithdrawalDto {
   @ApiProperty({ minimum: 200000 })
   @IsNumber()
-  @Min(200000)
+  @Min(5000)
   amount!: number;
 
   @ApiProperty({ type: BankInfoDto })

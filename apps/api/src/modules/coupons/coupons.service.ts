@@ -112,7 +112,7 @@ export class CouponsService {
     code: string,
     userId: string,
     cartItems: { courseId: string | null; price: number }[],
-  ): Promise<{ couponId: string; discount: number }> {
+  ): Promise<{ couponId: string; discount: number; applicableCourseIds: string[] | null }> {
     const coupon = await this.prisma.coupon.findUnique({
       where: { code },
       include: { couponCourses: true },
@@ -181,7 +181,11 @@ export class CouponsService {
       discount = Math.min(coupon.value, applicableAmount);
     }
 
-    return { couponId: coupon.id, discount };
+    return {
+      couponId: coupon.id,
+      discount,
+      applicableCourseIds: applicableCourseIds.length > 0 ? applicableCourseIds : null,
+    };
   }
 
   // ==================== PRIVATE HELPERS ====================

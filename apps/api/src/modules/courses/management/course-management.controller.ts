@@ -25,6 +25,8 @@ import { CreateCourseDto } from '../dto/create-course.dto';
 import { UpdateCourseDto } from '../dto/update-course.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { UpdateTagsDto } from '../dto/update-tags.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { QueryCourseStudentsDto } from './dto/query-course-students.dto';
 
 @Controller('instructor/courses')
 @ApiTags('Instructor — Courses')
@@ -74,6 +76,16 @@ export class CourseManagementController {
   @ApiOperation({ summary: 'Submit course for admin review' })
   async submitForReview(@CurrentUser() user: JwtPayload, @Param('id', ParseCuidPipe) id: string) {
     return this.courseManagement.submitForReview(id, user.sub);
+  }
+
+  @Get(':id/students')
+  @ApiOperation({ summary: 'List enrolled students for a course' })
+  async getCourseStudents(
+    @CurrentUser() user: JwtPayload,
+    @Param('id', ParseCuidPipe) id: string,
+    @Query() query: QueryCourseStudentsDto,
+  ) {
+    return this.courseManagement.getCourseStudents(id, user.sub, query);
   }
 
   @Put(':id/tags')

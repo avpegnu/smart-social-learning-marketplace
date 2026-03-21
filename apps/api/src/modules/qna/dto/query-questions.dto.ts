@@ -8,6 +8,10 @@ export class QueryQuestionsDto extends PaginationDto {
 
   @IsOptional()
   @IsString()
+  instructorId?: string;
+
+  @IsOptional()
+  @IsString()
   tagId?: string;
 
   @IsOptional()

@@ -64,13 +64,37 @@ export class CronService {
   // 3. Release available earnings (daily 1 AM)
   @Cron('0 1 * * *')
   async releaseAvailableEarnings() {
-    const result = await this.prisma.earning.updateMany({
+    // Find earnings ready to release
+    const pendingEarnings = await this.prisma.earning.findMany({
       where: { status: 'PENDING', availableAt: { lte: new Date() } },
+      select: { id: true, instructorId: true, netAmount: true },
+    });
+
+    if (pendingEarnings.length === 0) return;
+
+    // Mark as AVAILABLE
+    await this.prisma.earning.updateMany({
+      where: { id: { in: pendingEarnings.map((e) => e.id) } },
       data: { status: 'AVAILABLE' },
     });
-    if (result.count > 0) {
-      this.logger.log(`Released ${result.count} earnings`);
+
+    // Add to each instructor's availableBalance
+    const balanceByInstructor = new Map<string, number>();
+    for (const e of pendingEarnings) {
+      balanceByInstructor.set(
+        e.instructorId,
+        (balanceByInstructor.get(e.instructorId) ?? 0) + e.netAmount,
+      );
     }
+
+    for (const [instructorId, amount] of balanceByInstructor) {
+      await this.prisma.instructorProfile.update({
+        where: { userId: instructorId },
+        data: { availableBalance: { increment: amount } },
+      });
+    }
+
+    this.logger.log(`Released ${pendingEarnings.length} earnings`);
   }
 
   // 4. Cleanup failed uploads (daily 2 AM)

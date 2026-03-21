@@ -48,6 +48,9 @@ export class QuestionsService {
   async findAll(query: QueryQuestionsDto) {
     const where: Prisma.QuestionWhereInput = {
       ...(query.courseId && { courseId: query.courseId }),
+      ...(query.instructorId && {
+        course: { instructorId: query.instructorId },
+      }),
       ...(query.tagId && { tagId: query.tagId }),
       ...(query.search && {
         OR: [

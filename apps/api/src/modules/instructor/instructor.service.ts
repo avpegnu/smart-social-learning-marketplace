@@ -82,35 +82,35 @@ export class InstructorService {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const [profile, courseCount, availableBalance, pendingBalance, recentEarnings] =
-      await Promise.all([
-        this.prisma.instructorProfile.findUnique({
-          where: { userId },
-          select: { totalStudents: true, totalCourses: true, totalRevenue: true },
-        }),
-        this.prisma.course.count({
-          where: { instructorId: userId, deletedAt: null, status: 'PUBLISHED' },
-        }),
-        this.prisma.earning.aggregate({
-          where: { instructorId: userId, status: 'AVAILABLE' },
-          _sum: { netAmount: true },
-        }),
-        this.prisma.earning.aggregate({
-          where: { instructorId: userId, status: 'PENDING' },
-          _sum: { netAmount: true },
-        }),
-        this.prisma.earning.findMany({
-          where: {
-            instructorId: userId,
-            createdAt: { gte: thirtyDaysAgo },
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 10,
-          include: {
-            orderItem: { select: { title: true, price: true } },
-          },
-        }),
-      ]);
+    const [profile, courseCount, pendingBalance, recentEarnings] = await Promise.all([
+      this.prisma.instructorProfile.findUnique({
+        where: { userId },
+        select: {
+          totalStudents: true,
+          totalCourses: true,
+          totalRevenue: true,
+          availableBalance: true,
+        },
+      }),
+      this.prisma.course.count({
+        where: { instructorId: userId, deletedAt: null, status: 'PUBLISHED' },
+      }),
+      this.prisma.earning.aggregate({
+        where: { instructorId: userId, status: 'PENDING' },
+        _sum: { netAmount: true },
+      }),
+      this.prisma.earning.findMany({
+        where: {
+          instructorId: userId,
+          createdAt: { gte: thirtyDaysAgo },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        include: {
+          orderItem: { select: { title: true, price: true } },
+        },
+      }),
+    ]);
 
     const courseStats = await this.prisma.course.findMany({
       where: { instructorId: userId, deletedAt: null, status: 'PUBLISHED' },
@@ -129,7 +129,7 @@ export class InstructorService {
         totalRevenue: profile?.totalRevenue ?? 0,
         totalStudents: profile?.totalStudents ?? 0,
         totalCourses: courseCount,
-        availableBalance: availableBalance._sum.netAmount ?? 0,
+        availableBalance: profile?.availableBalance ?? 0,
         pendingBalance: pendingBalance._sum.netAmount ?? 0,
       },
       recentEarnings,
