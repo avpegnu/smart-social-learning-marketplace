@@ -23,6 +23,8 @@ import { PaginationDto } from '@/common/dto/pagination.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('users')
 @ApiTags('Users')
@@ -53,6 +55,13 @@ export class UsersController {
     @Body() dto: UpdateNotificationPreferencesDto,
   ) {
     return this.usersService.updateNotificationPreferences(user.sub, dto.preferences);
+  }
+
+  @ApiBearerAuth()
+  @Patch('me/password')
+  @ApiOperation({ summary: 'Change password' })
+  async changePassword(@CurrentUser() user: JwtPayload, @Body() dto: ChangePasswordDto) {
+    return this.usersService.changePassword(user.sub, dto);
   }
 
   // ==================== PUBLIC ENDPOINTS ====================

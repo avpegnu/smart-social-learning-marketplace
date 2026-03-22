@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '@/prisma/prisma.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
@@ -95,6 +96,30 @@ export class UsersService {
       data: { notificationPreferences: preferences },
       select: { id: true, notificationPreferences: true },
     });
+  }
+
+  async changePassword(userId: string, dto: { currentPassword: string; newPassword: string }) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { passwordHash: true },
+    });
+
+    if (!user?.passwordHash) {
+      throw new BadRequestException({ code: 'INVALID_CREDENTIALS' });
+    }
+
+    const isValid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!isValid) {
+      throw new BadRequestException({ code: 'INVALID_CURRENT_PASSWORD' });
+    }
+
+    const hash = await bcrypt.hash(dto.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: hash },
+    });
+
+    return { message: 'PASSWORD_CHANGED' };
   }
 
   // ==================== FOLLOW SYSTEM ====================
