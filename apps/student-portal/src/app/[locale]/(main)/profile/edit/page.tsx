@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { Camera, Loader2, ArrowLeft } from 'lucide-react';
@@ -17,6 +17,7 @@ import {
 } from '@shared/ui';
 import { Link, useRouter } from '@/i18n/navigation';
 import { useMe, useUpdateProfile, useAuthStore } from '@shared/hooks';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 import { toast } from 'sonner';
 
 interface EditProfileValues {
@@ -44,6 +45,31 @@ export default function EditProfilePage() {
   const updateProfile = useUpdateProfile();
   const setUser = useAuthStore((s) => s.setUser);
   const currentUser = useAuthStore((s) => s.user);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 1024 * 1024) {
+      toast.error(t('avatarTooLarge'));
+      return;
+    }
+
+    setAvatarPreview(URL.createObjectURL(file));
+    setAvatarUploading(true);
+
+    try {
+      const result = await uploadToCloudinary(file, 'image');
+      setAvatarPreview(result.secure_url);
+    } catch {
+      toast.error(t('avatarUploadFailed'));
+      setAvatarPreview(null);
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
 
   const {
     register,
@@ -61,14 +87,23 @@ export default function EditProfilePage() {
     }
   }, [me, reset]);
 
+  const hasAvatarChange = avatarPreview && avatarPreview !== me?.avatarUrl;
+
   const onSubmit = (data: EditProfileValues) => {
     updateProfile.mutate(
-      { fullName: data.fullName, bio: data.bio || undefined },
       {
-        onSuccess: (res) => {
-          const updated = res as unknown as { fullName: string; avatarUrl: string | null };
+        fullName: data.fullName,
+        bio: data.bio || undefined,
+        ...(hasAvatarChange ? { avatarUrl: avatarPreview } : {}),
+      },
+      {
+        onSuccess: () => {
           if (currentUser) {
-            setUser({ ...currentUser, fullName: updated.fullName });
+            setUser({
+              ...currentUser,
+              fullName: data.fullName,
+              ...(hasAvatarChange ? { avatarUrl: avatarPreview } : {}),
+            });
           }
           toast.success(t('saved'));
           router.push(`/profile/${me?.id}`);
@@ -112,7 +147,12 @@ export default function EditProfilePage() {
           <CardContent className="flex items-center gap-6 p-6">
             <div className="relative">
               <Avatar className="h-20 w-20">
-                {me?.avatarUrl && <AvatarImage src={me.avatarUrl} alt={me.fullName} />}
+                {(avatarPreview || me?.avatarUrl) && (
+                  <AvatarImage
+                    src={avatarPreview || me?.avatarUrl || ''}
+                    alt={me?.fullName || ''}
+                  />
+                )}
                 <AvatarFallback className="bg-primary text-primary-foreground text-xl">
                   {initials}
                 </AvatarFallback>
@@ -120,9 +160,22 @@ export default function EditProfilePage() {
               <button
                 type="button"
                 className="bg-primary text-primary-foreground absolute -right-1 -bottom-1 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={avatarUploading}
               >
-                <Camera className="h-3.5 w-3.5" />
+                {avatarUploading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Camera className="h-3.5 w-3.5" />
+                )}
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
             </div>
             <div>
               <p className="font-medium">{t('changeAvatar')}</p>
@@ -169,7 +222,10 @@ export default function EditProfilePage() {
 
         {/* Save */}
         <div className="flex justify-end">
-          <Button type="submit" disabled={updateProfile.isPending || !isDirty}>
+          <Button
+            type="submit"
+            disabled={updateProfile.isPending || (!isDirty && !hasAvatarChange)}
+          >
             {updateProfile.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t('saveChanges')}
           </Button>

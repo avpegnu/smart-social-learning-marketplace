@@ -630,7 +630,10 @@
     "backToProfile": "Back to profile",
     "email": "Email",
     "emailHint": "Email cannot be changed",
-    "fullNameRequired": "Full name is required"
+    "fullNameRequired": "Full name is required",
+    "avatarUpdated": "Avatar updated successfully",
+    "avatarUploadFailed": "Failed to upload avatar",
+    "avatarTooLarge": "Image must be less than 1MB"
   },
   "becomeInstructor": {
     "title": "Become an Instructor",

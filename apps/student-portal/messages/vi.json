@@ -630,7 +630,10 @@
     "backToProfile": "Quay lại hồ sơ",
     "email": "Email",
     "emailHint": "Email không thể thay đổi",
-    "fullNameRequired": "Họ và tên là bắt buộc"
+    "fullNameRequired": "Họ và tên là bắt buộc",
+    "avatarUpdated": "Đã cập nhật ảnh đại diện",
+    "avatarUploadFailed": "Tải ảnh lên thất bại",
+    "avatarTooLarge": "Ảnh phải nhỏ hơn 1MB"
   },
   "becomeInstructor": {
     "title": "Trở thành giảng viên",
