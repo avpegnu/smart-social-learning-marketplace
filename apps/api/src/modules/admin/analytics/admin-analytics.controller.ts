@@ -1,5 +1,6 @@
 import { Controller, Get, Query, Inject, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import type { AnalyticsType } from '@prisma/client';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -10,6 +11,7 @@ import { AdminAnalyticsService } from './admin-analytics.service';
 @ApiBearerAuth()
 @UseGuards(RolesGuard)
 @Roles('ADMIN')
+@SkipThrottle()
 export class AdminAnalyticsController {
   constructor(
     @Inject(AdminAnalyticsService)
