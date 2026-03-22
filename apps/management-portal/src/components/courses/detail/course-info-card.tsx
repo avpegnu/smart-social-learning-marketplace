@@ -27,16 +27,48 @@ export function CourseInfoCard({ course, category }: CourseInfoCardProps) {
 
       <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
         <InfoItem label={t('category')} value={(category?.name as string) ?? '—'} />
-        <InfoItem label={t('level')} value={(course.level as string) ?? '—'} />
-        <InfoItem label={t('language')} value={(course.language as string) ?? '—'} />
         <InfoItem
-          label={t('price')}
+          label={t('level')}
+          value={course.level ? tc(`courseLevel.${course.level}`) : '—'}
+        />
+        <InfoItem
+          label={t('language')}
           value={
-            (course.price as number) === 0 ? t('free') : formatPrice((course.price as number) ?? 0)
+            (course.language as string) === 'vi'
+              ? 'Tiếng Việt'
+              : (course.language as string) === 'en'
+                ? 'English'
+                : ((course.language as string) ?? '—')
           }
         />
+        <InfoItem label={t('price')} value="">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-medium">
+              {(course.price as number) === 0
+                ? t('free')
+                : formatPrice((course.price as number) ?? 0)}
+            </span>
+            {(course.originalPrice as number) > 0 &&
+              (course.originalPrice as number) > (course.price as number) && (
+                <>
+                  <span className="text-muted-foreground text-xs line-through">
+                    {formatPrice(course.originalPrice as number)}
+                  </span>
+                  <span className="text-success text-xs font-semibold">
+                    -
+                    {Math.round(
+                      (((course.originalPrice as number) - (course.price as number)) /
+                        (course.originalPrice as number)) *
+                        100,
+                    )}
+                    %
+                  </span>
+                </>
+              )}
+          </div>
+        </InfoItem>
         <InfoItem label={t('status')} value="">
-          <Badge variant={STATUS_VARIANTS[status] ?? 'secondary'}>
+          <Badge variant={STATUS_VARIANTS[status] ?? 'secondary'} className="px-3 py-1 text-sm">
             {tc(`courseStatus.${status}`)}
           </Badge>
         </InfoItem>
@@ -57,7 +89,7 @@ export function CourseInfoCard({ course, category }: CourseInfoCardProps) {
         <div>
           <p className="text-muted-foreground mb-2 text-sm">{t('description')}</p>
           <div
-            className="prose prose-sm dark:prose-invert border-border bg-card max-w-none rounded-md border p-4"
+            className="prose prose-sm dark:prose-invert prose-p:text-foreground prose-li:text-foreground prose-headings:text-foreground border-border max-w-none rounded-md border p-4"
             dangerouslySetInnerHTML={{ __html: course.description as string }}
           />
         </div>
@@ -77,7 +109,7 @@ function InfoItem({
 }) {
   return (
     <div>
-      <span className="text-muted-foreground text-xs">{label}</span>
+      <p className="text-muted-foreground mb-1 text-xs">{label}</p>
       {children ?? <p className="font-medium">{value}</p>}
     </div>
   );

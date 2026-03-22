@@ -91,13 +91,11 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
       </div>
 
       {/* Title & Status */}
-      <div className="space-y-1">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">{course.title as string}</h1>
-          <Badge variant={STATUS_VARIANTS[status] ?? 'secondary'}>
-            {tc(`courseStatus.${status}`)}
-          </Badge>
-        </div>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold">{course.title as string}</h1>
+        <Badge variant={STATUS_VARIANTS[status] ?? 'secondary'} className="px-3 py-1 text-sm">
+          {tc(`courseStatus.${status}`)}
+        </Badge>
         {(course.shortDescription as string) && (
           <p className="text-muted-foreground">{course.shortDescription as string}</p>
         )}
@@ -168,13 +166,30 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
       {/* Pricing */}
       <div className="border-border space-y-3 rounded-lg border p-6">
         <h2 className="text-lg font-semibold">{t('pricing')}</h2>
-        <div className="text-sm">
+        <div className="flex flex-wrap items-center gap-3 text-sm">
           <span className="text-muted-foreground">{t('coursePrice')}: </span>
           <span className="text-lg font-bold">
             {(course.price as number) === 0
               ? t('free')
               : formatPrice((course.price as number) ?? 0)}
           </span>
+          {(course.originalPrice as number) > 0 &&
+            (course.originalPrice as number) > (course.price as number) && (
+              <>
+                <span className="text-muted-foreground line-through">
+                  {formatPrice(course.originalPrice as number)}
+                </span>
+                <Badge variant="success" className="px-2 py-0.5">
+                  -
+                  {Math.round(
+                    (((course.originalPrice as number) - (course.price as number)) /
+                      (course.originalPrice as number)) *
+                      100,
+                  )}
+                  %
+                </Badge>
+              </>
+            )}
         </div>
       </div>
     </div>

@@ -106,6 +106,24 @@ export function StepReview({ courseId, onPrevious }: StepReviewProps) {
                 ? t('freeCourse')
                 : formatPrice((course.price as number) ?? 0)}
             </span>
+            {(course.originalPrice as number) > 0 &&
+              (course.originalPrice as number) > (course.price as number) && (
+                <>
+                  {' '}
+                  <span className="text-muted-foreground text-sm line-through">
+                    {formatPrice(course.originalPrice as number)}
+                  </span>
+                  <span className="text-success ml-1 text-sm font-medium">
+                    -
+                    {Math.round(
+                      (((course.originalPrice as number) - (course.price as number)) /
+                        (course.originalPrice as number)) *
+                        100,
+                    )}
+                    %
+                  </span>
+                </>
+              )}
           </div>
         </div>
         {(course.thumbnailUrl as string) && (

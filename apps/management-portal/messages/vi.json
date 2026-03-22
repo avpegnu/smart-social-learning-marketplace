@@ -44,6 +44,12 @@
       "PUBLISHED": "Đã xuất bản",
       "REJECTED": "Bị từ chối"
     },
+    "courseLevel": {
+      "BEGINNER": "Cơ bản",
+      "INTERMEDIATE": "Trung cấp",
+      "ADVANCED": "Nâng cao",
+      "ALL_LEVELS": "Tất cả cấp độ"
+    },
     "statusLabels": {
       "DRAFT": "Nháp",
       "PENDING": "Chờ xử lý",
@@ -869,7 +875,10 @@
     "quizValidationError": "Mỗi câu hỏi cần ít nhất 2 đáp án và đúng 1 đáp án đúng",
     "coursePrice": "Giá khóa học",
     "freeCourse": "Miễn phí",
-    "priceVnd": "Giá (VND)",
+    "priceVnd": "Giá bán (VND)",
+    "originalPrice": "Giá gốc (VND)",
+    "originalPriceDesc": "Nhập giá gốc cao hơn giá bán để hiển thị giảm giá. Để trống nếu không giảm giá.",
+    "originalPricePlaceholder": "Để trống nếu không giảm giá",
     "chapterPricing": "Giá từng chương",
     "chapterPricingDesc": "Đặt giá riêng cho từng chương hoặc cho phép xem trước miễn phí.",
     "freePreview": "Xem thử",

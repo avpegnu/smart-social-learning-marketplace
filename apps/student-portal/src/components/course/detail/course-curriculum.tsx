@@ -26,10 +26,19 @@ export function CourseCurriculum({
   const [expandedSections, setExpandedSections] = useState<string[]>(
     sections.length > 0 ? [sections[0].id] : [],
   );
+  const [expandedChapters, setExpandedChapters] = useState<string[]>(
+    sections.length > 0 && sections[0].chapters.length > 0 ? [sections[0].chapters[0].id] : [],
+  );
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections((prev) =>
       prev.includes(sectionId) ? prev.filter((id) => id !== sectionId) : [...prev, sectionId],
+    );
+  };
+
+  const toggleChapter = (chapterId: string) => {
+    setExpandedChapters((prev) =>
+      prev.includes(chapterId) ? prev.filter((id) => id !== chapterId) : [...prev, chapterId],
     );
   };
 
@@ -70,7 +79,17 @@ export function CourseCurriculum({
                   <div key={chapter.id}>
                     {/* Chapter header */}
                     <div className="border-border/50 flex items-center gap-2 border-t px-6 py-2.5">
-                      <span className="flex-1 text-sm font-medium">{chapter.title}</span>
+                      <button
+                        onClick={() => toggleChapter(chapter.id)}
+                        className="flex flex-1 cursor-pointer items-center gap-2"
+                      >
+                        {expandedChapters.includes(chapter.id) ? (
+                          <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+                        ) : (
+                          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                        )}
+                        <span className="text-left text-sm font-medium">{chapter.title}</span>
+                      </button>
                       {chapter.isFreePreview && (
                         <Badge variant="outline" className="text-xs">
                           {t('freePreview')}
@@ -92,32 +111,33 @@ export function CourseCurriculum({
                       </span>
                     </div>
                     {/* Lessons */}
-                    {chapter.lessons.map((lesson) => {
-                      const LessonIcon = LESSON_ICONS[lesson.type] ?? BookOpen;
-                      return (
-                        <div
-                          key={lesson.id}
-                          className="border-border/30 flex items-center gap-3 border-t px-8 py-2 text-sm"
-                        >
-                          <LessonIcon className="text-muted-foreground h-4 w-4 shrink-0" />
-                          <span className="flex-1">{lesson.title}</span>
-                          {chapter.isFreePreview && (
-                            <Badge
-                              variant="outline"
-                              className="text-primary cursor-pointer text-xs"
-                              onClick={() => toast.info(t('previewComingSoon'))}
-                            >
-                              {t('preview')}
-                            </Badge>
-                          )}
-                          {lesson.estimatedDuration && (
-                            <span className="text-muted-foreground text-xs">
-                              {formatDuration(lesson.estimatedDuration)}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
+                    {expandedChapters.includes(chapter.id) &&
+                      chapter.lessons.map((lesson) => {
+                        const LessonIcon = LESSON_ICONS[lesson.type] ?? BookOpen;
+                        return (
+                          <div
+                            key={lesson.id}
+                            className="border-border/30 flex items-center gap-3 border-t px-8 py-2 text-sm"
+                          >
+                            <LessonIcon className="text-muted-foreground h-4 w-4 shrink-0" />
+                            <span className="flex-1">{lesson.title}</span>
+                            {chapter.isFreePreview && (
+                              <Badge
+                                variant="outline"
+                                className="text-primary cursor-pointer text-xs"
+                                onClick={() => toast.info(t('previewComingSoon'))}
+                              >
+                                {t('preview')}
+                              </Badge>
+                            )}
+                            {lesson.estimatedDuration && (
+                              <span className="text-muted-foreground text-xs">
+                                {formatDuration(lesson.estimatedDuration)}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
                   </div>
                 ))}
               </div>

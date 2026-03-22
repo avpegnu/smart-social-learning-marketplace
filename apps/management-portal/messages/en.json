@@ -44,6 +44,12 @@
       "PUBLISHED": "Published",
       "REJECTED": "Rejected"
     },
+    "courseLevel": {
+      "BEGINNER": "Beginner",
+      "INTERMEDIATE": "Intermediate",
+      "ADVANCED": "Advanced",
+      "ALL_LEVELS": "All Levels"
+    },
     "statusLabels": {
       "DRAFT": "Draft",
       "PENDING": "Pending",
@@ -869,6 +875,9 @@
     "coursePrice": "Course Price",
     "freeCourse": "Free",
     "priceVnd": "Price (VND)",
+    "originalPrice": "Original Price (VND)",
+    "originalPriceDesc": "Set a higher original price to show a discount. Leave empty for no discount.",
+    "originalPricePlaceholder": "Leave empty for no discount",
     "chapterPricing": "Chapter Pricing",
     "chapterPricingDesc": "Set individual prices per chapter or allow free preview.",
     "freePreview": "Free Preview",

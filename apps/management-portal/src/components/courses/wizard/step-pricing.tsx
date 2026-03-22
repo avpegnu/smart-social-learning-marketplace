@@ -41,6 +41,7 @@ export function StepPricing({
   const updateChapter = useUpdateChapter();
 
   const [coursePrice, setCoursePrice] = useState(0);
+  const [courseOriginalPrice, setCourseOriginalPrice] = useState<number | undefined>(undefined);
   const [isFree, setIsFree] = useState(false);
   const [chapterPricings, setChapterPricings] = useState<ChapterPricing[]>([]);
   const [saving, setSaving] = useState(false);
@@ -51,6 +52,7 @@ export function StepPricing({
       const price = (course.price as number) ?? 0;
       setCoursePrice(price);
       setIsFree(price === 0);
+      setCourseOriginalPrice((course.originalPrice as number) ?? undefined);
     }
 
     // Build chapter pricings from sections state
@@ -94,7 +96,10 @@ export function StepPricing({
       // Save course price
       await updateCourse.mutateAsync({
         courseId,
-        data: { price: isFree ? 0 : coursePrice },
+        data: {
+          price: isFree ? 0 : coursePrice,
+          originalPrice: isFree ? undefined : courseOriginalPrice || undefined,
+        },
       });
 
       // Save changed chapter prices
@@ -146,18 +151,49 @@ export function StepPricing({
           </div>
 
           {!isFree && (
-            <div className="space-y-2">
-              <Label>{t('priceVnd')}</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  value={coursePrice}
-                  onChange={(e) => setCoursePrice(Number(e.target.value))}
-                  min={0}
-                  step={1000}
-                  className="max-w-xs"
-                />
-                <span className="text-muted-foreground text-sm">= {formatPrice(coursePrice)}</span>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>{t('priceVnd')}</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    value={coursePrice}
+                    onChange={(e) => setCoursePrice(Number(e.target.value))}
+                    min={0}
+                    step={1000}
+                    className="max-w-xs"
+                  />
+                  <span className="text-muted-foreground text-sm">
+                    = {formatPrice(coursePrice)}
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>{t('originalPrice')}</Label>
+                <p className="text-muted-foreground text-xs">{t('originalPriceDesc')}</p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    value={courseOriginalPrice ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCourseOriginalPrice(val ? Number(val) : undefined);
+                    }}
+                    min={0}
+                    step={1000}
+                    placeholder={t('originalPricePlaceholder')}
+                    className="max-w-xs"
+                  />
+                  {courseOriginalPrice && courseOriginalPrice > coursePrice && (
+                    <span className="text-success text-sm font-medium">
+                      -
+                      {Math.round(
+                        ((courseOriginalPrice - coursePrice) / courseOriginalPrice) * 100,
+                      )}
+                      %
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )}

@@ -16,8 +16,11 @@ export function CourseHero({ course }: CourseHeroProps) {
   const instructorInitial = course.instructor.fullName.split(' ').pop()?.[0] ?? '';
 
   return (
-    <section className="from-primary to-primary/80 text-primary-foreground bg-gradient-to-r py-8 sm:py-12">
-      <div className="container mx-auto px-4">
+    <section className="relative overflow-hidden bg-gradient-to-br from-blue-700 via-indigo-600 to-violet-700 py-8 text-white sm:py-12">
+      <div className="absolute -top-20 -right-20 h-80 w-80 rounded-full bg-cyan-400/20 blur-3xl" />
+      <div className="absolute -bottom-20 -left-20 h-80 w-80 rounded-full bg-violet-400/20 blur-3xl" />
+      <div className="absolute top-1/2 left-1/2 h-60 w-60 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-300/10 blur-3xl" />
+      <div className="relative container mx-auto px-4">
         <div className="max-w-3xl">
           <div className="mb-3 flex items-center gap-2">
             {course.category && (

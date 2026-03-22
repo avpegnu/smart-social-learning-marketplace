@@ -204,7 +204,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
                   <div className="mb-6">
                     <h2 className="mb-3 text-lg font-semibold">{t('description')}</h2>
                     <div
-                      className="prose prose-sm dark:prose-invert max-w-none"
+                      className="prose prose-sm dark:prose-invert prose-p:text-foreground prose-li:text-foreground prose-headings:text-foreground max-w-none"
                       dangerouslySetInnerHTML={{ __html: course.description }}
                     />
                   </div>

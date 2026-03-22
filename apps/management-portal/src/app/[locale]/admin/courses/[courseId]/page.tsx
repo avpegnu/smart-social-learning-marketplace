@@ -154,13 +154,30 @@ export default function AdminCourseDetailPage({
       {/* Pricing */}
       <div className="border-border space-y-3 rounded-lg border p-6">
         <h2 className="text-lg font-semibold">{t('pricing')}</h2>
-        <div className="text-sm">
+        <div className="flex flex-wrap items-center gap-3 text-sm">
           <span className="text-muted-foreground">{t('coursePrice')}: </span>
           <span className="text-lg font-bold">
             {(course.price as number) === 0
               ? t('free')
               : formatPrice((course.price as number) ?? 0)}
           </span>
+          {(course.originalPrice as number) > 0 &&
+            (course.originalPrice as number) > (course.price as number) && (
+              <>
+                <span className="text-muted-foreground line-through">
+                  {formatPrice(course.originalPrice as number)}
+                </span>
+                <span className="text-success text-sm font-semibold">
+                  -
+                  {Math.round(
+                    (((course.originalPrice as number) - (course.price as number)) /
+                      (course.originalPrice as number)) *
+                      100,
+                  )}
+                  %
+                </span>
+              </>
+            )}
         </div>
       </div>
     </div>

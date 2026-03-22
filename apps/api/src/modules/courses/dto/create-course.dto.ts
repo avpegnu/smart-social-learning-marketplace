@@ -47,6 +47,12 @@ export class CreateCourseDto {
   @Min(0)
   price?: number;
 
+  @ApiPropertyOptional({ description: 'Original price before discount' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  originalPrice?: number;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
