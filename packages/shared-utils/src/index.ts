@@ -30,10 +30,13 @@ export function formatRelativeTime(date: string | Date, locale: string = 'vi'): 
 
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
 
-  if (diffDays > 0) return rtf.format(-diffDays, 'day');
-  if (diffHours > 0) return rtf.format(-diffHours, 'hour');
-  if (diffMinutes > 0) return rtf.format(-diffMinutes, 'minute');
-  return rtf.format(-diffSeconds, 'second');
+  let result: string;
+  if (diffDays > 0) result = rtf.format(-diffDays, 'day');
+  else if (diffHours > 0) result = rtf.format(-diffHours, 'hour');
+  else if (diffMinutes > 0) result = rtf.format(-diffMinutes, 'minute');
+  else result = rtf.format(-diffSeconds, 'second');
+
+  return result.charAt(0).toUpperCase() + result.slice(1);
 }
 
 /**

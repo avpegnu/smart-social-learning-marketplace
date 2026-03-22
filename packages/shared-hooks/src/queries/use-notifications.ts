@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationService } from '../services/notification.service';
 
 export function useUnreadNotificationCount(enabled = true) {
@@ -12,10 +12,23 @@ export function useUnreadNotificationCount(enabled = true) {
   });
 }
 
-export function useNotifications(params?: { page?: number; limit?: number }) {
+export function useNotifications(params?: { page?: number; limit?: number; read?: boolean }) {
   return useQuery({
     queryKey: ['notifications', params],
     queryFn: () => notificationService.getAll(params),
+  });
+}
+
+export function useInfiniteNotifications(filter?: { read?: boolean }) {
+  return useInfiniteQuery({
+    queryKey: ['notifications', 'infinite', filter],
+    queryFn: ({ pageParam = 1 }) =>
+      notificationService.getAll({ page: pageParam as number, limit: 15, ...filter }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: { meta?: { page: number; totalPages: number } }) =>
+      lastPage.meta && lastPage.meta.page < lastPage.meta.totalPages
+        ? lastPage.meta.page + 1
+        : undefined,
   });
 }
 

@@ -35,6 +35,54 @@ export function useCourseReviews(courseId: string, params: Record<string, string
   });
 }
 
+// ── Review Mutations ──
+
+export function useCreateReview(courseId: string) {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: (data: { rating: number; comment?: string }) =>
+      courseService.createReview(courseId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses', courseId, 'reviews'] });
+      queryClient.invalidateQueries({ queryKey: ['courses', 'detail'] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useUpdateReview(courseId: string) {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: ({
+      reviewId,
+      data,
+    }: {
+      reviewId: string;
+      data: { rating: number; comment?: string };
+    }) => courseService.updateReview(courseId, reviewId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses', courseId, 'reviews'] });
+      queryClient.invalidateQueries({ queryKey: ['courses', 'detail'] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useDeleteReview(courseId: string) {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: (reviewId: string) => courseService.deleteReview(courseId, reviewId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses', courseId, 'reviews'] });
+      queryClient.invalidateQueries({ queryKey: ['courses', 'detail'] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
 // ── Instructor Course List ──
 
 export function useInstructorCourses(params?: CourseListParams) {

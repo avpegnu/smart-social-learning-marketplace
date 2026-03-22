@@ -38,6 +38,7 @@ export {
 export {
   useUnreadNotificationCount,
   useNotifications,
+  useInfiniteNotifications,
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
 } from './queries/use-notifications';
@@ -54,6 +55,9 @@ export {
   useCourses,
   useCourseDetail,
   useCourseReviews,
+  useCreateReview,
+  useUpdateReview,
+  useDeleteReview,
   useInstructorCourses,
   useInstructorCourseDetail,
   useCreateCourse,
@@ -157,6 +161,20 @@ export {
   useMarkBestAnswer,
 } from './queries/use-qna';
 
+export {
+  useMe,
+  useUserProfile,
+  useUpdateProfile,
+  useChangePassword,
+  useUpdateNotificationPreferences,
+  useFollowUser,
+  useUnfollowUser,
+  useUserFollowers,
+  useUserFollowing,
+  useApplyInstructor,
+  useMyApplications,
+} from './queries/use-users';
+
 export { adminService } from './services/admin.service';
 export { enrollmentService } from './services/enrollment.service';
 export { cartService } from './services/cart.service';
@@ -170,6 +188,13 @@ export { withdrawalService } from './services/withdrawal.service';
 export type { CreateWithdrawalPayload } from './services/withdrawal.service';
 export { qnaService } from './services/qna.service';
 export type { QueryQuestionsParams } from './services/qna.service';
+export { userService } from './services/user.service';
+export type {
+  UpdateProfilePayload,
+  ChangePasswordPayload,
+  NotificationPreferences,
+  ApplyInstructorPayload,
+} from './services/user.service';
 
 // Stores (Layer 3 — Zustand client state)
 export { useAuthStore } from './stores/auth-store';

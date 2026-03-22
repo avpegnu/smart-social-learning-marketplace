@@ -50,4 +50,10 @@ export const courseService = {
 
   createReview: (courseId: string, data: { rating: number; comment?: string }) =>
     apiClient.post(`/courses/${courseId}/reviews`, data),
+
+  updateReview: (courseId: string, reviewId: string, data: { rating: number; comment?: string }) =>
+    apiClient.patch(`/courses/${courseId}/reviews/${reviewId}`, data),
+
+  deleteReview: (courseId: string, reviewId: string) =>
+    apiClient.del(`/courses/${courseId}/reviews/${reviewId}`),
 };
