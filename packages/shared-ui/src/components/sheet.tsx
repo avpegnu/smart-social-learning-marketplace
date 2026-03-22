@@ -47,6 +47,7 @@ function SheetContent({
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & { side?: 'left' | 'right' | 'top' | 'bottom' }) {
   const { open, setOpen } = React.useContext(SheetContext);
+
   if (!open) return null;
 
   const sideClasses = {

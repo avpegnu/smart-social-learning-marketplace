@@ -15,6 +15,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'Smart Social Learning Marketplace',
   description: 'Nền tảng học trực tuyến kết hợp mạng xã hội và AI Tutor',
+  icons: { icon: '/favicon.svg' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
