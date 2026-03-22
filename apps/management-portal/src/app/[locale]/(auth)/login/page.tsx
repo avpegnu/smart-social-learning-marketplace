@@ -1,10 +1,13 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from '@/i18n/navigation';
-import { useLogin } from '@shared/hooks';
+import { useLogin, useAuthStore } from '@shared/hooks';
+import { apiClient } from '@shared/api-client';
 import {
   Card,
   CardContent,
@@ -23,7 +26,40 @@ export default function LoginPage() {
   const t = useTranslations('auth');
   const tc = useTranslations('common');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const loginMutation = useLogin();
+  const ottProcessed = useRef(false);
+
+  // Auto-login via OTT (cross-portal redirect)
+  useEffect(() => {
+    const ott = searchParams.get('ott');
+    if (!ott || ottProcessed.current) return;
+    ottProcessed.current = true;
+
+    apiClient
+      .post<{
+        accessToken: string;
+        user: {
+          id: string;
+          role: string;
+          fullName: string;
+          email: string;
+          avatarUrl: string | null;
+        };
+      }>('/auth/ott/validate?portal=management', { ott, portal: 'management' })
+      .then((res) => {
+        const { user, accessToken } = res.data;
+        useAuthStore.getState().setAuth(user as never, accessToken);
+        if (user.role === 'ADMIN') {
+          window.location.href = '/admin/dashboard';
+        } else {
+          window.location.href = '/instructor/dashboard';
+        }
+      })
+      .catch(() => {
+        // OTT invalid — stay on login page
+      });
+  }, [searchParams]);
 
   const {
     register,
@@ -45,7 +81,6 @@ export default function LoginPage() {
           } else if (role === 'INSTRUCTOR') {
             router.push('/instructor/dashboard');
           } else {
-            // Students cannot use management portal
             router.push('/unauthorized');
           }
         },
@@ -55,7 +90,6 @@ export default function LoginPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top controls */}
       <div className="flex justify-end gap-2">
         <ThemeToggle />
         <LocaleSwitcher />

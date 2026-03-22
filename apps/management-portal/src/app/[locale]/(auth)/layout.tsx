@@ -13,8 +13,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     if (!hydrated) return;
     if (isAuthenticated && user) {
-      // Only redirect INSTRUCTOR/ADMIN to their dashboards
-      // STUDENT stays on auth pages (they'll see /unauthorized from login redirect)
       if (user.role === 'ADMIN') {
         router.replace('/admin/dashboard');
       } else if (user.role === 'INSTRUCTOR') {
@@ -24,7 +22,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   }, [hydrated, isAuthenticated, user, router]);
 
   if (!hydrated) return null;
-  // Only block auth pages for users who have a valid management role
   if (isAuthenticated && user && (user.role === 'ADMIN' || user.role === 'INSTRUCTOR')) {
     return null;
   }

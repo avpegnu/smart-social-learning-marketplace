@@ -115,7 +115,8 @@
     "theme": "Theme",
     "light": "Light",
     "dark": "Dark",
-    "system": "System"
+    "system": "System",
+    "studentPortal": "Student Portal"
   },
   "dashboard": {
     "title": "Dashboard",

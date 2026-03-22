@@ -19,7 +19,7 @@ import {
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LocaleSwitcher } from '@/components/navigation/locale-switcher';
 import { Breadcrumb } from '@/components/navigation/breadcrumb';
-import { Bell, Search, Settings, LogOut, Menu, X, GraduationCap } from 'lucide-react';
+import { Bell, Search, Settings, LogOut, Menu, X, GraduationCap, ExternalLink } from 'lucide-react';
 import { Link, usePathname } from '@/i18n/navigation';
 
 interface HeaderProps {
@@ -141,6 +141,23 @@ export function Header({ variant = 'instructor' }: HeaderProps) {
                   {tNav('settings')}
                 </DropdownMenuItem>
               </Link>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => {
+                  const base = process.env.NEXT_PUBLIC_STUDENT_URL || 'http://localhost:3001';
+                  apiClient
+                    .get<{ ott: string }>('/auth/ott')
+                    .then((res) => {
+                      window.location.href = `${base}/login?ott=${res.data.ott}`;
+                    })
+                    .catch(() => {
+                      window.location.href = base;
+                    });
+                }}
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                {t('studentPortal')}
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive cursor-pointer"

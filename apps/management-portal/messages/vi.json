@@ -115,7 +115,8 @@
     "theme": "Giao diện",
     "light": "Sáng",
     "dark": "Tối",
-    "system": "Hệ thống"
+    "system": "Hệ thống",
+    "studentPortal": "Trang học viên"
   },
   "dashboard": {
     "title": "Tổng quan",

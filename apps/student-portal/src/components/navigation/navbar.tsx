@@ -10,6 +10,7 @@ import {
   Bell,
   Menu,
   X,
+  LayoutDashboard,
   GraduationCap,
   BookOpen,
   User,
@@ -226,6 +227,29 @@ export function Navbar() {
                       <Settings className="mr-2 h-4 w-4" />
                       {t('settings')}
                     </DropdownMenuItem>
+                    {user?.role === 'INSTRUCTOR' || user?.role === 'ADMIN' ? (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-primary cursor-pointer"
+                          onClick={() => {
+                            const base =
+                              process.env.NEXT_PUBLIC_MANAGEMENT_URL || 'http://localhost:3002';
+                            apiClient
+                              .get<{ ott: string }>('/auth/ott')
+                              .then((res) => {
+                                window.location.href = `${base}/login?ott=${res.data.ott}`;
+                              })
+                              .catch(() => {
+                                window.location.href = base;
+                              });
+                          }}
+                        >
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          {t('managementPortal')}
+                        </DropdownMenuItem>
+                      </>
+                    ) : null}
                     <DropdownMenuSeparator />
                     <div className="flex items-center gap-2 px-2 py-1.5 lg:hidden">
                       <ThemeToggle />

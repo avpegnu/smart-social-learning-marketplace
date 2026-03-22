@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useRouter, Link } from '@/i18n/navigation';
@@ -8,7 +8,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
 import { Button, Input, Separator } from '@shared/ui';
-import { useLogin } from '@shared/hooks';
+import { useLogin, useAuthStore } from '@shared/hooks';
+import { apiClient } from '@shared/api-client';
 import { loginSchema, type LoginValues } from '@/lib/validations/auth';
 
 export default function LoginPage() {
@@ -16,6 +17,34 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
+  const ottProcessed = useRef(false);
+
+  // Auto-login via OTT (cross-portal redirect)
+  useEffect(() => {
+    const ott = searchParams.get('ott');
+    if (!ott || ottProcessed.current) return;
+    ottProcessed.current = true;
+
+    apiClient
+      .post<{
+        accessToken: string;
+        user: {
+          id: string;
+          role: string;
+          fullName: string;
+          email: string;
+          avatarUrl: string | null;
+        };
+      }>('/auth/ott/validate?portal=student', { ott, portal: 'student' })
+      .then((res) => {
+        const { user, accessToken } = res.data;
+        useAuthStore.getState().setAuth(user as never, accessToken);
+        window.location.href = '/';
+      })
+      .catch(() => {
+        // OTT invalid — stay on login page
+      });
+  }, [searchParams]);
 
   const {
     register,
