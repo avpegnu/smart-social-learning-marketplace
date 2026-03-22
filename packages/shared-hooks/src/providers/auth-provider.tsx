@@ -4,10 +4,18 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { useAuthStore } from '../stores/auth-store';
 import { apiClient } from '@shared/api-client';
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+interface AuthProviderProps {
+  children: ReactNode;
+  portal?: 'student' | 'management';
+}
+
+export function AuthProvider({ children, portal = 'student' }: AuthProviderProps) {
   const initialized = useRef(false);
 
   useEffect(() => {
+    // Set portal identifier for cookie isolation
+    apiClient.portal = portal;
+
     // Wire apiClient callbacks (always, even on remount)
     apiClient.onRefresh = (token: string) => {
       useAuthStore.getState().setAccessToken(token);
@@ -40,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const restoreSession = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/auth/refresh`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/auth/refresh?portal=${portal}`,
           { method: 'POST', credentials: 'include' },
         );
         if (res.ok) {

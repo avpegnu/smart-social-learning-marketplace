@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { apiClient } from '@shared/api-client';
 import { useAuthStore } from '../stores/auth-store';
 import { useApiError } from '../use-api-error';
 import { authService } from '../services/auth.service';
@@ -79,7 +80,7 @@ export function useResetPassword() {
 export function useLogout() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => authService.logout(),
+    mutationFn: () => authService.logout(apiClient.portal),
     onSettled: () => {
       // Always logout locally, even if API fails
       useAuthStore.getState().logout();

@@ -5,7 +5,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 
 const mockPrisma = {
   withdrawal: { findFirst: jest.fn(), findMany: jest.fn(), create: jest.fn(), count: jest.fn() },
-  earning: { aggregate: jest.fn(), findMany: jest.fn(), update: jest.fn() },
+  instructorProfile: { findUnique: jest.fn() },
   $transaction: jest.fn(),
 };
 
@@ -37,27 +37,23 @@ describe('WithdrawalsService', () => {
 
     it('should throw if insufficient balance', async () => {
       mockPrisma.withdrawal.findFirst.mockResolvedValue(null);
-      mockPrisma.earning.aggregate.mockResolvedValue({ _sum: { netAmount: 100000 } });
+      mockPrisma.instructorProfile.findUnique.mockResolvedValue({ availableBalance: 100000 });
 
       await expect(service.requestWithdrawal('instr-1', dto as never)).rejects.toThrow(
         BadRequestException,
       );
     });
 
-    it('should create withdrawal and lock earnings (FIFO)', async () => {
+    it('should create withdrawal and deduct available balance', async () => {
       mockPrisma.withdrawal.findFirst.mockResolvedValue(null);
-      mockPrisma.earning.aggregate.mockResolvedValue({ _sum: { netAmount: 1000000 } });
+      mockPrisma.instructorProfile.findUnique.mockResolvedValue({ availableBalance: 1000000 });
 
       mockPrisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({
           withdrawal: {
             create: jest.fn().mockResolvedValue({ id: 'w-1', amount: 500000, status: 'PENDING' }),
           },
-          earning: {
-            findMany: jest.fn().mockResolvedValue([
-              { id: 'e-1', netAmount: 300000 },
-              { id: 'e-2', netAmount: 300000 },
-            ]),
+          instructorProfile: {
             update: jest.fn(),
           },
         }),

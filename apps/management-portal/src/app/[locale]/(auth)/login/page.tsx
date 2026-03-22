@@ -35,19 +35,22 @@ export default function LoginPage() {
   });
 
   const onSubmit = (data: LoginValues) => {
-    loginMutation.mutate(data, {
-      onSuccess: (res) => {
-        const role = res.data.user.role;
-        if (role === 'ADMIN') {
-          router.push('/admin/dashboard');
-        } else if (role === 'INSTRUCTOR') {
-          router.push('/instructor/dashboard');
-        } else {
-          // Students cannot use management portal
-          router.push('/unauthorized');
-        }
+    loginMutation.mutate(
+      { ...data, portal: 'management' },
+      {
+        onSuccess: (res) => {
+          const role = res.data.user.role;
+          if (role === 'ADMIN') {
+            router.push('/admin/dashboard');
+          } else if (role === 'INSTRUCTOR') {
+            router.push('/instructor/dashboard');
+          } else {
+            // Students cannot use management portal
+            router.push('/unauthorized');
+          }
+        },
       },
-    });
+    );
   };
 
   return (

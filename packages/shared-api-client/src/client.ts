@@ -53,6 +53,7 @@ class ApiClient {
   // Callbacks wired by AuthProvider
   onRefresh?: (token: string) => void;
   onLogout?: () => void;
+  portal: string = 'student';
 
   setAccessToken(token: string | null) {
     this.accessToken = token;
@@ -116,7 +117,7 @@ class ApiClient {
 
   private async doRefresh(): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/auth/refresh`, {
+      const res = await fetch(`${API_BASE}/auth/refresh?portal=${this.portal}`, {
         method: 'POST',
         credentials: 'include',
       });

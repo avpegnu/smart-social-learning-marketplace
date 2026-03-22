@@ -28,12 +28,15 @@ export default function LoginPage() {
   const mutation = useLogin();
 
   const onSubmit = (data: LoginValues) => {
-    mutation.mutate(data, {
-      onSuccess: () => {
-        const redirect = searchParams.get('redirect') || '/';
-        router.push(redirect);
+    mutation.mutate(
+      { ...data, portal: 'student' },
+      {
+        onSuccess: () => {
+          const redirect = searchParams.get('redirect') || '/';
+          router.push(redirect);
+        },
       },
-    });
+    );
   };
 
   return (

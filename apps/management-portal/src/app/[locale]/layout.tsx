@@ -30,7 +30,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
     >
       <NextIntlClientProvider messages={messages}>
         <QueryProvider>
-          <AuthProvider>
+          <AuthProvider portal="management">
             {children}
             <Toaster richColors position="top-right" />
           </AuthProvider>

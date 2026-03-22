@@ -11,6 +11,7 @@ const mockPrisma = {
   course: { findUnique: jest.fn(), update: jest.fn() },
   earning: { create: jest.fn(), aggregate: jest.fn() },
   commissionTier: { findFirst: jest.fn() },
+  instructorProfile: { upsert: jest.fn() },
   $transaction: jest.fn(),
 };
 
@@ -44,7 +45,7 @@ describe('WebhooksService', () => {
       accountNumber: '0123456789',
       transferType: 'in',
       transferAmount: 499000,
-      content: 'SSLM-abc12345 chuyen tien',
+      content: 'SSLM2026032100001 chuyen tien',
       referenceCode: 'FT24015',
     };
 
@@ -99,7 +100,16 @@ describe('WebhooksService', () => {
         id: 'order-1',
         finalAmount: 499000,
         userId: 'user-1',
-        items: [{ id: 'oi-1', type: 'COURSE', courseId: 'c1', chapterId: null, price: 499000 }],
+        items: [
+          {
+            id: 'oi-1',
+            type: 'COURSE',
+            courseId: 'c1',
+            chapterId: null,
+            price: 499000,
+            discount: 0,
+          },
+        ],
       });
 
       mockPrisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
@@ -115,6 +125,7 @@ describe('WebhooksService', () => {
             aggregate: jest.fn().mockResolvedValue({ _sum: { netAmount: 0 } }),
           },
           commissionTier: { findFirst: jest.fn().mockResolvedValue({ rate: 0.3 }) },
+          instructorProfile: { upsert: jest.fn() },
         }),
       );
 
@@ -122,6 +133,75 @@ describe('WebhooksService', () => {
 
       expect(result).toEqual({ success: true });
       expect(mockPrisma.$transaction).toHaveBeenCalled();
+    });
+
+    it('should create earning with actualPrice = price - discount', async () => {
+      mockPrisma.order.findFirst.mockResolvedValue({
+        id: 'order-1',
+        finalAmount: 400000,
+        userId: 'user-1',
+        items: [
+          {
+            id: 'oi-1',
+            type: 'COURSE',
+            courseId: 'c1',
+            chapterId: null,
+            price: 500000,
+            discount: 100000,
+          },
+        ],
+      });
+
+      const txEarningCreate = jest.fn();
+      const txInstructorProfileUpsert = jest.fn();
+
+      mockPrisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          order: { update: jest.fn() },
+          enrollment: { upsert: jest.fn() },
+          course: {
+            findUnique: jest.fn().mockResolvedValue({ instructorId: 'instr-1' }),
+            update: jest.fn(),
+          },
+          earning: {
+            create: txEarningCreate,
+            aggregate: jest.fn().mockResolvedValue({ _sum: { netAmount: 0 } }),
+          },
+          commissionTier: { findFirst: jest.fn().mockResolvedValue({ rate: 0.3 }) },
+          instructorProfile: { upsert: txInstructorProfileUpsert },
+        }),
+      );
+
+      await service.handleSepayWebhook('Apikey test-secret', {
+        ...validPayload,
+        transferAmount: 400000,
+      } as never);
+
+      // actualPrice = 500000 - 100000 = 400000
+      // commission = 400000 * 0.3 = 120000
+      // netAmount = 400000 - 120000 = 280000
+      expect(txEarningCreate).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          instructorId: 'instr-1',
+          amount: 400000,
+          commissionRate: 0.3,
+          commissionAmount: 120000,
+          netAmount: 280000,
+          status: 'PENDING',
+        }),
+      });
+
+      // Should update instructor profile counters
+      expect(txInstructorProfileUpsert).toHaveBeenCalledWith({
+        where: { userId: 'instr-1' },
+        update: expect.objectContaining({
+          totalRevenue: { increment: 280000 },
+        }),
+        create: expect.objectContaining({
+          userId: 'instr-1',
+          totalRevenue: 280000,
+        }),
+      });
     });
   });
 });

@@ -24,6 +24,7 @@ const mockResponse = (): Partial<Response> => ({
 
 const mockRequest = (cookies: Record<string, string> = {}): Partial<Request> => ({
   cookies,
+  query: {},
 });
 
 describe('AuthController', () => {
@@ -63,14 +64,15 @@ describe('AuthController', () => {
         user: { id: 'u1', email: 'a@b.com', fullName: 'Test', role: 'STUDENT' },
       });
 
-      const result = await controller.login(dto, '127.0.0.1', res as Response);
+      const req = { query: {} } as unknown as Request;
+      const result = await controller.login(dto, '127.0.0.1', req, res as Response);
 
       expect(result).toEqual({
         accessToken: 'at',
         user: { id: 'u1', email: 'a@b.com', fullName: 'Test', role: 'STUDENT' },
       });
       expect(res.cookie).toHaveBeenCalledWith(
-        'refreshToken',
+        'rt_student',
         'rt',
         expect.objectContaining({
           httpOnly: true,
@@ -87,7 +89,8 @@ describe('AuthController', () => {
         user: {},
       });
 
-      await controller.login({ email: 'a@b.com', password: 'x' }, '10.0.0.1', res as Response);
+      const req = { query: {} } as unknown as Request;
+      await controller.login({ email: 'a@b.com', password: 'x' }, '10.0.0.1', req, res as Response);
 
       expect(mockAuthService.login).toHaveBeenCalledWith(
         { email: 'a@b.com', password: 'x' },
@@ -103,9 +106,11 @@ describe('AuthController', () => {
         user: {},
       });
 
+      const req = { query: {} } as unknown as Request;
       const result = await controller.login(
         { email: 'a@b.com', password: 'x' },
         '::1',
+        req,
         res as Response,
       );
 
@@ -115,8 +120,9 @@ describe('AuthController', () => {
 
   // ==================== REFRESH ====================
   describe('refresh', () => {
-    it('should read refreshToken from cookie and set new cookie', async () => {
-      const req = mockRequest({ refreshToken: 'old-rt' });
+    it('should read refresh cookie by portal and set new cookie', async () => {
+      const req = mockRequest({ rt_student: 'old-rt' });
+
       const res = mockResponse();
       mockAuthService.refresh.mockResolvedValue({
         accessToken: 'new-at',
@@ -128,7 +134,7 @@ describe('AuthController', () => {
       expect(result).toEqual({ accessToken: 'new-at' });
       expect(mockAuthService.refresh).toHaveBeenCalledWith('old-rt');
       expect(res.cookie).toHaveBeenCalledWith(
-        'refreshToken',
+        'rt_student',
         'new-rt',
         expect.objectContaining({ httpOnly: true }),
       );
@@ -160,7 +166,8 @@ describe('AuthController', () => {
   // ==================== LOGOUT ====================
   describe('logout', () => {
     it('should clear cookie and delegate to service', async () => {
-      const req = mockRequest({ refreshToken: 'rt-to-delete' });
+      const req = mockRequest({ rt_student: 'rt-to-delete' });
+
       const res = mockResponse();
       mockAuthService.logout.mockResolvedValue({ message: 'LOGOUT_SUCCESS' });
 
@@ -168,7 +175,7 @@ describe('AuthController', () => {
 
       expect(result).toEqual({ message: 'LOGOUT_SUCCESS' });
       expect(mockAuthService.logout).toHaveBeenCalledWith('rt-to-delete');
-      expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', { path: '/api/auth' });
+      expect(res.clearCookie).toHaveBeenCalledWith('rt_student', { path: '/api/auth' });
     });
 
     it('should still clear cookie even if no refresh token exists', async () => {
@@ -240,14 +247,15 @@ describe('AuthController', () => {
         user: { id: 'u1' },
       });
 
-      const result = await controller.validateOtt({ ott: 'valid-ott' }, res as Response);
+      const req = { query: {} } as unknown as Request;
+      const result = await controller.validateOtt({ ott: 'valid-ott' }, req, res as Response);
 
       expect(result).toEqual({
         accessToken: 'at',
         user: { id: 'u1' },
       });
       expect(res.cookie).toHaveBeenCalledWith(
-        'refreshToken',
+        'rt_student',
         'rt',
         expect.objectContaining({ httpOnly: true }),
       );
@@ -261,7 +269,8 @@ describe('AuthController', () => {
         user: {},
       });
 
-      const result = await controller.validateOtt({ ott: 'x' }, res as Response);
+      const req = { query: {} } as unknown as Request;
+      const result = await controller.validateOtt({ ott: 'x' }, req, res as Response);
 
       expect(result).not.toHaveProperty('refreshToken');
     });

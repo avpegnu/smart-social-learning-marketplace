@@ -5,6 +5,7 @@ import { apiClient } from '@shared/api-client';
 export interface LoginPayload {
   email: string;
   password: string;
+  portal?: string;
 }
 
 export interface RegisterPayload {
@@ -46,5 +47,5 @@ export const authService = {
 
   resetPassword: (data: ResetPasswordPayload) => apiClient.post('/auth/reset-password', data),
 
-  logout: () => apiClient.post('/auth/logout'),
+  logout: (portal?: string) => apiClient.post(`/auth/logout?portal=${portal || 'student'}`),
 };

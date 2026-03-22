@@ -31,10 +31,21 @@ import { ValidateOttDto } from './dto/validate-ott.dto';
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  sameSite: 'lax' as const,
   path: '/api/auth',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
+
+type PortalType = 'student' | 'management';
+
+function getRefreshCookieName(portal?: string): string {
+  return portal === 'management' ? 'rt_management' : 'rt_student';
+}
+
+function getPortalFromRequest(req: Request, body?: { portal?: string } | undefined): PortalType {
+  const portal = body?.portal || (req.query?.portal as string);
+  return portal === 'management' ? 'management' : 'student';
+}
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -51,10 +62,17 @@ export class AuthController {
   @Public()
   @Post('login')
   @ApiOperation({ summary: 'Login with email and password' })
-  async login(@Body() dto: LoginDto, @Ip() ip: string, @Res({ passthrough: true }) res: Response) {
+  async login(
+    @Body() dto: LoginDto,
+    @Ip() ip: string,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const portal = getPortalFromRequest(req, dto);
+    const cookieName = getRefreshCookieName(portal);
     const result = await this.authService.login(dto, ip);
 
-    res.cookie('refreshToken', result.refreshToken, REFRESH_COOKIE_OPTIONS);
+    res.cookie(cookieName, result.refreshToken, REFRESH_COOKIE_OPTIONS);
 
     return {
       accessToken: result.accessToken,
@@ -66,14 +84,16 @@ export class AuthController {
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token using httpOnly cookie' })
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const refreshToken = req.cookies?.refreshToken as string | undefined;
+    const portal = getPortalFromRequest(req);
+    const cookieName = getRefreshCookieName(portal);
+    const refreshToken = req.cookies?.[cookieName] as string | undefined;
     if (!refreshToken) {
       throw new UnauthorizedException({ code: 'MISSING_REFRESH_TOKEN' });
     }
 
     const result = await this.authService.refresh(refreshToken);
 
-    res.cookie('refreshToken', result.refreshToken, REFRESH_COOKIE_OPTIONS);
+    res.cookie(cookieName, result.refreshToken, REFRESH_COOKIE_OPTIONS);
 
     return { accessToken: result.accessToken };
   }
@@ -82,12 +102,14 @@ export class AuthController {
   @Post('logout')
   @ApiOperation({ summary: 'Logout and invalidate refresh token' })
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const refreshToken = req.cookies?.refreshToken as string | undefined;
+    const portal = getPortalFromRequest(req);
+    const cookieName = getRefreshCookieName(portal);
+    const refreshToken = req.cookies?.[cookieName] as string | undefined;
     if (refreshToken) {
       await this.authService.logout(refreshToken);
     }
 
-    res.clearCookie('refreshToken', { path: '/api/auth' });
+    res.clearCookie(cookieName, { path: '/api/auth' });
     return { message: 'LOGOUT_SUCCESS' };
   }
 
@@ -130,10 +152,16 @@ export class AuthController {
   @Public()
   @Post('ott/validate')
   @ApiOperation({ summary: 'Validate OTT and get tokens' })
-  async validateOtt(@Body() dto: ValidateOttDto, @Res({ passthrough: true }) res: Response) {
+  async validateOtt(
+    @Body() dto: ValidateOttDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const portal = getPortalFromRequest(req, dto);
+    const cookieName = getRefreshCookieName(portal);
     const result = await this.authService.validateOtt(dto.ott);
 
-    res.cookie('refreshToken', result.refreshToken, REFRESH_COOKIE_OPTIONS);
+    res.cookie(cookieName, result.refreshToken, REFRESH_COOKIE_OPTIONS);
 
     return {
       accessToken: result.accessToken,

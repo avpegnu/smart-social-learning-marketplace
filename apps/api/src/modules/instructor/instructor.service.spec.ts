@@ -213,11 +213,10 @@ describe('InstructorService', () => {
         totalStudents: 100,
         totalCourses: 5,
         totalRevenue: 5000000,
+        availableBalance: 3000000,
       });
       mockPrisma.course.count.mockResolvedValue(5);
-      mockPrisma.earning.aggregate
-        .mockResolvedValueOnce({ _sum: { netAmount: 3000000 } }) // available
-        .mockResolvedValueOnce({ _sum: { netAmount: 2000000 } }); // pending
+      mockPrisma.earning.aggregate.mockResolvedValue({ _sum: { netAmount: 2000000 } }); // pending
       mockPrisma.earning.findMany.mockResolvedValue([]);
       mockPrisma.course.findMany.mockResolvedValue([
         { id: 'c1', title: 'React', totalStudents: 50, avgRating: 4.5 },

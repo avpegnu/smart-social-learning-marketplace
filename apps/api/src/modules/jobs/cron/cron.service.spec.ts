@@ -8,7 +8,8 @@ describe('CronService', () => {
   const prisma = {
     order: { updateMany: jest.fn() },
     course: { update: jest.fn(), findMany: jest.fn() },
-    earning: { updateMany: jest.fn() },
+    earning: { findMany: jest.fn(), updateMany: jest.fn() },
+    instructorProfile: { update: jest.fn() },
     media: { updateMany: jest.fn() },
     user: { count: jest.fn() },
     enrollment: { count: jest.fn() },
@@ -75,16 +76,58 @@ describe('CronService', () => {
   });
 
   describe('releaseAvailableEarnings', () => {
-    it('should release earnings past availableAt', async () => {
+    it('should find all pending earnings and release them immediately', async () => {
+      prisma.earning.findMany.mockResolvedValue([
+        { id: 'e1', instructorId: 'inst1', netAmount: 100000 },
+        { id: 'e2', instructorId: 'inst1', netAmount: 200000 },
+      ]);
       prisma.earning.updateMany.mockResolvedValue({ count: 2 });
+      prisma.instructorProfile.update.mockResolvedValue({});
+
       await service.releaseAvailableEarnings();
 
+      expect(prisma.earning.findMany).toHaveBeenCalledWith({
+        where: { status: 'PENDING' },
+        select: { id: true, instructorId: true, netAmount: true },
+      });
       expect(prisma.earning.updateMany).toHaveBeenCalledWith({
-        where: {
-          status: 'PENDING',
-          availableAt: { lte: expect.any(Date) },
-        },
+        where: { id: { in: ['e1', 'e2'] } },
         data: { status: 'AVAILABLE' },
+      });
+      expect(prisma.instructorProfile.update).toHaveBeenCalledWith({
+        where: { userId: 'inst1' },
+        data: { availableBalance: { increment: 300000 } },
+      });
+    });
+
+    it('should skip if no pending earnings', async () => {
+      prisma.earning.findMany.mockResolvedValue([]);
+
+      await service.releaseAvailableEarnings();
+
+      expect(prisma.earning.updateMany).not.toHaveBeenCalled();
+      expect(prisma.instructorProfile.update).not.toHaveBeenCalled();
+    });
+
+    it('should aggregate balance per instructor', async () => {
+      prisma.earning.findMany.mockResolvedValue([
+        { id: 'e1', instructorId: 'inst1', netAmount: 100000 },
+        { id: 'e2', instructorId: 'inst2', netAmount: 200000 },
+        { id: 'e3', instructorId: 'inst1', netAmount: 50000 },
+      ]);
+      prisma.earning.updateMany.mockResolvedValue({ count: 3 });
+      prisma.instructorProfile.update.mockResolvedValue({});
+
+      await service.releaseAvailableEarnings();
+
+      expect(prisma.instructorProfile.update).toHaveBeenCalledTimes(2);
+      expect(prisma.instructorProfile.update).toHaveBeenCalledWith({
+        where: { userId: 'inst1' },
+        data: { availableBalance: { increment: 150000 } },
+      });
+      expect(prisma.instructorProfile.update).toHaveBeenCalledWith({
+        where: { userId: 'inst2' },
+        data: { availableBalance: { increment: 200000 } },
       });
     });
   });

@@ -11,6 +11,9 @@ describe('AdminWithdrawalsService', () => {
       findMany: jest.fn(),
       updateMany: jest.fn(),
     },
+    instructorProfile: {
+      update: jest.fn(),
+    },
   };
   const prisma = {
     withdrawal: {
@@ -58,7 +61,7 @@ describe('AdminWithdrawalsService', () => {
       });
     });
 
-    it('should reject without touching earnings', async () => {
+    it('should reject and refund available balance to instructor profile', async () => {
       prisma.withdrawal.findUnique.mockResolvedValue(withdrawal);
       tx.withdrawal.update.mockResolvedValue({
         ...withdrawal,
@@ -71,6 +74,10 @@ describe('AdminWithdrawalsService', () => {
 
       expect(tx.earning.findMany).not.toHaveBeenCalled();
       expect(tx.earning.updateMany).not.toHaveBeenCalled();
+      expect(tx.instructorProfile.update).toHaveBeenCalledWith({
+        where: { userId: 'inst1' },
+        data: { availableBalance: { increment: 500000 } },
+      });
     });
 
     it('should throw if not found', async () => {
