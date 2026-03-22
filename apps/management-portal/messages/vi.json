@@ -25,6 +25,7 @@
     "of": "trong",
     "results": "kết quả",
     "noData": "Không có dữ liệu",
+    "success": "Thành công",
     "previous": "Trước",
     "page": "Trang",
     "rowsPerPage": "Số dòng mỗi trang",
@@ -64,7 +65,8 @@
       "AVAILABLE": "Khả dụng",
       "WITHDRAWN": "Đã rút",
       "FAILED": "Thất bại",
-      "SCHEDULED": "Đã lên lịch"
+      "SCHEDULED": "Đã lên lịch",
+      "ACTION_TAKEN": "Đã xử lý"
     }
   },
   "auth": {
@@ -265,7 +267,13 @@
     "course": "Khóa học",
     "reportedUser": "Người dùng bị báo cáo",
     "reportCount": "Số lần báo cáo",
-    "searchPlaceholder": "Tìm báo cáo..."
+    "searchPlaceholder": "Tìm báo cáo...",
+    "question": "Câu hỏi",
+    "user": "Người dùng",
+    "reviewReport": "Xem xét báo cáo",
+    "actionTaken": "Đã xử lý",
+    "adminNote": "Ghi chú",
+    "adminNotePlaceholder": "Thêm ghi chú (tùy chọn)..."
   },
   "adminSettings": {
     "title": "Cài đặt hệ thống",
@@ -682,6 +690,10 @@
     "portfolio": "Portfolio",
     "pendingApplications": "đơn chờ duyệt",
     "pendingCourses": "khóa học chờ duyệt",
+    "reportsTitle": "Báo cáo vi phạm",
+    "pendingReports": "báo cáo chờ xử lý",
+    "withdrawalsTitle": "Rút tiền",
+    "pendingWithdrawals": "yêu cầu rút tiền chờ duyệt",
     "confirmApprove": "Xác nhận duyệt",
     "confirmReject": "Xác nhận từ chối",
     "confirmApproveDesc": "Bạn có chắc muốn duyệt đơn của {name}?",
@@ -733,7 +745,15 @@
     "last3Months": "3 tháng qua",
     "last12Months": "12 tháng qua",
     "students": "Học viên",
-    "instructors": "Giảng viên"
+    "instructors": "Giảng viên",
+    "totalUsers": "Tổng người dùng",
+    "totalCourses": "Tổng khóa học",
+    "totalRevenue": "Tổng doanh thu",
+    "newUsersThisWeek": "Người dùng mới tuần này",
+    "noData": "Chưa có dữ liệu",
+    "enrollments": "Đăng ký",
+    "newCourses": "Khóa học mới",
+    "revenue": "Doanh thu"
   },
   "theme": {
     "light": "Sáng",

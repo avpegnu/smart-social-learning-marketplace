@@ -25,6 +25,7 @@
     "of": "of",
     "results": "results",
     "noData": "No data",
+    "success": "Success",
     "previous": "Previous",
     "page": "Page",
     "rowsPerPage": "Rows per page",
@@ -64,7 +65,8 @@
       "AVAILABLE": "Available",
       "WITHDRAWN": "Withdrawn",
       "FAILED": "Failed",
-      "SCHEDULED": "Scheduled"
+      "SCHEDULED": "Scheduled",
+      "ACTION_TAKEN": "Action Taken"
     }
   },
   "auth": {
@@ -265,7 +267,13 @@
     "course": "Course",
     "reportedUser": "Reported User",
     "reportCount": "Report Count",
-    "searchPlaceholder": "Search reports..."
+    "searchPlaceholder": "Search reports...",
+    "question": "Question",
+    "user": "User",
+    "reviewReport": "Review Report",
+    "actionTaken": "Action Taken",
+    "adminNote": "Admin Note",
+    "adminNotePlaceholder": "Add a note (optional)..."
   },
   "adminSettings": {
     "title": "System Settings",
@@ -681,6 +689,10 @@
     "portfolio": "Portfolio",
     "pendingApplications": "pending applications",
     "pendingCourses": "pending courses",
+    "reportsTitle": "Reports",
+    "pendingReports": "pending reports",
+    "withdrawalsTitle": "Withdrawals",
+    "pendingWithdrawals": "pending withdrawals",
     "confirmApprove": "Confirm Approval",
     "confirmReject": "Confirm Rejection",
     "confirmApproveDesc": "Are you sure you want to approve {name}'s application?",
@@ -732,7 +744,15 @@
     "last3Months": "Last 3 months",
     "last12Months": "Last 12 months",
     "students": "Students",
-    "instructors": "Instructors"
+    "instructors": "Instructors",
+    "totalUsers": "Total Users",
+    "totalCourses": "Total Courses",
+    "totalRevenue": "Total Revenue",
+    "newUsersThisWeek": "New Users This Week",
+    "noData": "No data yet",
+    "enrollments": "Enrollments",
+    "newCourses": "New Courses",
+    "revenue": "Revenue"
   },
   "theme": {
     "light": "Light",
