@@ -46,6 +46,14 @@ export const adminService = {
   updateTag: (id: string, data: { name: string }) => apiClient.patch(`/admin/tags/${id}`, data),
   deleteTag: (id: string) => apiClient.del(`/admin/tags/${id}`),
 
+  // Reports
+  getReports: (params: Record<string, string>) => apiClient.get('/admin/reports', params),
+  reviewReport: (id: string, data: { status: string; adminNote?: string }) =>
+    apiClient.patch(`/admin/reports/${id}`, data),
+
+  // Analytics
+  getAnalytics: (params: Record<string, string>) => apiClient.get('/admin/analytics', params),
+
   // Settings
   getSettings: () => apiClient.get('/admin/settings'),
   updateSetting: (data: { key: string; value: unknown }) => apiClient.put('/admin/settings', data),

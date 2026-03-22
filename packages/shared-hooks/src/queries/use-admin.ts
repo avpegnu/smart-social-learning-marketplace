@@ -223,3 +223,36 @@ export function useUpdateSetting() {
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
+
+// ── Reports ──
+
+export function useAdminReports(params: Record<string, string>) {
+  return useQuery({
+    queryKey: ['admin', 'reports', params],
+    queryFn: () => adminService.getReports(params),
+  });
+}
+
+export function useReviewReport() {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { status: string; adminNote?: string } }) =>
+      adminService.reviewReport(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'reports'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+// ── Analytics ──
+
+export function useAdminAnalytics(params: Record<string, string>) {
+  return useQuery({
+    queryKey: ['admin', 'analytics', params],
+    queryFn: () => adminService.getAnalytics(params),
+    enabled: !!params.type && !!params.from && !!params.to,
+  });
+}

@@ -110,6 +110,9 @@ export {
   useUpdateTag,
   useDeleteTag,
   useUpdateSetting,
+  useAdminReports,
+  useReviewReport,
+  useAdminAnalytics,
 } from './queries/use-admin';
 
 export {
