@@ -62,7 +62,7 @@ export function CourseCard({ course, className }: CourseCardProps) {
     <Link href={`/courses/${course.slug}`}>
       <Card
         className={cn(
-          'group h-full overflow-hidden transition-all duration-300 hover:shadow-lg',
+          'group hover:shadow-primary/5 hover:border-primary/30 h-full overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg',
           className,
         )}
       >
