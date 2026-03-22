@@ -27,6 +27,7 @@
     "wishlist": "Yêu thích",
     "logout": "Đăng xuất",
     "managementPortal": "Quản lý giảng dạy",
+    "becomeInstructor": "Trở thành giảng viên",
     "searchPlaceholder": "Tìm kiếm khóa học...",
     "learn": "Học tập",
     "search": "Tìm kiếm",
@@ -186,7 +187,21 @@
     "previousReviews": "Trước",
     "nextReviews": "Sau",
     "previewComingSoon": "Tính năng xem trước sẽ sớm ra mắt",
-    "chapterAddedToCart": "Đã thêm chương vào giỏ hàng"
+    "chapterAddedToCart": "Đã thêm chương vào giỏ hàng",
+    "writeReview": "Viết đánh giá",
+    "editReview": "Sửa đánh giá",
+    "yourRating": "Đánh giá của bạn",
+    "yourComment": "Nhận xét của bạn (không bắt buộc)",
+    "commentPlaceholder": "Chia sẻ trải nghiệm của bạn về khóa học...",
+    "submitReview": "Gửi đánh giá",
+    "updateReview": "Cập nhật đánh giá",
+    "deleteReview": "Xóa đánh giá",
+    "deleteReviewConfirm": "Bạn có chắc muốn xóa đánh giá này?",
+    "reviewSubmitted": "Đã gửi đánh giá thành công",
+    "reviewUpdated": "Đã cập nhật đánh giá",
+    "reviewDeleted": "Đã xóa đánh giá",
+    "ratingRequired": "Vui lòng chọn số sao đánh giá",
+    "cancel": "Hủy"
   },
   "myLearning": {
     "title": "Học tập của tôi",
@@ -337,7 +352,18 @@
     "themeLight": "Sáng",
     "themeDark": "Tối",
     "themeSystem": "Hệ thống",
-    "language": "Ngôn ngữ"
+    "language": "Ngôn ngữ",
+    "passwordChanged": "Đã đổi mật khẩu thành công",
+    "passwordMismatch": "Mật khẩu không khớp",
+    "passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự",
+    "notif_newFollowers": "Người theo dõi mới",
+    "notif_newFollowers_desc": "Khi có người theo dõi bạn",
+    "notif_orderUpdates": "Cập nhật đơn hàng",
+    "notif_orderUpdates_desc": "Cập nhật về đơn hàng của bạn",
+    "notif_reviewResponses": "Phản hồi đánh giá",
+    "notif_reviewResponses_desc": "Phản hồi về đánh giá khóa học của bạn",
+    "notif_system": "Thông báo hệ thống",
+    "notif_system_desc": "Cập nhật quan trọng từ nền tảng"
   },
   "qna": {
     "title": "Hỏi đáp",
@@ -573,7 +599,20 @@
     "postsTab": "Bài viết",
     "coursesTab": "Khóa học",
     "skillsTab": "Kỹ năng",
-    "certificatesTab": "Chứng chỉ"
+    "certificatesTab": "Chứng chỉ",
+    "students": "Học viên",
+    "courses": "Khóa học",
+    "unfollow": "Bỏ theo dõi",
+    "editProfile": "Chỉnh sửa hồ sơ",
+    "notFound": "Không tìm thấy người dùng",
+    "noCertificates": "Chưa có chứng chỉ nào",
+    "followersTab": "Người theo dõi",
+    "followingTab": "Đang theo dõi",
+    "noFollowers": "Chưa có người theo dõi",
+    "noFollowing": "Chưa theo dõi ai",
+    "previous": "Trước",
+    "next": "Sau",
+    "instructorBadge": "Giảng viên"
   },
   "editProfile": {
     "title": "Chỉnh sửa hồ sơ",
@@ -586,7 +625,12 @@
     "phone": "Số điện thoại",
     "location": "Vị trí",
     "socialLinks": "Liên kết mạng xã hội",
-    "saveChanges": "Lưu thay đổi"
+    "saveChanges": "Lưu thay đổi",
+    "saved": "Đã cập nhật hồ sơ thành công",
+    "backToProfile": "Quay lại hồ sơ",
+    "email": "Email",
+    "emailHint": "Email không thể thay đổi",
+    "fullNameRequired": "Họ và tên là bắt buộc"
   },
   "becomeInstructor": {
     "title": "Trở thành giảng viên",
@@ -609,11 +653,32 @@
     "motivationPlaceholder": "Tại sao bạn muốn trở thành giảng viên?",
     "sampleLesson": "Link bài giảng mẫu",
     "sampleLessonPlaceholder": "https://youtube.com/watch?v=...",
-    "submitApplication": "Gửi đơn đăng ký"
+    "submitApplication": "Gửi đơn đăng ký",
+    "applicationSubmitted": "Đã gửi đơn đăng ký thành công",
+    "applicationPending": "Đơn đăng ký đang chờ duyệt",
+    "applicationPendingDesc": "Đơn đăng ký giảng viên của bạn đang được xem xét. Chúng tôi sẽ thông báo khi có kết quả.",
+    "applicationRejected": "Đơn đăng ký bị từ chối",
+    "alreadyInstructor": "Bạn đã là giảng viên",
+    "alreadyInstructorDesc": "Bạn có thể truy cập Cổng quản lý để quản lý khóa học.",
+    "submittedAt": "Đã gửi",
+    "expertiseRequired": "Vui lòng nhập ít nhất một lĩnh vực chuyên môn",
+    "experienceMinLength": "Kinh nghiệm cần ít nhất 50 ký tự",
+    "cvUrl": "Link CV / Portfolio",
+    "cvUrlPlaceholder": "https://drive.google.com/... hoặc https://linkedin.com/in/...",
+    "certificateUrls": "Link chứng chỉ",
+    "certificateUrlsPlaceholder": "https://...\nhttps://...",
+    "certificateUrlsHint": "Mỗi URL trên một dòng (không bắt buộc)",
+    "noFeedback": "Không có lý do cụ thể",
+    "reapplyHint": "Bạn có thể gửi đơn đăng ký mới bên dưới với thông tin cập nhật."
   },
   "notifications": {
     "title": "Thông báo",
-    "markAllRead": "Đánh dấu tất cả đã đọc"
+    "markAllRead": "Đánh dấu tất cả đã đọc",
+    "viewAll": "Xem tất cả thông báo",
+    "empty": "Chưa có thông báo nào",
+    "emptyDesc": "Bạn sẽ thấy thông báo về khóa học, đơn hàng và hoạt động ở đây",
+    "filterAll": "Tất cả",
+    "filterUnread": "Chưa đọc"
   },
   "notFound": {
     "title": "Trang không tồn tại",

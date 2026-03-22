@@ -1,47 +1,132 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { Camera, Github, Linkedin, Globe } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { Camera, Loader2, ArrowLeft } from 'lucide-react';
 import {
   Button,
-  Input,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
+  Input,
   Avatar,
   AvatarFallback,
+  AvatarImage,
 } from '@shared/ui';
+import { Link, useRouter } from '@/i18n/navigation';
+import { useMe, useUpdateProfile, useAuthStore } from '@shared/hooks';
+import { toast } from 'sonner';
+
+interface EditProfileValues {
+  fullName: string;
+  bio: string;
+}
 
 export default function EditProfilePage() {
   const t = useTranslations('editProfile');
+  const router = useRouter();
+
+  const { data: meRaw, isLoading } = useMe();
+  const me = (
+    meRaw as {
+      data?: {
+        id: string;
+        fullName: string;
+        bio: string | null;
+        avatarUrl: string | null;
+        email: string;
+      };
+    }
+  )?.data;
+
+  const updateProfile = useUpdateProfile();
+  const setUser = useAuthStore((s) => s.setUser);
+  const currentUser = useAuthStore((s) => s.user);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isDirty },
+  } = useForm<EditProfileValues>();
+
+  useEffect(() => {
+    if (me) {
+      reset({
+        fullName: me.fullName,
+        bio: me.bio ?? '',
+      });
+    }
+  }, [me, reset]);
+
+  const onSubmit = (data: EditProfileValues) => {
+    updateProfile.mutate(
+      { fullName: data.fullName, bio: data.bio || undefined },
+      {
+        onSuccess: (res) => {
+          const updated = res as unknown as { fullName: string; avatarUrl: string | null };
+          if (currentUser) {
+            setUser({ ...currentUser, fullName: updated.fullName });
+          }
+          toast.success(t('saved'));
+          router.push(`/profile/${me?.id}`);
+        },
+      },
+    );
+  };
+
+  const initials =
+    me?.fullName
+      ?.split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) ?? '';
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">{t('title')}</h1>
+      <div className="mb-6">
+        <Link
+          href={`/profile/${me?.id}`}
+          className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1 text-sm"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t('backToProfile')}
+        </Link>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
+      </div>
 
-      <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Avatar */}
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-6">
-              <div className="relative">
-                <Avatar className="h-20 w-20">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                    MT
-                  </AvatarFallback>
-                </Avatar>
-                <button
-                  type="button"
-                  className="bg-primary text-primary-foreground absolute right-0 bottom-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full shadow"
-                >
-                  <Camera className="h-4 w-4" />
-                </button>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium">{t('changeAvatar')}</h3>
-                <p className="text-muted-foreground mt-1 text-xs">{t('avatarHint')}</p>
-              </div>
+          <CardContent className="flex items-center gap-6 p-6">
+            <div className="relative">
+              <Avatar className="h-20 w-20">
+                {me?.avatarUrl && <AvatarImage src={me.avatarUrl} alt={me.fullName} />}
+                <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <button
+                type="button"
+                className="bg-primary text-primary-foreground absolute -right-1 -bottom-1 flex h-7 w-7 items-center justify-center rounded-full shadow-md"
+              >
+                <Camera className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div>
+              <p className="font-medium">{t('changeAvatar')}</p>
+              <p className="text-muted-foreground text-sm">{t('avatarHint')}</p>
             </div>
           </CardContent>
         </Card>
@@ -49,72 +134,43 @@ export default function EditProfilePage() {
         {/* Personal Info */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t('personalInfo')}</CardTitle>
+            <CardTitle>{t('personalInfo')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">{t('fullName')}</label>
-              <Input defaultValue="Nguyễn Minh Tuấn" />
+              <Input
+                {...register('fullName', { required: true, minLength: 2 })}
+                placeholder={t('fullName')}
+              />
+              {errors.fullName && (
+                <p className="text-destructive text-sm">{t('fullNameRequired')}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t('email')}</label>
+              <Input value={me?.email ?? ''} disabled className="opacity-60" />
+              <p className="text-muted-foreground text-xs">{t('emailHint')}</p>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">{t('bio')}</label>
               <textarea
-                className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring min-h-[100px] w-full resize-y rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                {...register('bio', { maxLength: 500 })}
+                className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                rows={4}
                 placeholder={t('bioPlaceholder')}
-                defaultValue="Frontend Developer | React Enthusiast | Lifelong Learner"
+                maxLength={500}
               />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t('phone')}</label>
-              <Input defaultValue="0912345678" type="tel" />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t('location')}</label>
-              <Input defaultValue="Ho Chi Minh City, Vietnam" />
             </div>
           </CardContent>
         </Card>
 
-        {/* Social Links */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t('socialLinks')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <Github className="h-4 w-4" /> GitHub
-              </label>
-              <Input
-                placeholder="https://github.com/username"
-                defaultValue="https://github.com/minhtuan"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <Linkedin className="h-4 w-4" /> LinkedIn
-              </label>
-              <Input
-                placeholder="https://linkedin.com/in/username"
-                defaultValue="https://linkedin.com/in/minhtuan"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <Globe className="h-4 w-4" /> Website
-              </label>
-              <Input placeholder="https://yoursite.com" defaultValue="https://minhtuan.dev" />
-            </div>
-          </CardContent>
-        </Card>
-
+        {/* Save */}
         <div className="flex justify-end">
-          <Button type="submit" size="lg">
+          <Button type="submit" disabled={updateProfile.isPending || !isDirty}>
+            {updateProfile.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t('saveChanges')}
           </Button>
         </div>

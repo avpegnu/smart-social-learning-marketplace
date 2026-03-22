@@ -1,7 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { User, Shield, Bell, Palette, Camera, Sun, Moon, Monitor, Trash2 } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { useLocale } from 'next-intl';
+import { useForm } from 'react-hook-form';
+import { Shield, Bell, Palette, Sun, Moon, Monitor, Loader2, Lock } from 'lucide-react';
 import {
   Button,
   Input,
@@ -10,263 +14,295 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  Separator,
-  Avatar,
-  AvatarFallback,
 } from '@shared/ui';
+import { useChangePassword, useMe, useUpdateNotificationPreferences } from '@shared/hooks';
+import { useRouter, usePathname } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { toast } from 'sonner';
 
-const tabs = [
-  { key: 'profile', icon: User },
-  { key: 'account', icon: Shield },
-  { key: 'notifications', icon: Bell },
-  { key: 'appearance', icon: Palette },
-] as const;
+type SettingsTab = 'account' | 'notifications' | 'appearance';
+
+interface PasswordValues {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
 
 export default function SettingsPage() {
   const t = useTranslations('settings');
-  const [activeTab, setActiveTab] = useState<string>('profile');
+  const [activeTab, setActiveTab] = useState<SettingsTab>('account');
+  const tabs: { key: SettingsTab; label: string; icon: React.ReactNode }[] = [
+    { key: 'account', label: t('tab_account'), icon: <Shield className="h-4 w-4" /> },
+    { key: 'notifications', label: t('tab_notifications'), icon: <Bell className="h-4 w-4" /> },
+    { key: 'appearance', label: t('tab_appearance'), icon: <Palette className="h-4 w-4" /> },
+  ];
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto max-w-4xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">{t('title')}</h1>
 
-      <div className="flex flex-col gap-8 md:flex-row">
-        {/* Sidebar tabs - Vertical on desktop, horizontal on mobile */}
-        <nav className="shrink-0 md:w-56">
-          <div className="flex gap-1 overflow-x-auto md:flex-col">
-            {tabs.map(({ key, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                className={cn(
-                  'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
-                  activeTab === key
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-foreground',
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {t(`tab_${key}`)}
-              </button>
-            ))}
-          </div>
+      <div className="flex flex-col gap-8 lg:flex-row">
+        {/* Sidebar */}
+        <nav className="flex gap-1 overflow-x-auto lg:w-48 lg:flex-col">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
+                activeTab === tab.key
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+              )}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
         </nav>
 
         {/* Content */}
-        <div className="min-w-0 flex-1">
-          {/* Profile Tab */}
-          {activeTab === 'profile' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('tab_profile')}</CardTitle>
-                <CardDescription>{t('profileDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Avatar */}
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <Avatar className="h-20 w-20">
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                        MT
-                      </AvatarFallback>
-                    </Avatar>
-                    <button className="bg-primary text-primary-foreground absolute right-0 bottom-0 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full">
-                      <Camera className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{t('changeAvatar')}</p>
-                    <p className="text-muted-foreground text-xs">{t('avatarHint')}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('fullName')}</label>
-                    <Input defaultValue="Nguyễn Minh Tuấn" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Email</label>
-                    <Input defaultValue="minhtuan@email.com" disabled />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('phone')}</label>
-                    <Input defaultValue="0912 345 678" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('website')}</label>
-                    <Input placeholder="https://" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('bio')}</label>
-                  <textarea
-                    className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                    placeholder={t('bioPlaceholder')}
-                    defaultValue="Frontend developer. Yeu thich React va Next.js."
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t('socialLinks')}</label>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <Input placeholder="GitHub" defaultValue="github.com/minhtuan" />
-                    <Input placeholder="LinkedIn" />
-                    <Input placeholder="Twitter/X" />
-                    <Input placeholder="Facebook" />
-                  </div>
-                </div>
-
-                <Button>{t('saveChanges')}</Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Account Tab */}
-          {activeTab === 'account' && (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('changePassword')}</CardTitle>
-                  <CardDescription>{t('changePasswordDesc')}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('currentPassword')}</label>
-                    <Input type="password" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('newPassword')}</label>
-                    <Input type="password" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('confirmNewPassword')}</label>
-                    <Input type="password" />
-                  </div>
-                  <Button>{t('updatePassword')}</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-destructive/50">
-                <CardHeader>
-                  <CardTitle className="text-destructive">{t('deleteAccount')}</CardTitle>
-                  <CardDescription>{t('deleteAccountDesc')}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button variant="destructive" className="gap-2">
-                    <Trash2 className="h-4 w-4" />
-                    {t('deleteAccountButton')}
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Notifications Tab */}
-          {activeTab === 'notifications' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('tab_notifications')}</CardTitle>
-                <CardDescription>{t('notificationsDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[
-                  'courseUpdates',
-                  'newMessages',
-                  'socialActivity',
-                  'promotions',
-                  'reminders',
-                  'weeklyDigest',
-                ].map((key) => (
-                  <div key={key} className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="text-sm font-medium">{t(`notif_${key}`)}</p>
-                      <p className="text-muted-foreground text-xs">{t(`notif_${key}_desc`)}</p>
-                    </div>
-                    <label className="relative inline-flex cursor-pointer items-center">
-                      <input
-                        type="checkbox"
-                        defaultChecked={key !== 'promotions'}
-                        className="peer sr-only"
-                      />
-                      <div className="bg-muted peer peer-checked:bg-primary h-6 w-11 rounded-full peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white" />
-                    </label>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Appearance Tab */}
-          {activeTab === 'appearance' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('tab_appearance')}</CardTitle>
-                <CardDescription>{t('appearanceDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h4 className="mb-3 text-sm font-medium">{t('theme')}</h4>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { value: 'light', icon: Sun, label: t('themeLight') },
-                      { value: 'dark', icon: Moon, label: t('themeDark') },
-                      { value: 'system', icon: Monitor, label: t('themeSystem') },
-                    ].map(({ value, icon: Icon, label }) => (
-                      <label
-                        key={value}
-                        className="border-border hover:border-primary flex cursor-pointer flex-col items-center gap-2 rounded-lg border p-4 transition-colors"
-                      >
-                        <input
-                          type="radio"
-                          name="theme"
-                          value={value}
-                          defaultChecked={value === 'system'}
-                          className="sr-only"
-                        />
-                        <Icon className="h-6 w-6" />
-                        <span className="text-sm">{label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <h4 className="mb-3 text-sm font-medium">{t('language')}</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { value: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' },
-                      { value: 'en', label: 'English', flag: '🇺🇸' },
-                    ].map(({ value, label, flag }) => (
-                      <label
-                        key={value}
-                        className="border-border hover:border-primary flex cursor-pointer items-center gap-3 rounded-lg border p-4 transition-colors"
-                      >
-                        <input
-                          type="radio"
-                          name="language"
-                          value={value}
-                          defaultChecked={value === 'vi'}
-                          className="sr-only"
-                        />
-                        <span className="text-2xl">{flag}</span>
-                        <span className="text-sm font-medium">{label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <Button>{t('saveChanges')}</Button>
-              </CardContent>
-            </Card>
-          )}
+        <div className="flex-1">
+          {activeTab === 'account' && <AccountTab />}
+          {activeTab === 'notifications' && <NotificationsTab />}
+          {activeTab === 'appearance' && <AppearanceTab />}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Account Tab ──
+
+function AccountTab() {
+  const t = useTranslations('settings');
+  const changePassword = useChangePassword();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<PasswordValues>();
+
+  const onSubmit = (data: PasswordValues) => {
+    if (data.newPassword !== data.confirmPassword) {
+      toast.error(t('passwordMismatch'));
+      return;
+    }
+    changePassword.mutate(
+      { currentPassword: data.currentPassword, newPassword: data.newPassword },
+      {
+        onSuccess: () => {
+          toast.success(t('passwordChanged'));
+          reset();
+        },
+      },
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            {t('changePassword')}
+          </CardTitle>
+          <CardDescription>{t('changePasswordDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t('currentPassword')}</label>
+              <Input
+                type="password"
+                {...register('currentPassword', { required: true })}
+                placeholder="••••••••"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t('newPassword')}</label>
+              <Input
+                type="password"
+                {...register('newPassword', { required: true, minLength: 8 })}
+                placeholder="••••••••"
+              />
+              {errors.newPassword && (
+                <p className="text-destructive text-xs">{t('passwordMinLength')}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t('confirmNewPassword')}</label>
+              <Input
+                type="password"
+                {...register('confirmPassword', { required: true })}
+                placeholder="••••••••"
+              />
+            </div>
+            <Button type="submit" disabled={changePassword.isPending}>
+              {changePassword.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t('updatePassword')}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ── Notifications Tab ──
+
+function NotificationsTab() {
+  const t = useTranslations('settings');
+  const { data: meRaw } = useMe();
+  const me = (
+    meRaw as {
+      data?: { notificationPreferences?: Record<string, { inApp: boolean; email: boolean }> };
+    }
+  )?.data;
+  const updatePrefs = useUpdateNotificationPreferences();
+
+  const prefs = me?.notificationPreferences ?? {};
+
+  const notifTypes = [
+    { key: 'courseUpdates', label: t('notif_courseUpdates'), desc: t('notif_courseUpdates_desc') },
+    { key: 'newFollowers', label: t('notif_newFollowers'), desc: t('notif_newFollowers_desc') },
+    { key: 'orderUpdates', label: t('notif_orderUpdates'), desc: t('notif_orderUpdates_desc') },
+    {
+      key: 'reviewResponses',
+      label: t('notif_reviewResponses'),
+      desc: t('notif_reviewResponses_desc'),
+    },
+    { key: 'systemAnnouncements', label: t('notif_system'), desc: t('notif_system_desc') },
+  ];
+
+  const handleToggle = (key: string, field: 'inApp' | 'email') => {
+    const current = prefs[key] ?? { inApp: true, email: false };
+    const updated = { ...prefs, [key]: { ...current, [field]: !current[field] } };
+    updatePrefs.mutate(updated);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t('tab_notifications')}</CardTitle>
+        <CardDescription>{t('notificationsDesc')}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {notifTypes.map((item) => {
+            const pref = prefs[item.key] ?? { inApp: true, email: false };
+            return (
+              <div
+                key={item.key}
+                className="flex items-center justify-between rounded-lg border p-4"
+              >
+                <div>
+                  <p className="text-sm font-medium">{item.label}</p>
+                  <p className="text-muted-foreground text-xs">{item.desc}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={pref.inApp}
+                      onChange={() => handleToggle(item.key, 'inApp')}
+                      className="accent-primary h-4 w-4 rounded"
+                    />
+                    In-app
+                  </label>
+                  <label className="flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={pref.email}
+                      onChange={() => handleToggle(item.key, 'email')}
+                      className="accent-primary h-4 w-4 rounded"
+                    />
+                    Email
+                  </label>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── Appearance Tab ──
+
+function AppearanceTab() {
+  const t = useTranslations('settings');
+  const { theme, setTheme } = useTheme();
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const themes = [
+    { key: 'light', label: t('themeLight'), icon: <Sun className="h-5 w-5" /> },
+    { key: 'dark', label: t('themeDark'), icon: <Moon className="h-5 w-5" /> },
+    { key: 'system', label: t('themeSystem'), icon: <Monitor className="h-5 w-5" /> },
+  ];
+
+  const languages = [
+    { key: 'vi', label: 'Tiếng Việt' },
+    { key: 'en', label: 'English' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('theme')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-3">
+            {themes.map((t_item) => (
+              <button
+                key={t_item.key}
+                onClick={() => setTheme(t_item.key)}
+                className={cn(
+                  'flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors',
+                  theme === t_item.key
+                    ? 'border-primary bg-primary/5'
+                    : 'hover:border-border border-transparent',
+                )}
+              >
+                {t_item.icon}
+                <span className="text-sm font-medium">{t_item.label}</span>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('language')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-3">
+            {languages.map((lang) => {
+              const currentLocale = locale;
+              return (
+                <button
+                  key={lang.key}
+                  onClick={() => router.replace(pathname, { locale: lang.key })}
+                  className={cn(
+                    'rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors',
+                    currentLocale === lang.key
+                      ? 'border-primary bg-primary/5'
+                      : 'hover:border-border border-transparent',
+                  )}
+                >
+                  {lang.label}
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

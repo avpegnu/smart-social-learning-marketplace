@@ -683,6 +683,8 @@
     "email": "Email",
     "expertise": "Expertise",
     "experience": "Experience",
+    "motivation": "Motivation",
+    "certificates": "Certificates",
     "appliedDate": "Applied Date",
     "actions": "Actions",
     "approve": "Approve",
