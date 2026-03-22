@@ -197,13 +197,13 @@ export default function ReportsPage() {
       <h1 className="text-2xl font-bold">{t('title')}</h1>
 
       {/* Tab filters */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3 md:gap-4">
+        <div className="flex flex-wrap items-center gap-2">
           {TARGET_TYPE_TABS.map((item) => (
             <Badge
               key={item.value}
               variant={tab === item.value ? 'default' : 'outline'}
-              className="cursor-pointer"
+              className="cursor-pointer px-3 py-1 text-sm"
               onClick={() => {
                 setTab(item.value);
                 setPage(1);
@@ -218,15 +218,15 @@ export default function ReportsPage() {
           ))}
         </div>
 
-        <div className="border-border h-6 border-l" />
+        <div className="border-border hidden h-6 border-l md:block" />
 
         {/* Status filters */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {STATUS_FILTERS.map((status) => (
             <Badge
               key={status}
               variant={statusFilter === status ? 'default' : 'outline'}
-              className="cursor-pointer"
+              className="cursor-pointer px-3 py-1 text-sm"
               onClick={() => {
                 setStatusFilter(status);
                 setPage(1);
@@ -282,7 +282,7 @@ export default function ReportsPage() {
                     <Badge
                       key={s}
                       variant={reviewStatus === s ? 'default' : 'outline'}
-                      className="cursor-pointer"
+                      className="cursor-pointer px-3 py-1 text-sm"
                       onClick={() => setReviewStatus(s)}
                     >
                       {tc(`statusLabels.${s}`)}

@@ -160,10 +160,10 @@ export default function UsersPage() {
         serverTotal={meta?.total}
         onServerPageChange={setPage}
         filterSlot={
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3 md:gap-6">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-muted-foreground text-xs font-medium">{t('role')}:</span>
-              <div className="flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-1">
                 {['ALL', 'STUDENT', 'INSTRUCTOR', 'ADMIN'].map((r) => (
                   <Badge
                     key={r}
@@ -179,10 +179,10 @@ export default function UsersPage() {
                 ))}
               </div>
             </div>
-            <div className="bg-border h-6 w-px" />
-            <div className="flex items-center gap-2">
+            <div className="bg-border hidden h-6 w-px md:block" />
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-muted-foreground text-xs font-medium">{t('status')}:</span>
-              <div className="flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-1">
                 {['ALL', 'ACTIVE', 'SUSPENDED'].map((s) => (
                   <Badge
                     key={s}

@@ -6,7 +6,6 @@ import { useAuthStore, useAuthHydrated, useSidebarStore } from '@shared/hooks';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/navigation/sidebar';
 import { Header } from '@/components/navigation/header';
-import { DesktopGuard } from '@/components/auth/desktop-guard';
 
 export default function InstructorLayout({ children }: { children: React.ReactNode }) {
   const { collapsed } = useSidebarStore();
@@ -30,19 +29,20 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
   if (user.role !== 'INSTRUCTOR' && user.role !== 'ADMIN') return null;
 
   return (
-    <DesktopGuard>
-      <div className="bg-background min-h-screen">
+    <div className="bg-background min-h-screen">
+      {/* Sidebar — hidden on mobile */}
+      <div className="hidden md:block">
         <Sidebar variant="instructor" />
-        <Header />
-        <main
-          className={cn(
-            'pt-16 transition-all duration-300',
-            collapsed ? 'ml-[var(--spacing-sidebar-collapsed)]' : 'ml-[var(--spacing-sidebar)]',
-          )}
-        >
-          <div className="mx-auto max-w-7xl p-6">{children}</div>
-        </main>
       </div>
-    </DesktopGuard>
+      <Header variant="instructor" />
+      <main
+        className={cn(
+          'pt-16 transition-all duration-300',
+          collapsed ? 'md:ml-[var(--spacing-sidebar-collapsed)]' : 'md:ml-[var(--spacing-sidebar)]',
+        )}
+      >
+        <div className="mx-auto max-w-7xl overflow-x-auto p-4 md:p-6">{children}</div>
+      </main>
+    </div>
   );
 }

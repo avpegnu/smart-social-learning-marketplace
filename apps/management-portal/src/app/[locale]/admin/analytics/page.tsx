@@ -109,14 +109,14 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {ranges.map((range) => (
             <Badge
               key={range.value}
               variant={dateRange === range.value ? 'default' : 'outline'}
-              className="cursor-pointer"
+              className="cursor-pointer px-3 py-1 text-sm"
               onClick={() => setDateRange(range.value)}
             >
               {range.label}
@@ -126,7 +126,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -144,7 +144,7 @@ export default function AnalyticsPage() {
 
       {/* Charts */}
       {isLoading ? (
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}>
               <CardHeader>
@@ -157,7 +157,7 @@ export default function AnalyticsPage() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <ChartWidget
             title={t('userRegistrations')}
             type="area"

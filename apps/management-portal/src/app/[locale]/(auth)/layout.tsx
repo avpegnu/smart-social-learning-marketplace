@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useAuthStore, useAuthHydrated } from '@shared/hooks';
-import { DesktopGuard } from '@/components/auth/desktop-guard';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const hydrated = useAuthHydrated();
@@ -31,10 +30,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <DesktopGuard>
-      <div className="bg-muted/30 flex min-h-screen items-center justify-center">
-        <div className="w-full max-w-md">{children}</div>
-      </div>
-    </DesktopGuard>
+    <div className="bg-muted/30 flex min-h-screen items-center justify-center px-4">
+      <div className="w-full max-w-md">{children}</div>
+    </div>
   );
 }

@@ -167,7 +167,7 @@ export default function QnAPage() {
       <div className="flex flex-wrap items-center gap-2">
         <Badge
           variant={!courseFilter ? 'default' : 'outline'}
-          className="cursor-pointer"
+          className="cursor-pointer px-3 py-1 text-sm"
           onClick={() => {
             setCourseFilter(undefined);
             setPage(1);
@@ -179,7 +179,7 @@ export default function QnAPage() {
           <Badge
             key={course.id}
             variant={courseFilter === course.id ? 'default' : 'outline'}
-            className="cursor-pointer"
+            className="cursor-pointer px-3 py-1 text-sm"
             onClick={() => {
               setCourseFilter(course.id);
               setPage(1);

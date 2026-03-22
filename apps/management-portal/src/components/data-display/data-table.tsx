@@ -141,7 +141,7 @@ export function DataTable({
   return (
     <div className={cn('space-y-4', className)}>
       {(searchable || filterSlot) && (
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {searchable && (
             <div className="relative max-w-sm flex-1">
               <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
@@ -157,7 +157,7 @@ export function DataTable({
         </div>
       )}
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -216,7 +216,7 @@ export function DataTable({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-muted-foreground text-sm">
             {t('showing')} {currentPage * pageSize + 1}-
             {Math.min((currentPage + 1) * pageSize, totalItems)} {t('of')} {totalItems}{' '}
