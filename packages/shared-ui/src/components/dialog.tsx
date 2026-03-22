@@ -73,11 +73,11 @@ function DialogContent({ children, className, ...props }: React.HTMLAttributes<H
           {...props}
         >
           <button
-            className="ring-offset-background absolute top-4 right-4 cursor-pointer rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none"
+            className="hover:bg-accent absolute z-10 cursor-pointer rounded-full p-1 opacity-50 transition-opacity hover:opacity-100 focus:outline-none"
+            style={{ top: 12, right: 12 }}
             onClick={() => setOpen(false)}
           >
             <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
           </button>
           {children}
         </div>

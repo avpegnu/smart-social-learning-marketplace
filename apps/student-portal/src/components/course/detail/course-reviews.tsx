@@ -2,12 +2,134 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Star } from 'lucide-react';
+import { Star, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { Button, Card, CardContent, Avatar, AvatarFallback, AvatarImage } from '@shared/ui';
+import { ConfirmDialog } from '@/components/feedback/confirm-dialog';
 import { formatRelativeTime } from '@shared/utils';
-import { useCourseReviews } from '@shared/hooks';
+import {
+  useCourseReviews,
+  useCreateReview,
+  useUpdateReview,
+  useDeleteReview,
+  useEnrollmentCheck,
+  useAuthStore,
+} from '@shared/hooks';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import type { ApiReview } from './types';
+
+// ── Star Rating Input ──
+
+function StarRatingInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hover, setHover] = useState(0);
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={cn(
+            'h-7 w-7 cursor-pointer transition-colors',
+            (hover || value) >= star
+              ? 'fill-yellow-400 text-yellow-400'
+              : 'text-muted-foreground hover:text-yellow-300',
+          )}
+          onMouseEnter={() => setHover(star)}
+          onMouseLeave={() => setHover(0)}
+          onClick={() => onChange(star)}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── Write Review Form ──
+
+function WriteReviewForm({
+  courseId,
+  existingReview,
+  onCancel,
+}: {
+  courseId: string;
+  existingReview?: ApiReview | null;
+  onCancel?: () => void;
+}) {
+  const t = useTranslations('courseDetail');
+  const [rating, setRating] = useState(existingReview?.rating ?? 0);
+  const [comment, setComment] = useState(existingReview?.comment ?? '');
+  const isEditing = !!existingReview;
+
+  const createReview = useCreateReview(courseId);
+  const updateReview = useUpdateReview(courseId);
+  const isPending = createReview.isPending || updateReview.isPending;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (rating === 0) {
+      toast.error(t('ratingRequired'));
+      return;
+    }
+    const data = { rating, comment: comment.trim() || undefined };
+    if (isEditing && existingReview) {
+      updateReview.mutate(
+        { reviewId: existingReview.id, data },
+        {
+          onSuccess: () => {
+            toast.success(t('reviewUpdated'));
+            onCancel?.();
+          },
+        },
+      );
+    } else {
+      createReview.mutate(data, {
+        onSuccess: () => {
+          toast.success(t('reviewSubmitted'));
+          setRating(0);
+          setComment('');
+        },
+      });
+    }
+  };
+
+  return (
+    <Card className="mb-6">
+      <CardContent className="pt-6">
+        <h3 className="mb-4 text-lg font-semibold">
+          {isEditing ? t('editReview') : t('writeReview')}
+        </h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-muted-foreground mb-2 block text-sm">{t('yourRating')}</label>
+            <StarRatingInput value={rating} onChange={setRating} />
+          </div>
+          <div>
+            <label className="text-muted-foreground mb-2 block text-sm">{t('yourComment')}</label>
+            <textarea
+              className="border-input bg-background placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              rows={3}
+              maxLength={2000}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder={t('commentPlaceholder')}
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button type="submit" disabled={isPending || rating === 0}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isEditing ? t('updateReview') : t('submitReview')}
+            </Button>
+            {isEditing && onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel}>
+                {t('cancel')}
+              </Button>
+            )}
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── Main Component ──
 
 interface CourseReviewsProps {
   courseId: string;
@@ -24,6 +146,13 @@ export function CourseReviews({
 }: CourseReviewsProps) {
   const t = useTranslations('courseDetail');
   const [reviewPage, setReviewPage] = useState(1);
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
+
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { data: enrollmentRaw } = useEnrollmentCheck(courseId);
+  const enrollment = (enrollmentRaw as { data?: { enrolled?: boolean } })?.data;
+  const deleteReview = useDeleteReview(courseId);
 
   const { data: reviewsData } = useCourseReviews(courseId, {
     page: String(reviewPage),
@@ -38,8 +167,27 @@ export function CourseReviews({
 
   const reviews = paginatedReviews.length > 0 ? paginatedReviews : embeddedReviews;
 
+  const isEnrolled = !!enrollment?.enrolled;
+  const myReview = reviews.find((r) => r.user.id === user?.id);
+  const canWriteReview = isAuthenticated && isEnrolled && !myReview;
+
+  const [deleteDialogReviewId, setDeleteDialogReviewId] = useState<string | null>(null);
+
+  const handleDeleteConfirm = () => {
+    if (!deleteDialogReviewId) return;
+    deleteReview.mutate(deleteDialogReviewId, {
+      onSuccess: () => {
+        toast.success(t('reviewDeleted'));
+        setDeleteDialogReviewId(null);
+      },
+    });
+  };
+
   return (
     <div>
+      {/* Write review form */}
+      {canWriteReview && <WriteReviewForm courseId={courseId} />}
+
       {/* Rating summary */}
       <Card className="mb-6">
         <CardContent className="pt-6">
@@ -74,42 +222,83 @@ export function CourseReviews({
         </div>
       ) : (
         <div className="space-y-4">
-          {reviews.map((review) => (
-            <Card key={review.id}>
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-3">
-                  <Avatar className="h-10 w-10">
-                    {review.user.avatarUrl && (
-                      <AvatarImage src={review.user.avatarUrl} alt={review.user.fullName} />
-                    )}
-                    <AvatarFallback>{review.user.fullName[0]}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="mb-1 flex items-center gap-2">
-                      <span className="text-sm font-medium">{review.user.fullName}</span>
-                      <span className="text-muted-foreground text-xs">
-                        {formatRelativeTime(review.createdAt)}
-                      </span>
+          {reviews.map((review) => {
+            const isOwn = review.user.id === user?.id;
+            const isEditing = editingReviewId === review.id;
+
+            if (isEditing) {
+              return (
+                <WriteReviewForm
+                  key={review.id}
+                  courseId={courseId}
+                  existingReview={review}
+                  onCancel={() => setEditingReviewId(null)}
+                />
+              );
+            }
+
+            return (
+              <Card key={review.id}>
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-3">
+                    <Avatar className="h-10 w-10">
+                      {review.user.avatarUrl && (
+                        <AvatarImage src={review.user.avatarUrl} alt={review.user.fullName} />
+                      )}
+                      <AvatarFallback>{review.user.fullName[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="mb-1 flex items-center gap-2">
+                        <a
+                          href={`/profile/${review.user.id}`}
+                          className="text-sm font-medium hover:underline"
+                        >
+                          {review.user.fullName}
+                        </a>
+                        <span className="text-muted-foreground text-xs">
+                          {formatRelativeTime(review.createdAt)}
+                        </span>
+                        {isOwn && (
+                          <div className="ml-auto flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => setEditingReviewId(review.id)}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive h-7 w-7"
+                              onClick={() => setDeleteDialogReviewId(review.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      <div className="mb-2 flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={cn(
+                              'h-3.5 w-3.5',
+                              star <= review.rating ? 'fill-warning text-warning' : 'text-muted',
+                            )}
+                          />
+                        ))}
+                      </div>
+                      {review.comment && (
+                        <p className="text-muted-foreground text-sm">{review.comment}</p>
+                      )}
                     </div>
-                    <div className="mb-2 flex items-center gap-0.5">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={cn(
-                            'h-3.5 w-3.5',
-                            star <= review.rating ? 'fill-warning text-warning' : 'text-muted',
-                          )}
-                        />
-                      ))}
-                    </div>
-                    {review.comment && (
-                      <p className="text-muted-foreground text-sm">{review.comment}</p>
-                    )}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -137,6 +326,18 @@ export function CourseReviews({
           </Button>
         </div>
       )}
+
+      {/* Delete confirmation dialog */}
+      <ConfirmDialog
+        open={!!deleteDialogReviewId}
+        onOpenChange={(open) => !open && setDeleteDialogReviewId(null)}
+        title={t('deleteReview')}
+        description={t('deleteReviewConfirm')}
+        confirmLabel={t('deleteReview')}
+        variant="destructive"
+        isLoading={deleteReview.isPending}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   );
 }

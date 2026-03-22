@@ -75,7 +75,10 @@ export function CourseHero({ course }: CourseHeroProps) {
             </span>
           </div>
 
-          <div className="mt-4 flex items-center gap-2">
+          <a
+            href={`/profile/${course.instructor.id}`}
+            className="mt-4 inline-flex items-center gap-2 hover:underline"
+          >
             <Avatar className="h-8 w-8">
               {course.instructor.avatarUrl && (
                 <AvatarImage src={course.instructor.avatarUrl} alt={course.instructor.fullName} />
@@ -85,7 +88,7 @@ export function CourseHero({ course }: CourseHeroProps) {
               </AvatarFallback>
             </Avatar>
             <span className="text-sm">{course.instructor.fullName}</span>
-          </div>
+          </a>
         </div>
       </div>
     </section>

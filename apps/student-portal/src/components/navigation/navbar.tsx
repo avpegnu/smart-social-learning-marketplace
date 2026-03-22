@@ -3,11 +3,9 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter, usePathname } from '@/i18n/navigation';
-import { useQuery } from '@tanstack/react-query';
 import {
   Search,
   ShoppingCart,
-  Bell,
   Menu,
   X,
   LayoutDashboard,
@@ -19,6 +17,7 @@ import {
   Heart,
   Package,
 } from 'lucide-react';
+import { NotificationPopover } from '@/components/notifications/notification-popover';
 import {
   Button,
   Input,
@@ -42,7 +41,7 @@ import {
   useLogout,
   useAuthHydrated,
 } from '@shared/hooks';
-import { apiClient, queryKeys } from '@shared/api-client';
+import { apiClient } from '@shared/api-client';
 
 export function Navbar() {
   const t = useTranslations('nav');
@@ -60,14 +59,6 @@ export function Navbar() {
 
   const { data: wishlistData } = useWishlist();
   const wishlistCount = (wishlistData?.data as unknown[] | undefined)?.length ?? 0;
-
-  const { data: unreadData } = useQuery({
-    queryKey: queryKeys.notifications.unreadCount,
-    queryFn: () => apiClient.get<number>('/notifications/unread-count'),
-    enabled: isAuthenticated,
-    refetchInterval: 30000,
-  });
-  const unreadCount = (unreadData?.data as number) ?? 0;
 
   const logoutMutation = useLogout();
 
@@ -165,16 +156,7 @@ export function Navbar() {
                 </Link>
 
                 {/* Notifications */}
-                <Link href="/notifications">
-                  <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="h-5 w-5" />
-                    {unreadCount > 0 && (
-                      <span className="bg-destructive text-destructive-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold">
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </span>
-                    )}
-                  </Button>
-                </Link>
+                {isAuthenticated && <NotificationPopover />}
 
                 {/* Theme & Locale - Desktop */}
                 <div className="ml-2 hidden items-center gap-2 lg:flex">
@@ -227,6 +209,17 @@ export function Navbar() {
                       <Settings className="mr-2 h-4 w-4" />
                       {t('settings')}
                     </DropdownMenuItem>
+                    {user?.role === 'STUDENT' && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <Link href="/become-instructor">
+                          <DropdownMenuItem className="cursor-pointer">
+                            <GraduationCap className="mr-2 h-4 w-4" />
+                            {t('becomeInstructor')}
+                          </DropdownMenuItem>
+                        </Link>
+                      </>
+                    )}
                     {user?.role === 'INSTRUCTOR' || user?.role === 'ADMIN' ? (
                       <>
                         <DropdownMenuSeparator />
