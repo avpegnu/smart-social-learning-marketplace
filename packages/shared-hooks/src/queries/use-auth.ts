@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAuthStore } from '../stores/auth-store';
 import { useApiError } from '../use-api-error';
@@ -77,11 +77,14 @@ export function useResetPassword() {
 }
 
 export function useLogout() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => authService.logout(),
     onSettled: () => {
       // Always logout locally, even if API fails
       useAuthStore.getState().logout();
+      // Clear all cached data from previous user
+      queryClient.clear();
     },
   });
 }

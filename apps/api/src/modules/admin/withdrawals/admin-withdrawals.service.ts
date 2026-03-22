@@ -81,7 +81,13 @@ export class AdminWithdrawalsService {
           });
         }
       }
-      // REJECTED: no earnings change needed (stay AVAILABLE)
+      if (dto.status === 'REJECTED') {
+        // Refund the locked amount back to available balance
+        await tx.instructorProfile.update({
+          where: { userId: withdrawal.instructorId },
+          data: { availableBalance: { increment: withdrawal.amount } },
+        });
+      }
 
       return updated;
     });

@@ -31,6 +31,8 @@ import {
   useEnrollFree,
   useAuthStore,
   useCartStore,
+  useServerCart,
+  useAddCartItem,
 } from '@shared/hooks';
 import { toast } from 'sonner';
 
@@ -44,13 +46,19 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
 
   // Enrollment + Cart
   const { isAuthenticated } = useAuthStore();
-  const cartItems = useCartStore((s) => s.items);
-  const addToCart = useCartStore((s) => s.addItem);
+  const localCartItems = useCartStore((s) => s.items);
+  const addToLocalCart = useCartStore((s) => s.addItem);
+  const { data: serverCartData } = useServerCart();
+  const addCartItemMutation = useAddCartItem();
   const { data: enrollmentData } = useEnrollmentCheck(course?.id ?? '');
   const enrollFreeMutation = useEnrollFree();
 
   const isEnrolled = (enrollmentData?.data as { enrolled: boolean } | undefined)?.enrolled === true;
-  const isInCart = cartItems.some((item) => item.courseId === course?.id);
+  const serverCartItems =
+    (serverCartData as { data?: { items?: Array<{ courseId?: string }> } })?.data?.items ?? [];
+  const isInCart = isAuthenticated
+    ? serverCartItems.some((item) => item.courseId === course?.id)
+    : localCartItems.some((item) => item.courseId === course?.id);
 
   if (isLoading) return <CourseDetailSkeleton />;
 
@@ -64,29 +72,43 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
   }
 
   const handleAddToCart = () => {
-    addToCart({
-      courseId: course.id,
-      title: course.title,
-      instructorName: course.instructor.fullName,
-      thumbnailUrl: course.thumbnailUrl ?? '',
-      price: course.price,
-      type: 'FULL_COURSE',
-    });
-    toast.success(t('addedToCart'));
+    if (isAuthenticated) {
+      addCartItemMutation.mutate(
+        { courseId: course.id },
+        { onSuccess: () => toast.success(t('addedToCart')) },
+      );
+    } else {
+      addToLocalCart({
+        courseId: course.id,
+        title: course.title,
+        instructorName: course.instructor.fullName,
+        thumbnailUrl: course.thumbnailUrl ?? '',
+        price: course.price,
+        type: 'FULL_COURSE',
+      });
+      toast.success(t('addedToCart'));
+    }
   };
 
   const handleAddChapterToCart = (chapter: { id: string; title: string; price: number | null }) => {
     if (!chapter.price) return;
-    addToCart({
-      courseId: course.id,
-      title: course.title,
-      instructorName: course.instructor.fullName,
-      thumbnailUrl: course.thumbnailUrl ?? '',
-      price: chapter.price,
-      type: 'CHAPTER',
-      chapterId: chapter.id,
-    });
-    toast.success(t('chapterAddedToCart'));
+    if (isAuthenticated) {
+      addCartItemMutation.mutate(
+        { courseId: course.id, chapterId: chapter.id },
+        { onSuccess: () => toast.success(t('chapterAddedToCart')) },
+      );
+    } else {
+      addToLocalCart({
+        courseId: course.id,
+        title: course.title,
+        instructorName: course.instructor.fullName,
+        thumbnailUrl: course.thumbnailUrl ?? '',
+        price: chapter.price,
+        type: 'CHAPTER',
+        chapterId: chapter.id,
+      });
+      toast.success(t('chapterAddedToCart'));
+    }
   };
 
   const handleEnrollFree = () => {
