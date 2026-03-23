@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 import { Link } from '@/i18n/navigation';
-import { ArrowLeft, X, Eye, Send } from 'lucide-react';
+import { ArrowLeft, Send, Code2, Loader2 } from 'lucide-react';
 import {
   Button,
   Input,
@@ -10,104 +12,146 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Badge,
+  Label,
   Separator,
 } from '@shared/ui';
-import { mockCourses } from '@/lib/mock-data';
-import { useState } from 'react';
+import { useCreateQuestion, useSimilarQuestions, useMyLearning, useDebounce } from '@shared/hooks';
 
 export default function AskQuestionPage() {
   const t = useTranslations('askQuestion');
+  const router = useRouter();
+
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [tagInput, setTagInput] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [showPreview, setShowPreview] = useState(false);
+  const [courseId, setCourseId] = useState('');
+  const [showCode, setShowCode] = useState(false);
+  const [codeLanguage, setCodeLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
 
-  const addTag = () => {
-    const tag = tagInput.trim();
-    if (tag && !tags.includes(tag) && tags.length < 5) {
-      setTags([...tags, tag]);
-      setTagInput('');
-    }
-  };
+  const debouncedTitle = useDebounce(title, 500);
+  const { data: similarRaw } = useSimilarQuestions(debouncedTitle);
+  const similarData = similarRaw as
+    | {
+        data?: Array<{
+          id: string;
+          title: string;
+          answerCount: number;
+          bestAnswerId?: string | null;
+        }>;
+      }
+    | undefined;
+  const similarQuestions = similarData?.data ?? [];
 
-  const removeTag = (tag: string) => {
-    setTags(tags.filter((t) => t !== tag));
-  };
+  const { data: learningRaw } = useMyLearning();
+  const learningData = learningRaw as
+    | { data?: Array<{ course: { id: string; title: string } }> }
+    | undefined;
+  const enrolledCourses = (learningData?.data ?? []).map((e) => e.course);
+
+  const createQuestion = useCreateQuestion();
+
+  const titleError = title.length > 0 && title.length < 10;
+  const contentError = content.length > 0 && content.length < 20;
+  const canSubmit = title.length >= 10 && content.length >= 20 && !createQuestion.isPending;
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+
+    createQuestion.mutate(
+      {
+        title,
+        content,
+        courseId: courseId || undefined,
+        codeSnippet: showCode && code.trim() ? { language: codeLanguage, code } : undefined,
+      },
+      {
+        onSuccess: (raw) => {
+          const result = raw as { data?: { id: string } };
+          const newId = result?.data?.id;
+          if (newId) {
+            router.push(`/qna/${newId}`);
+          } else {
+            router.push('/qna');
+          }
+        },
+      },
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-8">
+      {/* Header */}
       <div className="mb-6 flex items-center gap-3">
         <Link href="/qna">
-          <Button variant="ghost" size="sm" className="gap-1">
+          <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <h1 className="text-2xl font-bold">{t('title')}</h1>
       </div>
 
-      <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+      <form className="space-y-6" onSubmit={handleSubmit}>
         {/* Title */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t('questionTitle')}</label>
+          <Label>{t('questionTitle')}</Label>
           <Input
             placeholder={t('titlePlaceholder')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            maxLength={200}
           />
+          {titleError && <p className="text-destructive text-xs">{t('titleMinLength')}</p>}
+          <p className="text-muted-foreground text-xs">{title.length}/200</p>
         </div>
+
+        {/* Similar questions */}
+        {similarQuestions.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">{t('similarQuestions')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {similarQuestions.map((sq) => (
+                <Link
+                  key={sq.id}
+                  href={`/qna/${sq.id}`}
+                  className="hover:text-primary block text-sm transition-colors"
+                >
+                  {sq.title}
+                  <span className="text-muted-foreground ml-2 text-xs">
+                    ({sq.answerCount} {t('answersCount')})
+                  </span>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Content */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t('content')}</label>
+          <Label>{t('content')}</Label>
           <textarea
-            className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring min-h-[200px] w-full resize-y rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+            className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring min-h-50 w-full resize-y rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
             placeholder={t('contentPlaceholder')}
             value={content}
             onChange={(e) => setContent(e.target.value)}
+            maxLength={5000}
           />
-        </div>
-
-        {/* Tags */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">{t('tags')}</label>
-          <div className="flex gap-2">
-            <Input
-              placeholder={t('tagsPlaceholder')}
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addTag();
-                }
-              }}
-            />
-            <Button type="button" variant="outline" onClick={addTag}>
-              {t('addTag')}
-            </Button>
-          </div>
-          {tags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="gap-1">
-                  {tag}
-                  <button onClick={() => removeTag(tag)} className="cursor-pointer">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          )}
+          {contentError && <p className="text-destructive text-xs">{t('contentMinLength')}</p>}
+          <p className="text-muted-foreground text-xs">{content.length}/5000</p>
         </div>
 
         {/* Course Select */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t('relatedCourse')}</label>
-          <select className="border-input bg-background focus-visible:ring-ring w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none">
+          <Label>{t('relatedCourse')}</Label>
+          <select
+            className="border-input bg-background focus-visible:ring-ring w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+            value={courseId}
+            onChange={(e) => setCourseId(e.target.value)}
+          >
             <option value="">{t('selectCourse')}</option>
-            {mockCourses.map((course) => (
+            {enrolledCourses.map((course) => (
               <option key={course.id} value={course.id}>
                 {course.title}
               </option>
@@ -115,49 +159,66 @@ export default function AskQuestionPage() {
           </select>
         </div>
 
-        <Separator />
-
-        {/* Preview Toggle */}
-        <div className="flex items-center justify-between">
+        {/* Code Snippet */}
+        <div className="space-y-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
             className="gap-1.5"
-            onClick={() => setShowPreview(!showPreview)}
+            onClick={() => setShowCode(!showCode)}
           >
-            <Eye className="h-4 w-4" />
-            {t('preview')}
+            <Code2 className="h-4 w-4" />
+            {t('addCode')}
           </Button>
-          <Button type="submit" className="gap-1.5">
-            <Send className="h-4 w-4" />
+
+          {showCode && (
+            <div className="space-y-3 pt-2">
+              <div className="space-y-1">
+                <Label className="text-xs">{t('codeLanguage')}</Label>
+                <select
+                  className="border-input bg-background w-full rounded-lg border px-3 py-2 text-sm"
+                  value={codeLanguage}
+                  onChange={(e) => setCodeLanguage(e.target.value)}
+                >
+                  {['javascript', 'typescript', 'python', 'java', 'css', 'html', 'sql', 'bash'].map(
+                    (lang) => (
+                      <option key={lang} value={lang}>
+                        {lang}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </div>
+              <textarea
+                className="border-input bg-muted min-h-30 w-full resize-y rounded-lg border px-3 py-2 font-mono text-sm"
+                placeholder={t('codePlaceholder')}
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                maxLength={5000}
+              />
+            </div>
+          )}
+        </div>
+
+        <Separator />
+
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-3">
+          <Link href="/qna">
+            <Button type="button" variant="outline">
+              {t('cancel')}
+            </Button>
+          </Link>
+          <Button type="submit" disabled={!canSubmit} className="gap-1.5">
+            {createQuestion.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
             {t('submit')}
           </Button>
         </div>
-
-        {/* Preview Section */}
-        {showPreview && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t('previewTitle')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <h3 className="mb-2 font-semibold">{title || t('titlePlaceholder')}</h3>
-              <p className="text-muted-foreground text-sm whitespace-pre-wrap">
-                {content || t('contentPlaceholder')}
-              </p>
-              {tags.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
       </form>
     </div>
   );

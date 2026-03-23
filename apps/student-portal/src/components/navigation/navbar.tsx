@@ -16,6 +16,8 @@ import {
   LogOut,
   Heart,
   Package,
+  MessageSquare,
+  Bot,
 } from 'lucide-react';
 import { NotificationPopover } from '@/components/notifications/notification-popover';
 import {
@@ -152,6 +154,20 @@ export function Navbar() {
                         {wishlistCount > 9 ? '9+' : wishlistCount}
                       </span>
                     )}
+                  </Button>
+                </Link>
+
+                {/* Q&A */}
+                <Link href="/qna" className="hidden sm:inline-flex">
+                  <Button variant="ghost" size="icon" title={t('qna')}>
+                    <MessageSquare className="h-5 w-5" />
+                  </Button>
+                </Link>
+
+                {/* AI Tutor */}
+                <Link href="/ai-tutor" className="hidden sm:inline-flex">
+                  <Button variant="ghost" size="icon" title={t('aiTutor')}>
+                    <Bot className="h-5 w-5" />
                   </Button>
                 </Link>
 
@@ -310,6 +326,7 @@ export function Navbar() {
                         { href: '/social', label: t('social') },
                         { href: '/chat', label: t('chat') },
                         { href: '/qna', label: t('qna') },
+                        { href: '/ai-tutor', label: t('aiTutor') },
                       ]
                     : []),
                 ].map((item) => {
