@@ -171,6 +171,19 @@ class ApiClient {
   async del<T>(path: string) {
     return this.fetch<T>(path, { method: 'DELETE' });
   }
+
+  /** Raw fetch for SSE streaming — returns Response without JSON parsing */
+  async streamFetch(path: string, body?: unknown): Promise<Response> {
+    return fetch(`${API_BASE}${path}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(this.accessToken && { Authorization: `Bearer ${this.accessToken}` }),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
 }
 
 export const apiClient = new ApiClient();

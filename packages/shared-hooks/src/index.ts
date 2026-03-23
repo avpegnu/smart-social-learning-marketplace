@@ -157,9 +157,17 @@ export { useInstructorWithdrawals, useRequestWithdrawal } from './queries/use-wi
 export {
   useQuestions,
   useQuestionDetail,
+  useSimilarQuestions,
+  useCreateQuestion,
+  useUpdateQuestion,
+  useDeleteQuestion,
   useCreateAnswer,
+  useDeleteAnswer,
   useMarkBestAnswer,
+  useVoteAnswer,
 } from './queries/use-qna';
+
+export { useAiQuota, useAiSessions, useSessionMessages } from './queries/use-ai-tutor';
 
 export {
   useMe,
@@ -187,7 +195,13 @@ export type { CreateCouponPayload, UpdateCouponPayload } from './services/coupon
 export { withdrawalService } from './services/withdrawal.service';
 export type { CreateWithdrawalPayload } from './services/withdrawal.service';
 export { qnaService } from './services/qna.service';
-export type { QueryQuestionsParams } from './services/qna.service';
+export type {
+  QueryQuestionsParams,
+  CreateQuestionData,
+  UpdateQuestionData,
+} from './services/qna.service';
+export { aiTutorService } from './services/ai-tutor.service';
+export type { AskAiData } from './services/ai-tutor.service';
 export { userService } from './services/user.service';
 export type {
   UpdateProfilePayload,

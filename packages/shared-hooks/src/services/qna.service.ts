@@ -9,6 +9,19 @@ export interface QueryQuestionsParams {
   status?: 'all' | 'answered' | 'unanswered';
 }
 
+export interface CreateQuestionData {
+  title: string;
+  content: string;
+  courseId?: string;
+  codeSnippet?: { language: string; code: string };
+}
+
+export interface UpdateQuestionData {
+  title?: string;
+  content?: string;
+  codeSnippet?: { language: string; code: string };
+}
+
 function toQuery(params?: QueryQuestionsParams): Record<string, string> {
   const q: Record<string, string> = {};
   if (params?.page) q.page = String(params.page);
@@ -25,9 +38,24 @@ export const qnaService = {
 
   getQuestionDetail: (id: string) => apiClient.get(`/questions/${id}`),
 
-  createAnswer: (questionId: string, data: { content: string }) =>
-    apiClient.post(`/questions/${questionId}/answers`, data),
+  findSimilar: (title: string) => apiClient.get('/questions/similar', { title }),
+
+  createQuestion: (data: CreateQuestionData) => apiClient.post('/questions', data),
+
+  updateQuestion: (id: string, data: UpdateQuestionData) => apiClient.put(`/questions/${id}`, data),
+
+  deleteQuestion: (id: string) => apiClient.del(`/questions/${id}`),
+
+  createAnswer: (
+    questionId: string,
+    data: { content: string; codeSnippet?: { language: string; code: string } },
+  ) => apiClient.post(`/questions/${questionId}/answers`, data),
+
+  deleteAnswer: (id: string) => apiClient.del(`/answers/${id}`),
 
   markBestAnswer: (questionId: string, answerId: string) =>
     apiClient.put(`/questions/${questionId}/best-answer`, { answerId }),
+
+  voteAnswer: (answerId: string, value: number) =>
+    apiClient.post(`/answers/${answerId}/vote`, { value }),
 };
