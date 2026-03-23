@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Inject, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, Query, Res } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { AiTutorService } from './ai-tutor.service';
 import { CurrentUser } from '@/common/decorators';
 import type { JwtPayload } from '@/common/interfaces/jwt-payload.interface';
@@ -20,6 +21,40 @@ export class AiTutorController {
   @ApiOperation({ summary: 'Ask AI tutor a question (RAG)' })
   async ask(@CurrentUser() user: JwtPayload, @Body() dto: AskQuestionDto) {
     return this.service.askQuestion(user.sub, dto);
+  }
+
+  @Post('ask-stream')
+  @ApiOperation({ summary: 'Ask AI tutor with SSE streaming response' })
+  async askStream(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: AskQuestionDto,
+    @Res() res: Response,
+  ) {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    try {
+      for await (const event of this.service.askQuestionStream(user.sub, dto)) {
+        res.write(`data: ${JSON.stringify(event)}\n\n`);
+      }
+    } catch (error: unknown) {
+      const code =
+        error instanceof Object && 'getResponse' in error
+          ? ((error as { getResponse: () => { code?: string } }).getResponse().code ??
+            'INTERNAL_ERROR')
+          : 'INTERNAL_ERROR';
+      res.write(`data: ${JSON.stringify({ type: 'error', code })}\n\n`);
+    }
+
+    res.end();
+  }
+
+  @Get('quota')
+  @ApiOperation({ summary: 'Get remaining daily AI quota' })
+  async getQuota(@CurrentUser() user: JwtPayload) {
+    return this.service.getQuota(user.sub);
   }
 
   @Get('sessions')

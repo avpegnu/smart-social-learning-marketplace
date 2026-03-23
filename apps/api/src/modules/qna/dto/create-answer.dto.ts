@@ -4,7 +4,7 @@ import { CodeSnippetDto } from './create-question.dto';
 
 export class CreateAnswerDto {
   @IsString()
-  @MinLength(10)
+  @MinLength(1)
   @MaxLength(5000)
   content!: string;
 

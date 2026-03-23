@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { QuestionsService } from './questions.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { RedisService } from '@/redis/redis.service';
 
 const mockPrisma = {
   question: {
@@ -16,12 +17,22 @@ const mockPrisma = {
   answer: { findUnique: jest.fn() },
 };
 
+const mockRedis = {
+  sadd: jest.fn().mockResolvedValue(1),
+  ttl: jest.fn().mockResolvedValue(-1),
+  expire: jest.fn().mockResolvedValue(1),
+};
+
 describe('QuestionsService', () => {
   let service: QuestionsService;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [QuestionsService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        QuestionsService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: RedisService, useValue: mockRedis },
+      ],
     }).compile();
 
     service = module.get(QuestionsService);

@@ -48,8 +48,8 @@ export class QuestionsController {
   @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Get question detail with answers' })
-  async findById(@Param('id', ParseCuidPipe) id: string) {
-    return this.questionsService.findById(id);
+  async findById(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user?: JwtPayload) {
+    return this.questionsService.findById(id, user?.sub);
   }
 
   @ApiBearerAuth()

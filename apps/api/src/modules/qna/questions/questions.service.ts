@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { RedisService } from '@/redis/redis.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreateQuestionDto } from '../dto/create-question.dto';
@@ -23,7 +24,10 @@ const AUTHOR_SELECT = {
 
 @Injectable()
 export class QuestionsService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(RedisService) private readonly redis: RedisService,
+  ) {}
 
   async create(authorId: string, dto: CreateQuestionDto) {
     return this.prisma.question.create({
@@ -97,7 +101,7 @@ export class QuestionsService {
     return createPaginatedResult(data, total, query.page, query.limit);
   }
 
-  async findById(questionId: string) {
+  async findById(questionId: string, viewerId?: string) {
     const question = await this.prisma.question.findUnique({
       where: { id: questionId },
       include: {
@@ -107,7 +111,7 @@ export class QuestionsService {
         answers: {
           include: {
             author: { select: AUTHOR_SELECT },
-            _count: { select: { votes: true } },
+            votes: viewerId ? { where: { userId: viewerId }, select: { value: true } } : false,
           },
           orderBy: { voteCount: 'desc' },
         },
@@ -121,17 +125,38 @@ export class QuestionsService {
       throw new NotFoundException({ code: 'QUESTION_NOT_FOUND' });
     }
 
-    // Increment view count (fire-and-forget)
-    this.prisma.question
-      .update({
-        where: { id: questionId },
-        data: { viewCount: { increment: 1 } },
-      })
-      .catch(() => {
-        /* ignore */
-      });
+    // Map answers to include userVote field
+    const answers = question.answers.map((answer) => {
+      const { votes, ...rest } = answer as typeof answer & { votes?: { value: number }[] };
+      return {
+        ...rest,
+        userVote: votes?.[0]?.value ?? null,
+      };
+    });
 
-    return question;
+    // Increment view count only for unique viewers (fire-and-forget)
+    if (viewerId) {
+      const viewKey = `qview:${questionId}`;
+      this.redis
+        .sadd(viewKey, viewerId)
+        .then(async (added) => {
+          if (added === 1) {
+            const ttl = await this.redis.ttl(viewKey);
+            if (ttl === -1) {
+              await this.redis.expire(viewKey, 30 * 24 * 3600);
+            }
+            await this.prisma.question.update({
+              where: { id: questionId },
+              data: { viewCount: { increment: 1 } },
+            });
+          }
+        })
+        .catch(() => {
+          /* ignore */
+        });
+    }
+
+    return { ...question, answers };
   }
 
   async findSimilar(title: string, limit = 5) {
