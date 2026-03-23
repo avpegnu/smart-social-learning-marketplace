@@ -4,7 +4,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { Plus, X } from 'lucide-react';
-import { Button, Input, Label } from '@shared/ui';
+import { Button, Input, Label, Select } from '@shared/ui';
 import { useCreateCourse, useUpdateCourse, useCategories } from '@shared/hooks';
 import { toast } from 'sonner';
 
@@ -147,19 +147,16 @@ export function StepBasics({
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
             <Label htmlFor="categoryId">{t('category')} *</Label>
-            <select
+            <Select
               id="categoryId"
               {...register('categoryId')}
-              className="border-input bg-background ring-offset-background focus:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
-            >
-              <option value="">{t('selectCategory')}</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.indent}
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+              placeholder={t('selectCategory')}
+              options={categories.map((cat) => ({
+                value: cat.id,
+                label: cat.name,
+                indent: cat.indent,
+              }))}
+            />
             {errors.categoryId && (
               <p className="text-destructive text-sm">{errors.categoryId.message}</p>
             )}
@@ -167,31 +164,31 @@ export function StepBasics({
 
           <div className="space-y-2">
             <Label htmlFor="level">{t('level')} *</Label>
-            <select
+            <Select
               id="level"
               {...register('level')}
-              className="border-input bg-background ring-offset-background focus:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
-            >
-              <option value="">{t('selectLevel')}</option>
-              <option value="BEGINNER">{t('beginner')}</option>
-              <option value="INTERMEDIATE">{t('intermediate')}</option>
-              <option value="ADVANCED">{t('advanced')}</option>
-              <option value="EXPERT">{t('expert')}</option>
-            </select>
+              placeholder={t('selectLevel')}
+              options={[
+                { value: 'BEGINNER', label: t('beginner') },
+                { value: 'INTERMEDIATE', label: t('intermediate') },
+                { value: 'ADVANCED', label: t('advanced') },
+                { value: 'EXPERT', label: t('expert') },
+              ]}
+            />
             {errors.level && <p className="text-destructive text-sm">{errors.level.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="language">{t('language')} *</Label>
-            <select
+            <Select
               id="language"
               {...register('language')}
-              className="border-input bg-background ring-offset-background focus:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
-            >
-              <option value="">{t('selectLanguage')}</option>
-              <option value="vi">Tiếng Việt</option>
-              <option value="en">English</option>
-            </select>
+              placeholder={t('selectLanguage')}
+              options={[
+                { value: 'vi', label: 'Tiếng Việt' },
+                { value: 'en', label: 'English' },
+              ]}
+            />
             {errors.language && (
               <p className="text-destructive text-sm">{errors.language.message}</p>
             )}

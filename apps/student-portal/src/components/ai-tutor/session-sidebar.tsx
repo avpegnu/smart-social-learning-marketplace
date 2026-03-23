@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Bot, Plus, Zap, AlertTriangle } from 'lucide-react';
-import { Button, Progress } from '@shared/ui';
+import { Button, Progress, Select } from '@shared/ui';
 import { formatRelativeTime } from '@shared/utils';
 import { cn } from '@/lib/utils';
 
@@ -53,18 +53,12 @@ export function SessionSidebar({
           <h2 className="text-lg font-semibold">{t('title')}</h2>
         </div>
 
-        <select
-          className="border-input bg-background w-full rounded-lg border px-3 py-2 text-sm"
+        <Select
           value={selectedCourseId}
           onChange={(e) => onCourseChange(e.target.value)}
-        >
-          <option value="">{t('selectCourse')}</option>
-          {courses.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.title}
-            </option>
-          ))}
-        </select>
+          placeholder={t('selectCourse')}
+          options={courses.map((c) => ({ value: c.id, label: c.title }))}
+        />
 
         {selectedCourseId && (
           <Button variant="outline" className="w-full gap-2" size="sm" onClick={onNewConversation}>

@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
   Label,
+  Select,
   Separator,
 } from '@shared/ui';
 import { useCreateQuestion, useSimilarQuestions, useMyLearning, useDebounce } from '@shared/hooks';
@@ -145,18 +146,12 @@ export default function AskQuestionPage() {
         {/* Course Select */}
         <div className="space-y-2">
           <Label>{t('relatedCourse')}</Label>
-          <select
-            className="border-input bg-background focus-visible:ring-ring w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+          <Select
             value={courseId}
             onChange={(e) => setCourseId(e.target.value)}
-          >
-            <option value="">{t('selectCourse')}</option>
-            {enrolledCourses.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.title}
-              </option>
-            ))}
-          </select>
+            placeholder={t('selectCourse')}
+            options={enrolledCourses.map((course) => ({ value: course.id, label: course.title }))}
+          />
         </div>
 
         {/* Code Snippet */}
@@ -176,19 +171,20 @@ export default function AskQuestionPage() {
             <div className="space-y-3 pt-2">
               <div className="space-y-1">
                 <Label className="text-xs">{t('codeLanguage')}</Label>
-                <select
-                  className="border-input bg-background w-full rounded-lg border px-3 py-2 text-sm"
+                <Select
                   value={codeLanguage}
                   onChange={(e) => setCodeLanguage(e.target.value)}
-                >
-                  {['javascript', 'typescript', 'python', 'java', 'css', 'html', 'sql', 'bash'].map(
-                    (lang) => (
-                      <option key={lang} value={lang}>
-                        {lang}
-                      </option>
-                    ),
-                  )}
-                </select>
+                  options={[
+                    'javascript',
+                    'typescript',
+                    'python',
+                    'java',
+                    'css',
+                    'html',
+                    'sql',
+                    'bash',
+                  ].map((lang) => ({ value: lang, label: lang }))}
+                />
               </div>
               <textarea
                 className="border-input bg-muted min-h-30 w-full resize-y rounded-lg border px-3 py-2 font-mono text-sm"

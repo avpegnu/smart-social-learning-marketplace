@@ -17,6 +17,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  Select,
 } from '@shared/ui';
 import { CourseGrid } from '@/components/course/course-grid';
 import { CourseFilterSidebar, DEFAULT_FILTERS } from '@/components/course/course-filters';
@@ -181,17 +182,15 @@ export default function CoursesPage() {
                 <span className="text-muted-foreground hidden text-sm sm:inline">
                   {t('sortBy')}
                 </span>
-                <select
+                <Select
                   value={filters.sort}
                   onChange={(e) => handleFilterChange('sort', e.target.value)}
-                  className="border-input bg-background h-9 cursor-pointer rounded-lg border px-3 text-sm"
-                >
-                  {SORT_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {t(`sort_${option}`)}
-                    </option>
-                  ))}
-                </select>
+                  className="h-9 w-48"
+                  options={SORT_OPTIONS.map((option) => ({
+                    value: option,
+                    label: t(`sort_${option}`),
+                  }))}
+                />
               </div>
             </div>
           </div>

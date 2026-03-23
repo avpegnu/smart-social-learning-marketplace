@@ -34,6 +34,8 @@ export {
 } from './components/dropdown-menu';
 export { Input } from './components/input';
 export type { InputProps } from './components/input';
+export { Select } from './components/select';
+export type { SelectProps, SelectOption } from './components/select';
 export { Label } from './components/label';
 export { Progress } from './components/progress';
 export { Separator } from './components/separator';

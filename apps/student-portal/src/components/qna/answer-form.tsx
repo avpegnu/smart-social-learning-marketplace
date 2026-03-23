@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Send, Code2, Loader2 } from 'lucide-react';
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@shared/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Select } from '@shared/ui';
 import { useCreateAnswer } from '@shared/hooks';
 
 interface AnswerFormProps {
@@ -65,19 +65,20 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
 
         {showCode && (
           <div className="space-y-2">
-            <select
-              className="border-input bg-background w-full rounded-lg border px-3 py-2 text-sm"
+            <Select
               value={codeLanguage}
               onChange={(e) => setCodeLanguage(e.target.value)}
-            >
-              {['javascript', 'typescript', 'python', 'java', 'css', 'html', 'sql', 'bash'].map(
-                (lang) => (
-                  <option key={lang} value={lang}>
-                    {lang}
-                  </option>
-                ),
-              )}
-            </select>
+              options={[
+                'javascript',
+                'typescript',
+                'python',
+                'java',
+                'css',
+                'html',
+                'sql',
+                'bash',
+              ].map((lang) => ({ value: lang, label: lang }))}
+            />
             <textarea
               className="border-input bg-muted min-h-30 w-full resize-y rounded-lg border px-3 py-2 font-mono text-sm"
               placeholder={t('codePlaceholder')}
