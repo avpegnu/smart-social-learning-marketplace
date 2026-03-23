@@ -11,20 +11,23 @@ export interface SelectOption {
   indent?: string;
 }
 
-export interface SelectProps {
+export interface SelectProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'onChange' | 'value'
+> {
   options: SelectOption[];
   value?: string;
   onChange?: (e: { target: { value: string; name?: string } }) => void;
-  onBlur?: () => void;
+  onBlur?: (event?: unknown) => void;
   placeholder?: string;
-  className?: string;
-  id?: string;
   name?: string;
-  disabled?: boolean;
 }
 
 const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
-  ({ options, value, onChange, onBlur, placeholder, className, id, name, disabled }, ref) => {
+  (
+    { options, value, onChange, onBlur, placeholder, className, name, disabled, id, ...rest },
+    ref,
+  ) => {
     const [open, setOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +36,6 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
       ? `${selectedOption.indent ?? ''}${selectedOption.label}`
       : placeholder;
 
-    // Close on outside click
     useEffect(() => {
       if (!open) return;
       function handleClick(e: MouseEvent) {
@@ -45,7 +47,6 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
       return () => document.removeEventListener('mousedown', handleClick);
     }, [open]);
 
-    // Close on Escape
     useEffect(() => {
       if (!open) return;
       function handleKey(e: KeyboardEvent) {
@@ -66,8 +67,8 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
 
     return (
       <div ref={containerRef} className="relative">
-        {/* Trigger */}
         <button
+          {...rest}
           ref={ref}
           type="button"
           id={id}
@@ -89,7 +90,6 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
           />
         </button>
 
-        {/* Dropdown */}
         {open && (
           <div className="bg-popover text-popover-foreground border-border animate-in fade-in-0 zoom-in-95 absolute z-50 mt-1 w-full overflow-hidden rounded-lg border shadow-lg">
             <div className="max-h-60 overflow-y-auto p-1">

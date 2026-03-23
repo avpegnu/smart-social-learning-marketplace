@@ -149,7 +149,9 @@ export function StepBasics({
             <Label htmlFor="categoryId">{t('category')} *</Label>
             <Select
               id="categoryId"
-              {...register('categoryId')}
+              name="categoryId"
+              value={watch('categoryId')}
+              onChange={(e) => setValue('categoryId', e.target.value, { shouldValidate: true })}
               placeholder={t('selectCategory')}
               options={categories.map((cat) => ({
                 value: cat.id,
@@ -166,7 +168,13 @@ export function StepBasics({
             <Label htmlFor="level">{t('level')} *</Label>
             <Select
               id="level"
-              {...register('level')}
+              name="level"
+              value={watch('level')}
+              onChange={(e) =>
+                setValue('level', e.target.value as CourseBasicsValues['level'], {
+                  shouldValidate: true,
+                })
+              }
               placeholder={t('selectLevel')}
               options={[
                 { value: 'BEGINNER', label: t('beginner') },
@@ -182,7 +190,9 @@ export function StepBasics({
             <Label htmlFor="language">{t('language')} *</Label>
             <Select
               id="language"
-              {...register('language')}
+              name="language"
+              value={watch('language')}
+              onChange={(e) => setValue('language', e.target.value, { shouldValidate: true })}
               placeholder={t('selectLanguage')}
               options={[
                 { value: 'vi', label: 'Tiếng Việt' },
