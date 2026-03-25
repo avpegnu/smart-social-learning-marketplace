@@ -21,8 +21,11 @@ export function NotificationPopover() {
   const ref = useRef<HTMLDivElement>(null);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
-  const { data: countData } = useUnreadNotificationCount(isAuthenticated);
-  const unreadCount = (countData as { count?: number })?.count ?? 0;
+  const { data: countRaw } = useUnreadNotificationCount(isAuthenticated);
+  const unreadCount =
+    (countRaw as { data?: { count?: number }; count?: number })?.data?.count ??
+    (countRaw as { count?: number })?.count ??
+    0;
 
   const { data: notifData, isLoading } = useNotifications(open ? { page: 1, limit: 8 } : undefined);
   const notifications = (open ? (notifData as { data?: NotificationData[] })?.data : []) ?? [];

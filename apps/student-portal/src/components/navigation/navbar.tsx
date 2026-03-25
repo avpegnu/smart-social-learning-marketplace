@@ -17,7 +17,9 @@ import {
   Heart,
   Package,
   MessageSquare,
+  MessageCircle,
   Bot,
+  Users,
 } from 'lucide-react';
 import { NotificationPopover } from '@/components/notifications/notification-popover';
 import {
@@ -42,6 +44,7 @@ import {
   useWishlist,
   useLogout,
   useAuthHydrated,
+  useConversations,
 } from '@shared/hooks';
 import { apiClient } from '@shared/api-client';
 
@@ -61,6 +64,13 @@ export function Navbar() {
 
   const { data: wishlistData } = useWishlist();
   const wishlistCount = (wishlistData?.data as unknown[] | undefined)?.length ?? 0;
+
+  // Chat unread count
+  const { data: conversationsRaw } = useConversations();
+  const totalChatUnread = (
+    (conversationsRaw as { data?: Array<{ unreadCount?: number }> })?.data ??
+    (Array.isArray(conversationsRaw) ? (conversationsRaw as Array<{ unreadCount?: number }>) : [])
+  ).reduce((sum, c) => sum + (c.unreadCount ?? 0), 0);
 
   const logoutMutation = useLogout();
 
@@ -152,6 +162,25 @@ export function Navbar() {
                     {wishlistCount > 0 && (
                       <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold">
                         {wishlistCount > 9 ? '9+' : wishlistCount}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
+
+                {/* Social */}
+                <Link href="/social" className="hidden sm:inline-flex">
+                  <Button variant="ghost" size="icon" title={t('social')}>
+                    <Users className="h-5 w-5" />
+                  </Button>
+                </Link>
+
+                {/* Chat */}
+                <Link href="/chat" className="hidden sm:inline-flex">
+                  <Button variant="ghost" size="icon" className="relative" title={t('chat')}>
+                    <MessageCircle className="h-5 w-5" />
+                    {totalChatUnread > 0 && (
+                      <span className="bg-destructive text-destructive-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold">
+                        {totalChatUnread > 9 ? '9+' : totalChatUnread}
                       </span>
                     )}
                   </Button>
