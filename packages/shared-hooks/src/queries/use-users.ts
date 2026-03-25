@@ -11,6 +11,17 @@ import type {
   ApplyInstructorPayload,
 } from '../services/user.service';
 
+// ── Search ──
+
+export function useSearchUsers(query: string) {
+  return useQuery({
+    queryKey: ['users', 'search', query],
+    queryFn: () => userService.searchUsers(query),
+    enabled: query.length >= 2,
+    staleTime: 10000,
+  });
+}
+
 // ── Profile ──
 
 export function useMe(enabled = true) {

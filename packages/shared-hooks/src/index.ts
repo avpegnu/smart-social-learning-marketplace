@@ -170,6 +170,7 @@ export {
 export { useAiQuota, useAiSessions, useSessionMessages } from './queries/use-ai-tutor';
 
 export {
+  useSearchUsers,
   useMe,
   useUserProfile,
   useUpdateProfile,
@@ -183,6 +184,46 @@ export {
   useMyApplications,
 } from './queries/use-users';
 
+export {
+  useFeed,
+  useBookmarks,
+  usePost,
+  useComments,
+  useCreatePost,
+  useUpdatePost,
+  useDeletePost,
+  useToggleLike,
+  useToggleBookmark,
+  useSharePost,
+  useCreateComment,
+  useDeleteComment,
+} from './queries/use-social';
+
+export {
+  useGroups,
+  useGroup,
+  useGroupMembers,
+  useGroupPosts,
+  useJoinRequests,
+  useCreateGroup,
+  useUpdateGroup,
+  useDeleteGroup,
+  useJoinGroup,
+  useLeaveGroup,
+  useCreateGroupPost,
+  useUpdateMemberRole,
+  useKickMember,
+  useApproveRequest,
+  useRejectRequest,
+} from './queries/use-groups';
+
+export {
+  useConversations,
+  useMessages,
+  useGetOrCreateConversation,
+  useSendMessage,
+} from './queries/use-chat';
+
 export { adminService } from './services/admin.service';
 export { enrollmentService } from './services/enrollment.service';
 export { cartService } from './services/cart.service';
@@ -194,6 +235,12 @@ export { couponService } from './services/coupon.service';
 export type { CreateCouponPayload, UpdateCouponPayload } from './services/coupon.service';
 export { withdrawalService } from './services/withdrawal.service';
 export type { CreateWithdrawalPayload } from './services/withdrawal.service';
+export { socialService } from './services/social.service';
+export type { CreatePostData, UpdatePostData, CreateCommentData } from './services/social.service';
+export { groupService } from './services/group.service';
+export type { CreateGroupData, UpdateGroupData } from './services/group.service';
+export { chatService } from './services/chat.service';
+export type { CreateConversationData, SendMessageData } from './services/chat.service';
 export { qnaService } from './services/qna.service';
 export type {
   QueryQuestionsParams,
@@ -226,4 +273,5 @@ export { useInfiniteScroll } from './use-infinite-scroll';
 export { useApiError } from './use-api-error';
 export { useAuthHydrated } from './use-auth-hydrated';
 export { useChatSocket } from './use-chat-socket';
+export type { ChatSocketCallbacks } from './use-chat-socket';
 export { useNotificationSocket } from './use-notification-socket';

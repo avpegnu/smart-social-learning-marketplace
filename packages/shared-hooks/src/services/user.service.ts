@@ -33,6 +33,9 @@ function toQuery(params?: Record<string, unknown>): Record<string, string> {
 }
 
 export const userService = {
+  // Search
+  searchUsers: (q: string) => apiClient.get('/users/search', { q }),
+
   // Profile
   getMe: () => apiClient.get('/users/me'),
 

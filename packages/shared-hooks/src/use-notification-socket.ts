@@ -22,18 +22,19 @@ export function useNotificationSocket() {
       transports: ['websocket'],
     });
 
-    socket.on('notification', (notification: { data?: { title?: string } }) => {
+    socket.on('notification', () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.notifications.all,
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.notifications.unreadCount,
       });
-      toast.info(notification.data?.title || 'New notification');
+      toast.info('New notification');
     });
 
-    socket.on('unread_count', (count: number) => {
-      queryClient.setQueryData(queryKeys.notifications.unreadCount, { data: count });
+    socket.on('unread_count', (data: { count: number }) => {
+      // Match API response shape: { data: { count: N } }
+      queryClient.setQueryData(queryKeys.notifications.unreadCount, { data });
     });
 
     socketRef.current = socket;
