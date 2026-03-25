@@ -3,6 +3,7 @@ import { BadRequestException, ConflictException, NotFoundException } from '@nest
 import { Prisma } from '@prisma/client';
 import { UsersService } from './users.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 
 const mockPrisma = {
   user: {
@@ -18,6 +19,8 @@ const mockPrisma = {
   },
   $transaction: jest.fn(),
 };
+
+const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
 
 const MOCK_USER = {
   id: 'user-1',
@@ -51,7 +54,11 @@ describe('UsersService', () => {
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [UsersService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        UsersService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotifications },
+      ],
     }).compile();
 
     service = module.get(UsersService);

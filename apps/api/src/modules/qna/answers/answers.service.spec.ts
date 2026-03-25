@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { AnswersService } from './answers.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 
 const mockPrisma = {
   question: {
@@ -21,15 +22,22 @@ const mockPrisma = {
     update: jest.fn(),
     delete: jest.fn(),
   },
+  user: { findUnique: jest.fn() },
   $transaction: jest.fn(),
 };
+
+const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
 
 describe('AnswersService', () => {
   let service: AnswersService;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [AnswersService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        AnswersService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotifications },
+      ],
     }).compile();
 
     service = module.get(AnswersService);
@@ -39,13 +47,14 @@ describe('AnswersService', () => {
 
   describe('create', () => {
     it('should create answer and increment counter', async () => {
-      mockPrisma.question.findUnique.mockResolvedValue({ id: 'q1' });
+      mockPrisma.question.findUnique.mockResolvedValue({ id: 'q1', authorId: 'other-user' });
       const answer = { id: 'a1', content: 'Because of StrictMode...' };
       mockPrisma.$transaction.mockImplementation(async (cb: (tx: typeof mockPrisma) => unknown) =>
         cb(mockPrisma),
       );
       mockPrisma.answer.create.mockResolvedValue(answer);
       mockPrisma.question.update.mockResolvedValue({});
+      mockPrisma.user.findUnique.mockResolvedValue({ fullName: 'Test User' });
 
       const result = await service.create('user-1', 'q1', {
         content: 'Because of StrictMode...',

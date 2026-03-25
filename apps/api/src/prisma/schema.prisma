@@ -135,6 +135,12 @@ enum GroupPrivacy {
   PRIVATE
 }
 
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // --- Notifications ---
 enum NotificationType {
   FOLLOW
@@ -242,6 +248,7 @@ model User {
   following           Follow[]             @relation("follower")
   ownedGroups         Group[]
   groupMemberships    GroupMember[]
+  groupJoinRequests   GroupJoinRequest[]
   conversationMembers ConversationMember[]
   messages            Message[]
   feedItems           FeedItem[]
@@ -1116,8 +1123,9 @@ model Group {
 
   owner   User          @relation(fields: [ownerId], references: [id])
   course  Course?       @relation(fields: [courseId], references: [id])
-  members GroupMember[]
-  posts   Post[]
+  members      GroupMember[]
+  posts        Post[]
+  joinRequests GroupJoinRequest[]
 
   @@index([ownerId])
   @@map("groups")
@@ -1137,6 +1145,23 @@ model GroupMember {
   @@unique([groupId, userId])
   @@index([userId])
   @@map("group_members")
+}
+
+model GroupJoinRequest {
+  id      String            @id @default(cuid())
+  groupId String            @map("group_id")
+  userId  String            @map("user_id")
+  status  JoinRequestStatus @default(PENDING)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([groupId, status])
+  @@map("group_join_requests")
 }
 
 model FeedItem {

@@ -42,7 +42,7 @@ export class NotificationsService {
   async getNotifications(userId: string, query: QueryNotificationsDto) {
     const where: Prisma.NotificationWhereInput = {
       recipientId: userId,
-      ...(query.read !== undefined && { isRead: query.read }),
+      ...(query.read !== undefined && { isRead: query.read === 'true' }),
     };
 
     const [notifications, total] = await Promise.all([

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { NotificationsModule } from '@/modules/notifications/notifications.module';
 import { PostsService } from './posts/posts.service';
 import { CommentsService } from './comments/comments.service';
 import { InteractionsService } from './interactions/interactions.service';
@@ -9,6 +10,7 @@ import { FeedController } from './feed/feed.controller';
 import { GroupsController } from './groups/groups.controller';
 
 @Module({
+  imports: [NotificationsModule],
   controllers: [PostsController, FeedController, GroupsController],
   providers: [PostsService, CommentsService, InteractionsService, FeedService, GroupsService],
   exports: [PostsService, GroupsService],

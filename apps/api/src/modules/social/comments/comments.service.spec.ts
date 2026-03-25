@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 
 const mockPrisma = {
   post: { findUnique: jest.fn(), update: jest.fn() },
@@ -12,15 +13,22 @@ const mockPrisma = {
     count: jest.fn(),
     delete: jest.fn(),
   },
+  user: { findUnique: jest.fn() },
   $transaction: jest.fn(),
 };
+
+const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
 
 describe('CommentsService', () => {
   let service: CommentsService;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [CommentsService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        CommentsService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotifications },
+      ],
     }).compile();
 
     service = module.get(CommentsService);
@@ -30,13 +38,14 @@ describe('CommentsService', () => {
 
   describe('create', () => {
     it('should create top-level comment and increment counter', async () => {
-      mockPrisma.post.findUnique.mockResolvedValue({ id: 'post-1' });
+      mockPrisma.post.findUnique.mockResolvedValue({ id: 'post-1', authorId: 'other-user' });
       const comment = { id: 'comment-1', content: 'Nice!' };
       mockPrisma.$transaction.mockImplementation(async (cb: (tx: typeof mockPrisma) => unknown) =>
         cb(mockPrisma),
       );
       mockPrisma.comment.create.mockResolvedValue(comment);
       mockPrisma.post.update.mockResolvedValue({});
+      mockPrisma.user.findUnique.mockResolvedValue({ fullName: 'Test User' });
 
       const result = await service.create('user-1', 'post-1', {
         content: 'Nice!',

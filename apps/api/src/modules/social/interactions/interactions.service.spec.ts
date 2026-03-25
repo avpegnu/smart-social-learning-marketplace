@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { InteractionsService } from './interactions.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 
 const mockPrisma = {
   post: { findUnique: jest.fn(), update: jest.fn() },
@@ -13,15 +14,22 @@ const mockPrisma = {
     delete: jest.fn(),
     count: jest.fn(),
   },
+  user: { findUnique: jest.fn() },
   $transaction: jest.fn(),
 };
+
+const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
 
 describe('InteractionsService', () => {
   let service: InteractionsService;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [InteractionsService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        InteractionsService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotifications },
+      ],
     }).compile();
 
     service = module.get(InteractionsService);
@@ -31,9 +39,14 @@ describe('InteractionsService', () => {
 
   describe('toggleLike', () => {
     it('should create like and return likeCount + 1', async () => {
-      mockPrisma.post.findUnique.mockResolvedValue({ id: 'post-1', likeCount: 5 });
+      mockPrisma.post.findUnique.mockResolvedValue({
+        id: 'post-1',
+        authorId: 'other-user',
+        likeCount: 5,
+      });
       mockPrisma.like.findUnique.mockResolvedValue(null);
       mockPrisma.$transaction.mockResolvedValue([]);
+      mockPrisma.user.findUnique.mockResolvedValue({ fullName: 'Test User' });
 
       const result = await service.toggleLike('user-1', 'post-1');
       expect(result).toEqual({ liked: true, likeCount: 6 });

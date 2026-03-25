@@ -1,12 +1,16 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
 import { AUTHOR_SELECT } from '../posts/posts.service';
 
 @Injectable()
 export class InteractionsService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
+  ) {}
 
   async toggleLike(userId: string, postId: string) {
     const post = await this.prisma.post.findUnique({
@@ -36,6 +40,18 @@ export class InteractionsService {
         data: { likeCount: { increment: 1 } },
       }),
     ]);
+
+    // Notify post author (skip self-like)
+    if (post.authorId !== userId) {
+      const liker = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { fullName: true },
+      });
+      this.notifications
+        .create(post.authorId, 'POST_LIKE', { postId, userId, fullName: liker?.fullName })
+        .catch(() => {});
+    }
+
     return { liked: true, likeCount: post.likeCount + 1 };
   }
 

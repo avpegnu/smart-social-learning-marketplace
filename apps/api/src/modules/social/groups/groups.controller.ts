@@ -28,8 +28,8 @@ export class GroupsController {
   @Public()
   @Get()
   @ApiOperation({ summary: 'List public groups' })
-  async findAll(@Query() query: QueryGroupsDto) {
-    return this.groupsService.findAll(query);
+  async findAll(@Query() query: QueryGroupsDto, @CurrentUser() user?: JwtPayload) {
+    return this.groupsService.findAll(query, user?.sub);
   }
 
   @ApiBearerAuth()
@@ -106,6 +106,39 @@ export class GroupsController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.groupsService.kickMember(id, user.sub, targetUserId);
+  }
+
+  @ApiBearerAuth()
+  @Get(':id/requests')
+  @ApiOperation({ summary: 'List pending join requests (owner/admin)' })
+  async getJoinRequests(
+    @Param('id', ParseCuidPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+    @Query() query: PaginationDto,
+  ) {
+    return this.groupsService.getJoinRequests(id, user.sub, query);
+  }
+
+  @ApiBearerAuth()
+  @Put(':id/requests/:requestId/approve')
+  @ApiOperation({ summary: 'Approve join request (owner/admin)' })
+  async approveJoinRequest(
+    @Param('id', ParseCuidPipe) id: string,
+    @Param('requestId', ParseCuidPipe) requestId: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.groupsService.approveJoinRequest(id, requestId, user.sub);
+  }
+
+  @ApiBearerAuth()
+  @Put(':id/requests/:requestId/reject')
+  @ApiOperation({ summary: 'Reject join request (owner/admin)' })
+  async rejectJoinRequest(
+    @Param('id', ParseCuidPipe) id: string,
+    @Param('requestId', ParseCuidPipe) requestId: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.groupsService.rejectJoinRequest(id, requestId, user.sub);
   }
 
   @Public()

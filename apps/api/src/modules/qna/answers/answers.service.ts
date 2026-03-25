@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreateAnswerDto } from '../dto/create-answer.dto';
 
@@ -18,7 +19,10 @@ const AUTHOR_SELECT = {
 
 @Injectable()
 export class AnswersService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
+  ) {}
 
   async create(authorId: string, questionId: string, dto: CreateAnswerDto) {
     const question = await this.prisma.question.findUnique({
@@ -45,6 +49,22 @@ export class AnswersService {
         where: { id: questionId },
         data: { answerCount: { increment: 1 } },
       });
+
+      // Notify question author (skip self-answer)
+      if (question.authorId !== authorId) {
+        const answerer = await this.prisma.user.findUnique({
+          where: { id: authorId },
+          select: { fullName: true },
+        });
+        this.notifications
+          .create(question.authorId, 'QUESTION_ANSWERED', {
+            questionId,
+            answerId: answer.id,
+            userId: authorId,
+            fullName: answerer?.fullName,
+          })
+          .catch(() => {});
+      }
 
       return answer;
     });

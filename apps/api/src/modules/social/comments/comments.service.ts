@@ -6,6 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -14,7 +15,10 @@ import { AUTHOR_SELECT } from '../posts/posts.service';
 
 @Injectable()
 export class CommentsService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
+  ) {}
 
   async create(authorId: string, postId: string, dto: CreateCommentDto) {
     const post = await this.prisma.post.findUnique({
@@ -46,6 +50,46 @@ export class CommentsService {
         where: { id: postId },
         data: { commentCount: { increment: 1 } },
       });
+
+      // Notify post author (skip self-comment)
+      const commenter = await this.prisma.user.findUnique({
+        where: { id: authorId },
+        select: { fullName: true },
+      });
+
+      if (post.authorId !== authorId) {
+        this.notifications
+          .create(post.authorId, 'POST_COMMENT', {
+            postId,
+            commentId: comment.id,
+            userId: authorId,
+            fullName: commenter?.fullName,
+          })
+          .catch(() => {});
+      }
+
+      // If this is a reply, also notify the parent comment author
+      if (dto.parentId) {
+        const parentComment = await tx.comment.findUnique({
+          where: { id: dto.parentId },
+          select: { authorId: true },
+        });
+        if (
+          parentComment &&
+          parentComment.authorId !== authorId &&
+          parentComment.authorId !== post.authorId
+        ) {
+          this.notifications
+            .create(parentComment.authorId, 'POST_COMMENT', {
+              postId,
+              commentId: comment.id,
+              userId: authorId,
+              fullName: commenter?.fullName,
+              isReply: true,
+            })
+            .catch(() => {});
+        }
+      }
 
       return comment;
     });

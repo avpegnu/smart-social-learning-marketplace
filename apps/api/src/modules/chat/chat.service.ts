@@ -140,6 +140,9 @@ export class ChatService {
       data: { updatedAt: new Date() },
     });
 
+    // Note: Chat notifications are handled via WebSocket (new_message event).
+    // No push notification created here to avoid duplicate alerts when user is online.
+
     return message;
   }
 
@@ -176,6 +179,13 @@ export class ChatService {
       },
     });
     return !!member;
+  }
+
+  async getConversationMembers(conversationId: string) {
+    return this.prisma.conversationMember.findMany({
+      where: { conversationId },
+      select: { userId: true },
+    });
   }
 
   private async verifyMembership(conversationId: string, userId: string) {

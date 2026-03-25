@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 
 const mockPrisma = {
   group: {
@@ -25,12 +26,18 @@ const mockPrisma = {
   $transaction: jest.fn(),
 };
 
+const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
+
 describe('GroupsService', () => {
   let service: GroupsService;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [GroupsService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        GroupsService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotifications },
+      ],
     }).compile();
 
     service = module.get(GroupsService);

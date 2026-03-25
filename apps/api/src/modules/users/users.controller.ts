@@ -67,6 +67,13 @@ export class UsersController {
   // ==================== PUBLIC ENDPOINTS ====================
 
   @Public()
+  @Get('search')
+  @ApiOperation({ summary: 'Search users by name' })
+  async searchUsers(@Query('q') query: string) {
+    return this.usersService.searchUsers(query);
+  }
+
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Get public user profile' })
   async getPublicProfile(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user?: JwtPayload) {

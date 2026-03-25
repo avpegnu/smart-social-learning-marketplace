@@ -3,6 +3,7 @@ import { ForbiddenException } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { RedisService } from '@/redis/redis.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 
 const mockPrisma = {
   conversation: {
@@ -28,6 +29,8 @@ const mockRedis = {
   del: jest.fn(),
 };
 
+const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
+
 describe('ChatService', () => {
   let service: ChatService;
 
@@ -37,6 +40,7 @@ describe('ChatService', () => {
         ChatService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: RedisService, useValue: mockRedis },
+        { provide: NotificationsService, useValue: mockNotifications },
       ],
     }).compile();
 
@@ -90,6 +94,7 @@ describe('ChatService', () => {
       const message = { id: 'msg-1', content: 'Hello' };
       mockPrisma.message.create.mockResolvedValue(message);
       mockPrisma.conversation.update.mockResolvedValue({});
+      mockPrisma.conversationMember.findMany.mockResolvedValue([]);
 
       const result = await service.sendMessage('user-1', 'conv-1', {
         content: 'Hello',

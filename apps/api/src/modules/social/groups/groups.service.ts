@@ -6,6 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { Prisma } from '@prisma/client';
 import { GroupRole } from '@prisma/client';
@@ -20,7 +21,10 @@ import { AUTHOR_SELECT } from '../posts/posts.service';
 
 @Injectable()
 export class GroupsService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
+  ) {}
 
   async create(ownerId: string, dto: CreateGroupDto) {
     if (dto.courseId) {
@@ -49,9 +53,8 @@ export class GroupsService {
     });
   }
 
-  async findAll(query: QueryGroupsDto) {
+  async findAll(query: QueryGroupsDto, currentUserId?: string) {
     const where: Prisma.GroupWhereInput = {
-      privacy: 'PUBLIC',
       ...(query.search && {
         name: { contains: query.search, mode: 'insensitive' as const },
       }),
@@ -68,6 +71,33 @@ export class GroupsService {
       this.prisma.group.count({ where }),
     ]);
 
+    // Batch-check membership + join requests for current user
+    if (currentUserId && groups.length > 0) {
+      const groupIds = groups.map((g) => g.id);
+      const [memberships, requests] = await Promise.all([
+        this.prisma.groupMember.findMany({
+          where: { groupId: { in: groupIds }, userId: currentUserId },
+          select: { groupId: true, role: true },
+        }),
+        this.prisma.groupJoinRequest.findMany({
+          where: { groupId: { in: groupIds }, userId: currentUserId },
+          select: { groupId: true, status: true },
+        }),
+      ]);
+
+      const memberMap = new Map(memberships.map((m) => [m.groupId, m.role]));
+      const requestMap = new Map(requests.map((r) => [r.groupId, r.status]));
+
+      const enriched = groups.map((g) => ({
+        ...g,
+        isMember: memberMap.has(g.id),
+        currentUserRole: memberMap.get(g.id) ?? null,
+        joinRequestStatus: requestMap.get(g.id) ?? null,
+      }));
+
+      return createPaginatedResult(enriched, total, query.page, query.limit);
+    }
+
     return createPaginatedResult(groups, total, query.page, query.limit);
   }
 
@@ -83,15 +113,23 @@ export class GroupsService {
 
     let isMember = false;
     let currentUserRole: string | null = null;
+    let joinRequestStatus: string | null = null;
+
     if (currentUserId) {
-      const member = await this.prisma.groupMember.findUnique({
-        where: { groupId_userId: { groupId, userId: currentUserId } },
-      });
+      const [member, joinRequest] = await Promise.all([
+        this.prisma.groupMember.findUnique({
+          where: { groupId_userId: { groupId, userId: currentUserId } },
+        }),
+        this.prisma.groupJoinRequest.findUnique({
+          where: { groupId_userId: { groupId, userId: currentUserId } },
+        }),
+      ]);
       isMember = !!member;
       currentUserRole = member?.role ?? null;
+      joinRequestStatus = joinRequest?.status ?? null;
     }
 
-    return { ...group, isMember, currentUserRole };
+    return { ...group, isMember, currentUserRole, joinRequestStatus };
   }
 
   async update(groupId: string, userId: string, dto: UpdateGroupDto) {
@@ -113,20 +151,52 @@ export class GroupsService {
     });
     if (!group) throw new NotFoundException({ code: 'GROUP_NOT_FOUND' });
 
-    if (group.privacy === 'PRIVATE' && group.courseId) {
-      const enrollment = await this.prisma.enrollment.findFirst({
-        where: { userId, courseId: group.courseId },
-      });
-      if (!enrollment) {
-        throw new ForbiddenException({ code: 'ENROLLMENT_REQUIRED' });
+    const existingMember = await this.prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+    if (existingMember) throw new ConflictException({ code: 'ALREADY_MEMBER' });
+
+    // Private group handling
+    if (group.privacy === 'PRIVATE') {
+      // Course-linked group: auto-join if enrolled
+      if (group.courseId) {
+        const enrollment = await this.prisma.enrollment.findFirst({
+          where: { userId, courseId: group.courseId },
+        });
+        if (!enrollment) {
+          throw new ForbiddenException({ code: 'ENROLLMENT_REQUIRED' });
+        }
+        // Fall through to direct join below
+      } else {
+        // Non-course private group: create join request
+        const existingRequest = await this.prisma.groupJoinRequest.findUnique({
+          where: { groupId_userId: { groupId, userId } },
+        });
+        if (existingRequest?.status === 'PENDING') {
+          throw new ConflictException({ code: 'JOIN_REQUEST_PENDING' });
+        }
+
+        await this.prisma.groupJoinRequest.upsert({
+          where: { groupId_userId: { groupId, userId } },
+          update: { status: 'PENDING' },
+          create: { groupId, userId, status: 'PENDING' },
+        });
+
+        // Notify group owner
+        this.notifications
+          .create(group.ownerId, 'SYSTEM', {
+            type: 'GROUP_JOIN_REQUEST',
+            groupId,
+            groupName: group.name,
+            userId,
+          })
+          .catch(() => {});
+
+        return { requested: true };
       }
     }
 
-    const existing = await this.prisma.groupMember.findUnique({
-      where: { groupId_userId: { groupId, userId } },
-    });
-    if (existing) throw new ConflictException({ code: 'ALREADY_MEMBER' });
-
+    // Direct join (public groups or course-linked private groups)
     await this.prisma.$transaction([
       this.prisma.groupMember.create({
         data: { groupId, userId, role: 'MEMBER' },
@@ -239,8 +309,112 @@ export class GroupsService {
       this.prisma.post.count({ where: { groupId, deletedAt: null } }),
     ]);
 
+    // Batch lookup isLiked / isBookmarked for current user
+    if (userId && posts.length > 0) {
+      const postIds = posts.map((p) => p.id);
+      const [likes, bookmarks] = await Promise.all([
+        this.prisma.like.findMany({
+          where: { userId, postId: { in: postIds } },
+          select: { postId: true },
+        }),
+        this.prisma.bookmark.findMany({
+          where: { userId, postId: { in: postIds } },
+          select: { postId: true },
+        }),
+      ]);
+      const likedSet = new Set(likes.map((l) => l.postId));
+      const bookmarkedSet = new Set(bookmarks.map((b) => b.postId));
+
+      const enriched = posts.map((p) => ({
+        ...p,
+        isLiked: likedSet.has(p.id),
+        isBookmarked: bookmarkedSet.has(p.id),
+      }));
+      return createPaginatedResult(enriched, total, query.page, query.limit);
+    }
+
     return createPaginatedResult(posts, total, query.page, query.limit);
   }
+
+  // ==================== JOIN REQUESTS ====================
+
+  async getJoinRequests(groupId: string, userId: string, query: PaginationDto) {
+    await this.verifyGroupRole(groupId, userId, [GroupRole.OWNER, GroupRole.ADMIN]);
+
+    const where = { groupId, status: 'PENDING' as const };
+    const [requests, total] = await Promise.all([
+      this.prisma.groupJoinRequest.findMany({
+        where,
+        include: { user: { select: AUTHOR_SELECT } },
+        orderBy: { createdAt: 'desc' },
+        skip: query.skip,
+        take: query.limit,
+      }),
+      this.prisma.groupJoinRequest.count({ where }),
+    ]);
+    return createPaginatedResult(requests, total, query.page, query.limit);
+  }
+
+  async approveJoinRequest(groupId: string, requestId: string, userId: string) {
+    await this.verifyGroupRole(groupId, userId, [GroupRole.OWNER, GroupRole.ADMIN]);
+
+    const request = await this.prisma.groupJoinRequest.findUnique({
+      where: { id: requestId },
+    });
+    if (!request || request.groupId !== groupId) {
+      throw new NotFoundException({ code: 'REQUEST_NOT_FOUND' });
+    }
+    if (request.status !== 'PENDING') {
+      throw new ConflictException({ code: 'REQUEST_ALREADY_HANDLED' });
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.groupJoinRequest.update({
+        where: { id: requestId },
+        data: { status: 'APPROVED' },
+      }),
+      this.prisma.groupMember.create({
+        data: { groupId, userId: request.userId, role: 'MEMBER' },
+      }),
+      this.prisma.group.update({
+        where: { id: groupId },
+        data: { memberCount: { increment: 1 } },
+      }),
+    ]);
+
+    // Notify the requester
+    this.notifications
+      .create(request.userId, 'SYSTEM', {
+        type: 'GROUP_JOIN_APPROVED',
+        groupId,
+      })
+      .catch(() => {});
+
+    return { approved: true };
+  }
+
+  async rejectJoinRequest(groupId: string, requestId: string, userId: string) {
+    await this.verifyGroupRole(groupId, userId, [GroupRole.OWNER, GroupRole.ADMIN]);
+
+    const request = await this.prisma.groupJoinRequest.findUnique({
+      where: { id: requestId },
+    });
+    if (!request || request.groupId !== groupId) {
+      throw new NotFoundException({ code: 'REQUEST_NOT_FOUND' });
+    }
+    if (request.status !== 'PENDING') {
+      throw new ConflictException({ code: 'REQUEST_ALREADY_HANDLED' });
+    }
+
+    await this.prisma.groupJoinRequest.update({
+      where: { id: requestId },
+      data: { status: 'REJECTED' },
+    });
+
+    return { rejected: true };
+  }
+
+  // ==================== PRIVATE HELPERS ====================
 
   private async verifyGroupRole(groupId: string, userId: string, allowedRoles: GroupRole[]) {
     const member = await this.prisma.groupMember.findUnique({

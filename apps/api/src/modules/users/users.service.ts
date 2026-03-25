@@ -8,6 +8,7 @@ import {
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '@/prisma/prisma.service';
+import { NotificationsService } from '@/modules/notifications/notifications.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
 import type { UpdateProfileDto } from './dto/update-profile.dto';
@@ -21,7 +22,26 @@ const PUBLIC_USER_SELECT = {
 
 @Injectable()
 export class UsersService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
+  ) {}
+
+  // ==================== SEARCH ====================
+
+  async searchUsers(query: string) {
+    if (!query || query.length < 2) return [];
+    return this.prisma.user.findMany({
+      where: {
+        fullName: { contains: query, mode: 'insensitive' },
+        status: 'ACTIVE',
+        deletedAt: null,
+      },
+      select: PUBLIC_USER_SELECT,
+      take: 20,
+      orderBy: { fullName: 'asc' },
+    });
+  }
 
   // ==================== PROFILE ====================
 
@@ -157,6 +177,15 @@ export class UsersService {
       }
       throw error;
     }
+
+    // Notify the followed user
+    const follower = await this.prisma.user.findUnique({
+      where: { id: followerId },
+      select: { fullName: true },
+    });
+    this.notifications
+      .create(followingId, 'FOLLOW', { userId: followerId, fullName: follower?.fullName })
+      .catch(() => {});
 
     return { message: 'FOLLOWED' };
   }

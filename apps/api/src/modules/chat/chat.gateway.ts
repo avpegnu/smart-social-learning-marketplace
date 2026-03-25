@@ -90,6 +90,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.server.to(`conv_${data.conversationId}`).emit('new_message', message);
 
+    // Notify members NOT currently in the conversation room (offline/other pages)
+    const members = await this.chatService.getConversationMembers(data.conversationId);
+    const roomSockets = await this.server.in(`conv_${data.conversationId}`).fetchSockets();
+    const activeUserIds = new Set(roomSockets.map((s) => s.data.userId as string));
+
+    for (const member of members) {
+      if (member.userId !== userId && !activeUserIds.has(member.userId)) {
+        // User not in room — send notification via their personal room
+        this.server.to(`user_${member.userId}`).emit('new_message_notification', {
+          conversationId: data.conversationId,
+          senderId: userId,
+          content: data.content.slice(0, 100),
+        });
+      }
+    }
+
     return { success: true, messageId: message.id };
   }
 
@@ -120,9 +136,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userId = client.data.userId as string;
     await this.chatService.markRead(data.conversationId, userId);
 
+    // Notify others in the conversation
     client.to(`conv_${data.conversationId}`).emit('message_read', {
       userId,
       conversationId: data.conversationId,
     });
+
+    // Confirm back to sender so their UI updates
+    client.emit('mark_read_confirmed', { conversationId: data.conversationId });
   }
 }
