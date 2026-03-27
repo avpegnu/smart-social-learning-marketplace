@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@source '../../../../packages/shared-ui/src/**/*.tsx';
 @plugin '@tailwindcss/typography';
 
 @theme inline {
