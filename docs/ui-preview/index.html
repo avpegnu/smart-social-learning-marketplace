@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UI Preview — Smart Social Learning Marketplace</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; }
+
+  .header { text-align: center; padding: 4rem 2rem 3rem; }
+  .header .logo { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .logo-icon { width: 48px; height: 48px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: 800; }
+  .logo-text { font-size: 1.75rem; font-weight: 800; }
+  .header h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+  .header h1 span { background: linear-gradient(135deg, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .header p { color: #94a3b8; font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+
+  .grid { max-width: 1200px; margin: 0 auto; padding: 0 2rem 4rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+
+  .card { background: #1e293b; border-radius: 16px; overflow: hidden; border: 1px solid #334155; transition: all 0.3s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); border-color: #6366f1; }
+
+  .card-preview { aspect-ratio: 16/10; position: relative; overflow: hidden; }
+  .card-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .card-gradient { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .card-number { font-size: 4rem; font-weight: 800; opacity: 0.15; position: absolute; top: 1rem; right: 1.5rem; }
+
+  .g1 { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); }
+  .g2 { background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); }
+  .g3 { background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%); }
+  .g4 { background: linear-gradient(135deg, #ef4444 0%, #f97316 100%); }
+  .g5 { background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%); }
+  .g6 { background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); }
+  .g7 { background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%); }
+  .g8 { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); }
+  .g9 { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); }
+
+  .card-icon { font-size: 3rem; position: relative; z-index: 1; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2)); }
+
+  .card-body { padding: 1.25rem; }
+  .card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.375rem; }
+  .card-desc { font-size: 0.85rem; color: #94a3b8; line-height: 1.5; }
+  .card-tag { display: inline-block; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 4px; margin-top: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .tag-student { background: rgba(99,102,241,0.2); color: #818cf8; }
+  .tag-auth { background: rgba(14,165,233,0.2); color: #38bdf8; }
+  .tag-management { background: rgba(245,158,11,0.2); color: #fbbf24; }
+
+  .footer { text-align: center; padding: 2rem; color: #64748b; font-size: 0.8rem; border-top: 1px solid #1e293b; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">S</div>
+    <span class="logo-text">SSML</span>
+  </div>
+  <h1>UI <span>Preview</span></h1>
+  <p>Smart Social Learning Marketplace — Xem trước giao diện tất cả các trang chính</p>
+</div>
+
+<div class="grid">
+
+  <a class="card" href="01-homepage.html">
+    <div class="card-preview">
+      <div class="card-gradient g1">
+        <div class="card-number">01</div>
+        <div class="card-icon">🏠</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-title">Homepage</div>
+      <div class="card-desc">Trang chủ với Hero, Categories, Khóa học nổi bật, Mới nhất, Gợi ý & Why Us</div>
+      <span class="card-tag tag-student">Student Portal</span>
+    </div>
+  </a>
+
+  <a class="card" href="02-auth.html">
+    <div class="card-preview">
+      <div class="card-gradient g2">
+        <div class="card-number">02</div>
+        <div class="card-icon">🔐</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-title">Login & Register</div>
+      <div class="card-desc">Đăng nhập / Đăng ký với email, Google OAuth, password strength indicator</div>
+      <span class="card-tag tag-auth">Auth</span>
+    </div>
+  </a>
+
+  <a class="card" href="03-browse-courses.html">
+    <div class="card-preview">
+      <div class="card-gradient g3">
+        <div class="card-number">03</div>
+        <div class="card-icon">🔍</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-title">Browse Courses</div>
+      <div class="card-desc">Tìm kiếm & lọc khóa học theo danh mục, trình độ, giá, đánh giá với pagination</div>
+      <span class="card-tag tag-student">Student Portal</span>
+    </div>
+  </a>
+
+  <a class="card" href="04-course-detail.html">
+    <div class="card-preview">
+      <div class="card-gradient g4">
+        <div class="card-number">04</div>
+        <div class="card-icon">📚</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-title">Course Detail</div>
+      <div class="card-desc">Chi tiết khóa học: tổng quan, nội dung, đánh giá, purchase card, mua theo chương</div>
+      <span class="card-tag tag-student">Student Portal</span>
+    </div>
+  </a>
+
+  <a class="card" href="05-course-player.html">
+    <div class="card-preview">
+      <div class="card-gradient g5">
+        <div class="card-number">05</div>
+        <div class="card-icon">▶️</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-title">Course Player</div>
+      <div class="card-desc">Video player, curriculum sidebar, ghi chú, AI Tutor chat, quiz player</div>
+      <span class="card-tag tag-student">Student Portal</span>
+    </div>
+  </a>
+
+  <a class="card" href="06-learning-dashboard.html">
+    <div class="card-preview">
+      <div class="card-gradient g6">
+        <div class="card-number">06</div>
+        <div class="card-icon">📊</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-title">Learning Dashboard</div>
+      <div class="card-desc">Học tập của tôi: stats, streak calendar, enrolled courses, skills map</div>
+      <span class="card-tag tag-student">Student Portal</span>
+    </div>
+  </a>
+
+  <a class="card" href="07-social-feed.html">
+    <div class="card-preview">
+      <div class="card-gradient g7">
+        <div class="card-number">07</div>
+        <div class="card-icon">👥</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-title">Social Feed</div>
+      <div class="card-desc">Bảng tin xã hội: post composer, feed posts, trending, gợi ý follow</div>
+      <span class="card-tag tag-student">Student Portal</span>
+    </div>
+  </a>
+
+  <a class="card" href="08-chat.html">
+    <div class="card-preview">
+      <div class="card-gradient g8">
+        <div class="card-number">08</div>
+        <div class="card-icon">💬</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-title">Chat / Messaging</div>
+      <div class="card-desc">Nhắn tin real-time: conversations list, chat bubbles, typing indicator, code sharing</div>
+      <span class="card-tag tag-student">Student Portal</span>
+    </div>
+  </a>
+
+  <a class="card" href="09-management-portal.html">
+    <div class="card-preview">
+      <div class="card-gradient g9">
+        <div class="card-number">09</div>
+        <div class="card-icon">⚙️</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-title">Management Portal</div>
+      <div class="card-desc">Instructor Dashboard: doanh thu, khóa học, đánh giá, hoạt động, analytics</div>
+      <span class="card-tag tag-management">Management</span>
+    </div>
+  </a>
+
+</div>
+
+<div class="footer">
+  Smart Social Learning Marketplace — UI Preview | Thiết kế dựa trên Design System docs
+</div>
+
+</body>
+</html>
