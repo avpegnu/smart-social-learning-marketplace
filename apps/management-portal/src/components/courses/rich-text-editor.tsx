@@ -48,7 +48,9 @@ export function RichTextEditor({
     onUpdate: ({ editor: e }) => onChange(e.getHTML()),
     editorProps: {
       attributes: {
-        class: cn('prose prose-sm dark:prose-invert max-w-none p-4 focus:outline-none'),
+        class: cn(
+          'prose prose-sm dark:prose-invert prose-p:text-foreground prose-li:text-foreground prose-headings:text-foreground max-w-none break-all p-4 focus:outline-none',
+        ),
         style: `min-height: ${minHeight}`,
       },
     },
@@ -86,7 +88,12 @@ export function RichTextEditor({
   };
 
   return (
-    <div className={cn('border-border bg-background rounded-md border', readOnly && 'opacity-70')}>
+    <div
+      className={cn(
+        'border-border bg-background overflow-hidden rounded-md border',
+        readOnly && 'opacity-70',
+      )}
+    >
       {/* Toolbar + Tab switcher */}
       {!readOnly && (
         <div className="border-border flex items-center justify-between border-b p-2">
@@ -208,7 +215,7 @@ export function RichTextEditor({
 
       {activeTab === 'preview' && (
         <div
-          className="prose prose-sm dark:prose-invert max-w-none p-4"
+          className="prose prose-sm dark:prose-invert prose-p:text-foreground prose-li:text-foreground prose-headings:text-foreground max-w-none p-4 break-all"
           style={{ minHeight }}
           dangerouslySetInnerHTML={{ __html: editor.getHTML() }}
         />

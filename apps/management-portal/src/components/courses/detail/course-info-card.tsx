@@ -89,7 +89,7 @@ export function CourseInfoCard({ course, category }: CourseInfoCardProps) {
         <div>
           <p className="text-muted-foreground mb-2 text-sm">{t('description')}</p>
           <div
-            className="prose prose-sm dark:prose-invert prose-p:text-foreground prose-li:text-foreground prose-headings:text-foreground border-border max-w-none rounded-md border p-4"
+            className="prose prose-sm dark:prose-invert prose-p:text-foreground prose-li:text-foreground prose-headings:text-foreground border-border max-w-none overflow-hidden rounded-md border p-4 break-all"
             dangerouslySetInnerHTML={{ __html: course.description as string }}
           />
         </div>
