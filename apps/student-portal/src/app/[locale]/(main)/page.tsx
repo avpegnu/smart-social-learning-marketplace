@@ -3,7 +3,16 @@
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { ArrowRight, Star, Users, Bot, Sparkles, GraduationCap, ChevronRight } from 'lucide-react';
+import {
+  ArrowRight,
+  Star,
+  Users,
+  Bot,
+  Sparkles,
+  GraduationCap,
+  ChevronRight,
+  Target,
+} from 'lucide-react';
 import { Button, Badge, Skeleton } from '@shared/ui';
 import { CourseGrid } from '@/components/course/course-grid';
 import { RecommendationSection } from '@/components/course/recommendation-section';
@@ -12,6 +21,7 @@ import { cn } from '@/lib/utils';
 
 export default function HomePage() {
   const t = useTranslations('home');
+  const tp = useTranslations('placementTest');
 
   const popularParams = useMemo(() => ({ sort: 'popular', limit: '4' }), []);
   const newestParams = useMemo(() => ({ sort: 'newest', limit: '4' }), []);
@@ -222,6 +232,25 @@ export default function HomePage() {
                 <p className="text-muted-foreground text-sm">{feature.description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Placement Test CTA */}
+      <section className="py-12 sm:py-16">
+        <div className="container mx-auto px-4">
+          <div className="from-primary/10 mx-auto max-w-3xl rounded-2xl border bg-gradient-to-r to-violet-500/10 p-8 text-center sm:p-12">
+            <div className="bg-primary/10 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full">
+              <Target className="text-primary h-7 w-7" />
+            </div>
+            <h2 className="mb-2 text-xl font-bold sm:text-2xl">{tp('ctaTitle')}</h2>
+            <p className="text-muted-foreground mx-auto mb-6 max-w-lg">{tp('ctaDesc')}</p>
+            <Link href="/placement-test">
+              <Button size="lg" className="h-12 gap-2 rounded-full px-8">
+                {tp('ctaButton')}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
