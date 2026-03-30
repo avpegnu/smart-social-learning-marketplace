@@ -46,6 +46,37 @@ export const adminService = {
   updateTag: (id: string, data: { name: string }) => apiClient.patch(`/admin/tags/${id}`, data),
   deleteTag: (id: string) => apiClient.del(`/admin/tags/${id}`),
 
+  // Placement Questions
+  getPlacementQuestions: (params?: Record<string, string>) =>
+    apiClient.get('/admin/placement-questions', params),
+  createPlacementQuestion: (data: {
+    question: string;
+    options: { id: string; text: string }[];
+    answer: string;
+    level: string;
+    tagIds: string[];
+  }) => apiClient.post('/admin/placement-questions', data),
+  updatePlacementQuestion: (
+    id: string,
+    data: {
+      question: string;
+      options: { id: string; text: string }[];
+      answer: string;
+      level: string;
+      tagIds: string[];
+    },
+  ) => apiClient.patch(`/admin/placement-questions/${id}`, data),
+  deletePlacementQuestion: (id: string) => apiClient.del(`/admin/placement-questions/${id}`),
+  createPlacementQuestionsBatch: (
+    data: Array<{
+      question: string;
+      options: { id: string; text: string }[];
+      answer: string;
+      level: string;
+      tagIds: string[];
+    }>,
+  ) => apiClient.post('/admin/placement-questions/batch', data),
+
   // Reports
   getReports: (params: Record<string, string>) => apiClient.get('/admin/reports', params),
   reviewReport: (id: string, data: { status: string; adminNote?: string }) =>

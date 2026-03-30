@@ -24,6 +24,8 @@ import { CreateTagDto } from '../dto/create-tag.dto';
 import { CreateCommissionTierDto } from '../dto/create-commission-tier.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { UpdateSettingDto } from '../dto/update-setting.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { CreatePlacementQuestionDto } from '../dto/create-placement-question.dto';
 
 @Controller('admin')
 @ApiTags('Admin — Content')
@@ -122,5 +124,54 @@ export class AdminContentController {
   @ApiOperation({ summary: 'Update platform setting' })
   async updateSetting(@Body() dto: UpdateSettingDto) {
     return this.service.updateSetting(dto);
+  }
+
+  // --- Placement Questions ---
+
+  @Get('placement-questions')
+  @ApiOperation({ summary: 'List placement questions (paginated, filterable)' })
+  async getPlacementQuestions(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('level') level?: string,
+    @Query('sort') sort?: string,
+    @Query('order') order?: string,
+  ) {
+    return this.service.getPlacementQuestions({
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      search,
+      level,
+      sort,
+      order,
+    });
+  }
+
+  @Post('placement-questions')
+  @ApiOperation({ summary: 'Create placement question' })
+  async createPlacementQuestion(@Body() dto: CreatePlacementQuestionDto) {
+    return this.service.createPlacementQuestion(dto);
+  }
+
+  @Post('placement-questions/batch')
+  @ApiOperation({ summary: 'Batch create placement questions' })
+  async createPlacementQuestionsBatch(@Body() dto: CreatePlacementQuestionDto[]) {
+    return this.service.createPlacementQuestionsBatch(dto);
+  }
+
+  @Patch('placement-questions/:id')
+  @ApiOperation({ summary: 'Update placement question' })
+  async updatePlacementQuestion(
+    @Param('id', ParseCuidPipe) id: string,
+    @Body() dto: CreatePlacementQuestionDto,
+  ) {
+    return this.service.updatePlacementQuestion(id, dto);
+  }
+
+  @Delete('placement-questions/:id')
+  @ApiOperation({ summary: 'Delete placement question' })
+  async deletePlacementQuestion(@Param('id', ParseCuidPipe) id: string) {
+    return this.service.deletePlacementQuestion(id);
   }
 }

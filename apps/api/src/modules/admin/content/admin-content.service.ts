@@ -11,6 +11,8 @@ import { CreateTagDto } from '../dto/create-tag.dto';
 import { CreateCommissionTierDto } from '../dto/create-commission-tier.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { UpdateSettingDto } from '../dto/update-setting.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { CreatePlacementQuestionDto } from '../dto/create-placement-question.dto';
 
 @Injectable()
 export class AdminContentService {
@@ -134,5 +136,87 @@ export class AdminContentService {
         value: dto.value as Prisma.InputJsonValue,
       },
     });
+  }
+
+  // --- Placement Questions ---
+
+  async getPlacementQuestions(query: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    level?: string;
+    sort?: string;
+    order?: string;
+  }) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const where: Prisma.PlacementQuestionWhereInput = {};
+    if (query.search) {
+      where.question = { contains: query.search, mode: 'insensitive' };
+    }
+    if (query.level && ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'].includes(query.level)) {
+      where.level = query.level as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+    }
+
+    const orderBy: Prisma.PlacementQuestionOrderByWithRelationInput = {};
+    const sortField = query.sort === 'level' ? 'level' : 'createdAt';
+    orderBy[sortField] = query.order === 'asc' ? 'asc' : 'desc';
+
+    const [questions, total] = await Promise.all([
+      this.prisma.placementQuestion.findMany({
+        where,
+        orderBy,
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.placementQuestion.count({ where }),
+    ]);
+
+    return createPaginatedResult(questions, total, page, limit);
+  }
+
+  async createPlacementQuestion(dto: CreatePlacementQuestionDto) {
+    return this.prisma.placementQuestion.create({
+      data: {
+        question: dto.question,
+        options: dto.options as unknown as Prisma.InputJsonValue,
+        answer: dto.answer,
+        level: dto.level,
+        tagIds: dto.tagIds,
+      },
+    });
+  }
+
+  async updatePlacementQuestion(id: string, dto: Partial<CreatePlacementQuestionDto>) {
+    const data: Record<string, unknown> = {};
+    if (dto.question !== undefined) data['question'] = dto.question;
+    if (dto.options !== undefined)
+      data['options'] = dto.options as unknown as Prisma.InputJsonValue;
+    if (dto.answer !== undefined) data['answer'] = dto.answer;
+    if (dto.level !== undefined) data['level'] = dto.level;
+    if (dto.tagIds !== undefined) data['tagIds'] = dto.tagIds;
+    return this.prisma.placementQuestion.update({ where: { id }, data });
+  }
+
+  async createPlacementQuestionsBatch(items: CreatePlacementQuestionDto[]) {
+    const created = await this.prisma.$transaction(
+      items.map((dto) =>
+        this.prisma.placementQuestion.create({
+          data: {
+            question: dto.question,
+            options: dto.options as unknown as Prisma.InputJsonValue,
+            answer: dto.answer,
+            level: dto.level,
+            tagIds: dto.tagIds,
+          },
+        }),
+      ),
+    );
+    return { data: created, count: created.length };
+  }
+
+  async deletePlacementQuestion(id: string) {
+    return this.prisma.placementQuestion.delete({ where: { id } });
   }
 }

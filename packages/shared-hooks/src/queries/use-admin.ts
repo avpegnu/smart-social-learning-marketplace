@@ -231,6 +231,89 @@ export function useUpdateSetting() {
   });
 }
 
+// ── Placement Questions ──
+
+export function useAdminPlacementQuestions(params?: Record<string, string>) {
+  return useQuery({
+    queryKey: ['admin', 'placement-questions', params],
+    queryFn: () => adminService.getPlacementQuestions(params),
+  });
+}
+
+export function useCreatePlacementQuestion() {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: (data: {
+      question: string;
+      options: { id: string; text: string }[];
+      answer: string;
+      level: string;
+      tagIds: string[];
+    }) => adminService.createPlacementQuestion(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'placement-questions'] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useUpdatePlacementQuestion() {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: {
+        question: string;
+        options: { id: string; text: string }[];
+        answer: string;
+        level: string;
+        tagIds: string[];
+      };
+    }) => adminService.updatePlacementQuestion(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'placement-questions'] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useDeletePlacementQuestion() {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: (id: string) => adminService.deletePlacementQuestion(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'placement-questions'] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useCreatePlacementQuestionsBatch() {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: (
+      data: Array<{
+        question: string;
+        options: { id: string; text: string }[];
+        answer: string;
+        level: string;
+        tagIds: string[];
+      }>,
+    ) => adminService.createPlacementQuestionsBatch(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'placement-questions'] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
 // ── Reports ──
 
 export function useAdminReports(params: Record<string, string>) {

@@ -31,6 +31,14 @@ describe('AdminContentService', () => {
       findMany: jest.fn(),
       upsert: jest.fn(),
     },
+    placementQuestion: {
+      findMany: jest.fn(),
+      count: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+    $transaction: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -267,6 +275,164 @@ describe('AdminContentService', () => {
         expect.objectContaining({
           where: { key: 'minWithdrawal' },
         }),
+      );
+    });
+  });
+
+  // --- Placement Questions ---
+
+  describe('getPlacementQuestions', () => {
+    it('should return paginated placement questions', async () => {
+      const questions = [
+        { id: 'pq1', question: 'What is HTML?', level: 'BEGINNER' },
+        { id: 'pq2', question: 'What is React?', level: 'INTERMEDIATE' },
+      ];
+      prisma.placementQuestion.findMany.mockResolvedValue(questions);
+      prisma.placementQuestion.count.mockResolvedValue(2);
+
+      const result = await service.getPlacementQuestions({ page: 1, limit: 15 });
+
+      expect(result.data).toEqual(questions);
+      expect(result.meta).toEqual({ page: 1, limit: 15, total: 2, totalPages: 1 });
+    });
+
+    it('should filter by search term', async () => {
+      prisma.placementQuestion.findMany.mockResolvedValue([]);
+      prisma.placementQuestion.count.mockResolvedValue(0);
+
+      await service.getPlacementQuestions({ page: 1, search: 'react' });
+
+      expect(prisma.placementQuestion.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            question: { contains: 'react', mode: 'insensitive' },
+          }),
+        }),
+      );
+    });
+
+    it('should filter by level', async () => {
+      prisma.placementQuestion.findMany.mockResolvedValue([]);
+      prisma.placementQuestion.count.mockResolvedValue(0);
+
+      await service.getPlacementQuestions({ page: 1, level: 'ADVANCED' });
+
+      expect(prisma.placementQuestion.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ level: 'ADVANCED' }),
+        }),
+      );
+    });
+
+    it('should sort by specified field and order', async () => {
+      prisma.placementQuestion.findMany.mockResolvedValue([]);
+      prisma.placementQuestion.count.mockResolvedValue(0);
+
+      await service.getPlacementQuestions({ page: 1, sort: 'level', order: 'asc' });
+
+      expect(prisma.placementQuestion.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { level: 'asc' },
+        }),
+      );
+    });
+  });
+
+  describe('createPlacementQuestion', () => {
+    it('should create a placement question', async () => {
+      const dto = {
+        question: 'What is TypeScript?',
+        options: [
+          { id: 'a', text: 'A language' },
+          { id: 'b', text: 'A framework' },
+        ],
+        answer: 'a',
+        level: 'BEGINNER' as const,
+        tagIds: ['tag-1'],
+      };
+      prisma.placementQuestion.create.mockResolvedValue({ id: 'pq1', ...dto });
+
+      const result = await service.createPlacementQuestion(dto);
+
+      expect(result.question).toBe('What is TypeScript?');
+      expect(prisma.placementQuestion.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          question: 'What is TypeScript?',
+          answer: 'a',
+          level: 'BEGINNER',
+          tagIds: ['tag-1'],
+        }),
+      });
+    });
+  });
+
+  describe('updatePlacementQuestion', () => {
+    it('should update specified fields only', async () => {
+      prisma.placementQuestion.update.mockResolvedValue({
+        id: 'pq1',
+        question: 'Updated?',
+        level: 'ADVANCED',
+      });
+
+      await service.updatePlacementQuestion('pq1', {
+        question: 'Updated?',
+        level: 'ADVANCED' as const,
+      });
+
+      expect(prisma.placementQuestion.update).toHaveBeenCalledWith({
+        where: { id: 'pq1' },
+        data: expect.objectContaining({
+          question: 'Updated?',
+          level: 'ADVANCED',
+        }),
+      });
+    });
+  });
+
+  describe('deletePlacementQuestion', () => {
+    it('should delete a placement question', async () => {
+      prisma.placementQuestion.delete.mockResolvedValue({ id: 'pq1' });
+
+      await service.deletePlacementQuestion('pq1');
+
+      expect(prisma.placementQuestion.delete).toHaveBeenCalledWith({
+        where: { id: 'pq1' },
+      });
+    });
+  });
+
+  describe('createPlacementQuestionsBatch', () => {
+    it('should create multiple questions in a transaction', async () => {
+      const items = [
+        {
+          question: 'Q1?',
+          options: [
+            { id: 'a', text: 'A' },
+            { id: 'b', text: 'B' },
+          ],
+          answer: 'a',
+          level: 'BEGINNER' as const,
+          tagIds: ['tag-1'],
+        },
+        {
+          question: 'Q2?',
+          options: [
+            { id: 'a', text: 'X' },
+            { id: 'b', text: 'Y' },
+          ],
+          answer: 'b',
+          level: 'ADVANCED' as const,
+          tagIds: ['tag-2'],
+        },
+      ];
+      const created = items.map((dto, i) => ({ id: `pq-${i}`, ...dto }));
+      prisma.$transaction.mockResolvedValue(created);
+
+      const result = await service.createPlacementQuestionsBatch(items);
+
+      expect(result.count).toBe(2);
+      expect(prisma.$transaction).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.anything(), expect.anything()]),
       );
     });
   });

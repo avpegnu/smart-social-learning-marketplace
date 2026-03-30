@@ -116,6 +116,11 @@ export {
   useUpdateTag,
   useDeleteTag,
   useUpdateSetting,
+  useAdminPlacementQuestions,
+  useCreatePlacementQuestion,
+  useUpdatePlacementQuestion,
+  useDeletePlacementQuestion,
+  useCreatePlacementQuestionsBatch,
   useAdminReports,
   useReviewReport,
   useAdminAnalytics,
@@ -172,6 +177,8 @@ export {
 export { useAiQuota, useAiSessions, useSessionMessages } from './queries/use-ai-tutor';
 
 export { useRecommendations } from './queries/use-recommendations';
+
+export { useStartPlacement, useSubmitPlacement } from './queries/use-placement';
 
 export {
   useQuestionBanks,
@@ -267,6 +274,13 @@ export { aiTutorService } from './services/ai-tutor.service';
 export type { AskAiData } from './services/ai-tutor.service';
 export { recommendationService } from './services/recommendation.service';
 export type { RecommendedCourse, RecommendationContext } from './services/recommendation.service';
+export { placementService } from './services/placement.service';
+export type {
+  PlacementQuestion,
+  PlacementAnswer,
+  PlacementResult,
+  PlacementStartResponse,
+} from './services/placement.service';
 export { tagService } from './services/tag.service';
 export { questionBankService } from './services/question-bank.service';
 export type { BankQuestionPayload } from './services/question-bank.service';
