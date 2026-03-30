@@ -127,8 +127,12 @@ export default function ChatPage() {
 
   // Send message via socket
   const handleSendMessage = useCallback(
-    (conversationId: string, content: string) => {
-      sendMessage(conversationId, content);
+    (
+      conversationId: string,
+      content: string,
+      options?: { type?: string; fileUrl?: string; fileName?: string },
+    ) => {
+      sendMessage(conversationId, content, options);
     },
     [sendMessage],
   );

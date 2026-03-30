@@ -15,6 +15,7 @@ interface MessageData {
   id: string;
   content: string;
   type: string;
+  fileUrl?: string;
   senderId: string;
   sender: MessageSender;
   createdAt: string;
@@ -62,14 +63,30 @@ export function MessageItem({ message, isOwn, isGroup, showSenderInfo }: Message
           {/* Message bubble */}
           <div
             className={cn(
-              'rounded-2xl px-3 py-2',
+              'rounded-2xl',
+              message.type === 'IMAGE' ? 'overflow-hidden' : 'px-3 py-2',
               isOwn ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted rounded-bl-md',
             )}
           >
-            <p className="text-sm wrap-break-word whitespace-pre-wrap">{message.content}</p>
+            {message.type === 'IMAGE' ? (
+              <a
+                href={message.fileUrl ?? message.content}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src={message.fileUrl ?? message.content}
+                  alt="Shared image"
+                  className="max-h-60 max-w-full rounded-2xl object-contain"
+                />
+              </a>
+            ) : (
+              <p className="text-sm wrap-break-word whitespace-pre-wrap">{message.content}</p>
+            )}
             <p
               className={cn(
                 'mt-0.5 text-[10px]',
+                message.type === 'IMAGE' ? 'px-3 pb-1.5' : '',
                 isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground',
               )}
             >

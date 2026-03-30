@@ -74,13 +74,22 @@ export function useChatSocket(callbacks?: ChatSocketCallbacks) {
     socketRef.current?.emit('join_conversation', { conversationId: id });
   }, []);
 
-  const sendMessage = useCallback((conversationId: string, content: string) => {
-    socketRef.current?.emit('send_message', {
-      conversationId,
-      content,
-      type: 'TEXT',
-    });
-  }, []);
+  const sendMessage = useCallback(
+    (
+      conversationId: string,
+      content: string,
+      options?: { type?: string; fileUrl?: string; fileName?: string },
+    ) => {
+      socketRef.current?.emit('send_message', {
+        conversationId,
+        content,
+        type: options?.type ?? 'TEXT',
+        fileUrl: options?.fileUrl,
+        fileName: options?.fileName,
+      });
+    },
+    [],
+  );
 
   const sendTyping = useCallback((conversationId: string) => {
     socketRef.current?.emit('typing', { conversationId });

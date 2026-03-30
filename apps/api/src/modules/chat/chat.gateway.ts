@@ -77,13 +77,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleSendMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody()
-    data: { conversationId: string; content: string; type?: MessageType },
+    data: {
+      conversationId: string;
+      content: string;
+      type?: MessageType;
+      fileUrl?: string;
+      fileName?: string;
+    },
   ) {
     const userId = client.data.userId as string;
 
     const dto: SendMessageDto = Object.assign(new SendMessageDto(), {
       content: data.content,
       type: data.type,
+      fileUrl: data.fileUrl,
+      fileName: data.fileName,
     });
 
     const message = await this.chatService.sendMessage(userId, data.conversationId, dto);
