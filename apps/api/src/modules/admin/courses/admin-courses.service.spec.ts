@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { AdminCoursesService } from './admin-courses.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { EmbeddingsService } from '@/modules/ai-tutor/embeddings/embeddings.service';
 
 describe('AdminCoursesService', () => {
   let service: AdminCoursesService;
@@ -18,10 +19,17 @@ describe('AdminCoursesService', () => {
     },
     $transaction: jest.fn((fn) => fn(tx)),
   };
+  const embeddings = {
+    indexCourseContent: jest.fn().mockResolvedValue(undefined),
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [AdminCoursesService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        AdminCoursesService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: EmbeddingsService, useValue: embeddings },
+      ],
     }).compile();
     service = module.get(AdminCoursesService);
     jest.clearAllMocks();

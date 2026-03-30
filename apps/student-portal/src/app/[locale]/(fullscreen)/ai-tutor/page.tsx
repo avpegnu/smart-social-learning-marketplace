@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   useAiQuota,
@@ -73,8 +73,12 @@ export default function AiTutorPage() {
   const [showSidebar, setShowSidebar] = useState(true);
 
   // Sync session messages
+  const streamingRef = useRef(false);
+  streamingRef.current = isStreaming || isThinking;
+
   useEffect(() => {
-    if (sessionMessages) {
+    // Skip sync during streaming to preserve optimistic user message
+    if (sessionMessages && !streamingRef.current) {
       setLocalMessages(
         sessionMessages.map((m, i) => ({
           id: m.id ?? `msg-${i}`,

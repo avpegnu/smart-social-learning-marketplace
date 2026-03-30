@@ -4,6 +4,7 @@ import type { AnalyticsType, Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { RedisService } from '@/redis/redis.service';
 import { RecommendationsService } from '@/modules/recommendations/recommendations.service';
+import { EmbeddingsService } from '@/modules/ai-tutor/embeddings/embeddings.service';
 
 @Injectable()
 export class CronService {
@@ -13,6 +14,7 @@ export class CronService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(RedisService) private readonly redis: RedisService,
     @Inject(RecommendationsService) private readonly recommendations: RecommendationsService,
+    @Inject(EmbeddingsService) private readonly embeddingsService: EmbeddingsService,
   ) {}
 
   // 1. Expire pending orders (every 1 min)
@@ -247,5 +249,35 @@ export class CronService {
     `;
 
     this.logger.log('Counter reconciliation completed');
+  }
+
+  // 10. Index published courses for AI Tutor (daily 5 AM)
+  @Cron('0 5 * * *')
+  async indexCoursesForAiTutor() {
+    if (!this.embeddingsService.isReady()) return;
+
+    const unindexed = await this.prisma.course.findMany({
+      where: {
+        status: 'PUBLISHED',
+        deletedAt: null,
+        courseChunks: { none: {} },
+      },
+      select: { id: true },
+    });
+
+    for (const course of unindexed) {
+      try {
+        await this.embeddingsService.indexCourseContent(course.id);
+        this.logger.log(`AI Tutor: indexed course ${course.id}`);
+      } catch (err) {
+        this.logger.warn(
+          `AI Tutor: failed to index course ${course.id}: ${(err as Error).message}`,
+        );
+      }
+    }
+
+    if (unindexed.length > 0) {
+      this.logger.log(`AI Tutor indexing: ${unindexed.length} courses processed`);
+    }
   }
 }

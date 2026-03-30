@@ -1,10 +1,24 @@
-import { Body, Controller, Get, Inject, Param, Post, Query, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { AiTutorService } from './ai-tutor.service';
-import { CurrentUser } from '@/common/decorators';
+import { EmbeddingsService } from './embeddings/embeddings.service';
+import { CurrentUser, Roles } from '@/common/decorators';
 import type { JwtPayload } from '@/common/interfaces/jwt-payload.interface';
 import { ParseCuidPipe } from '@/common/pipes/parse-cuid.pipe';
+import { RolesGuard } from '@/common/guards/roles.guard';
+import { Role } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { AskQuestionDto } from './dto/ask-question.dto';
 
@@ -15,6 +29,8 @@ export class AiTutorController {
   constructor(
     @Inject(AiTutorService)
     private readonly service: AiTutorService,
+    @Inject(EmbeddingsService)
+    private readonly embeddingsService: EmbeddingsService,
   ) {}
 
   @Post('ask')
@@ -28,8 +44,12 @@ export class AiTutorController {
   async askStream(
     @CurrentUser() user: JwtPayload,
     @Body() dto: AskQuestionDto,
+    @Req() req: { setTimeout: (ms: number) => void },
     @Res() res: Response,
   ) {
+    // Disable request timeout for long-running SSE stream
+    req.setTimeout(0);
+
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -70,5 +90,14 @@ export class AiTutorController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.service.getSessionMessages(id, user.sub);
+  }
+
+  @Post('index/:courseId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.INSTRUCTOR)
+  @ApiOperation({ summary: 'Index course content for AI Tutor (admin/instructor)' })
+  async indexCourse(@Param('courseId', ParseCuidPipe) courseId: string) {
+    await this.embeddingsService.indexCourseContent(courseId);
+    return { message: 'Course indexed successfully' };
   }
 }

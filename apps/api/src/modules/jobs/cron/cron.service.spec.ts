@@ -3,6 +3,7 @@ import { CronService } from './cron.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { RedisService } from '@/redis/redis.service';
 import { RecommendationsService } from '@/modules/recommendations/recommendations.service';
+import { EmbeddingsService } from '@/modules/ai-tutor/embeddings/embeddings.service';
 
 describe('CronService', () => {
   let service: CronService;
@@ -26,6 +27,10 @@ describe('CronService', () => {
   const recommendations = {
     computeAllSimilarities: jest.fn(),
   };
+  const embeddings = {
+    isReady: jest.fn().mockReturnValue(true),
+    indexCourseContent: jest.fn().mockResolvedValue(undefined),
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -34,6 +39,7 @@ describe('CronService', () => {
         { provide: PrismaService, useValue: prisma },
         { provide: RedisService, useValue: redis },
         { provide: RecommendationsService, useValue: recommendations },
+        { provide: EmbeddingsService, useValue: embeddings },
       ],
     }).compile();
     service = module.get(CronService);
@@ -164,6 +170,36 @@ describe('CronService', () => {
       await service.reconcileCounters();
 
       expect(prisma.$executeRaw).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('indexCoursesForAiTutor', () => {
+    it('should index unindexed published courses', async () => {
+      prisma.course.findMany.mockResolvedValue([{ id: 'c1' }, { id: 'c2' }]);
+      await service.indexCoursesForAiTutor();
+
+      expect(embeddings.indexCourseContent).toHaveBeenCalledTimes(2);
+      expect(embeddings.indexCourseContent).toHaveBeenCalledWith('c1');
+      expect(embeddings.indexCourseContent).toHaveBeenCalledWith('c2');
+    });
+
+    it('should skip when embeddings model not ready', async () => {
+      embeddings.isReady.mockReturnValue(false);
+      await service.indexCoursesForAiTutor();
+
+      expect(prisma.course.findMany).not.toHaveBeenCalled();
+    });
+
+    it('should continue if one course fails', async () => {
+      embeddings.isReady.mockReturnValue(true);
+      prisma.course.findMany.mockResolvedValue([{ id: 'c1' }, { id: 'c2' }]);
+      embeddings.indexCourseContent
+        .mockRejectedValueOnce(new Error('fail'))
+        .mockResolvedValueOnce(undefined);
+
+      await service.indexCoursesForAiTutor();
+
+      expect(embeddings.indexCourseContent).toHaveBeenCalledTimes(2);
     });
   });
 });

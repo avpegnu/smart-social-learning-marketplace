@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AiTutorModule } from '@/modules/ai-tutor/ai-tutor.module';
 import { AdminUsersService } from './users/admin-users.service';
 import { AdminUsersController } from './users/admin-users.controller';
 import { AdminApplicationsService } from './applications/admin-applications.service';
@@ -13,6 +14,7 @@ import { AdminAnalyticsService } from './analytics/admin-analytics.service';
 import { AdminAnalyticsController } from './analytics/admin-analytics.controller';
 
 @Module({
+  imports: [AiTutorModule],
   controllers: [
     AdminUsersController,
     AdminApplicationsController,
