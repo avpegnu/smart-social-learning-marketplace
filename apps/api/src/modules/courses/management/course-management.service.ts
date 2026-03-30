@@ -21,10 +21,15 @@ export class CourseManagementService {
   // ==================== CRUD ====================
 
   async create(instructorId: string, dto: CreateCourseDto) {
-    const { tags, learningOutcomes, prerequisites, ...courseData } = dto;
+    const { tags, tagIds, learningOutcomes, prerequisites, ...courseData } = dto;
     const slug = generateUniqueSlug(dto.title);
 
-    const tagLinks = tags?.length ? await this.findOrCreateTags(tags) : [];
+    // tagIds takes priority over tag names
+    const tagLinks = tagIds?.length
+      ? tagIds.map((id) => ({ tagId: id }))
+      : tags?.length
+        ? await this.findOrCreateTags(tags)
+        : [];
 
     return this.prisma.course.create({
       data: {
@@ -56,7 +61,7 @@ export class CourseManagementService {
       throw new BadRequestException({ code: 'COURSE_NOT_EDITABLE' });
     }
 
-    const { tags, learningOutcomes, prerequisites, ...updateData } = dto;
+    const { tags, tagIds, learningOutcomes, prerequisites, ...updateData } = dto;
 
     // Regenerate slug if title changed
     const data: Prisma.CourseUpdateInput = {
@@ -73,8 +78,15 @@ export class CourseManagementService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      // Update tags if provided
-      if (tags !== undefined) {
+      // Update tags — tagIds (from selector) takes priority over tag names
+      if (tagIds !== undefined) {
+        await tx.courseTag.deleteMany({ where: { courseId } });
+        if (tagIds.length > 0) {
+          await tx.courseTag.createMany({
+            data: tagIds.map((tagId) => ({ courseId, tagId })),
+          });
+        }
+      } else if (tags !== undefined) {
         await tx.courseTag.deleteMany({ where: { courseId } });
         if (tags.length > 0) {
           const tagLinks = await this.findOrCreateTags(tags);

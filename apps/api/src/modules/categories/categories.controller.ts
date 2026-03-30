@@ -22,3 +22,16 @@ export class CategoriesController {
     return this.categoriesService.findBySlug(slug);
   }
 }
+
+@Controller('tags')
+@ApiTags('Tags')
+export class TagsController {
+  constructor(@Inject(CategoriesService) private readonly categoriesService: CategoriesService) {}
+
+  @Public()
+  @Get()
+  @ApiOperation({ summary: 'List all tags (public)' })
+  async findAll() {
+    return this.categoriesService.findAllTags();
+  }
+}

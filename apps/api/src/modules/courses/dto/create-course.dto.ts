@@ -70,6 +70,13 @@ export class CreateCourseDto {
   @IsString({ each: true })
   tags?: string[];
 
+  @ApiPropertyOptional({ type: [String], description: 'Tag IDs to link (from tag selector)' })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsString({ each: true })
+  tagIds?: string[];
+
   @ApiPropertyOptional({ type: [String], description: 'What students will learn' })
   @IsOptional()
   @IsArray()

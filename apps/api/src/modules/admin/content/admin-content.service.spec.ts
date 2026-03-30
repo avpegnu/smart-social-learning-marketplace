@@ -14,6 +14,8 @@ describe('AdminContentService', () => {
     },
     tag: {
       findUnique: jest.fn(),
+      findMany: jest.fn(),
+      count: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -119,6 +121,53 @@ describe('AdminContentService', () => {
   });
 
   // --- Tags ---
+
+  describe('getTags', () => {
+    it('should return paginated tags with course count', async () => {
+      const tags = [
+        { id: 'tag1', name: 'React', slug: 'react', _count: { courseTags: 5 } },
+        { id: 'tag2', name: 'TypeScript', slug: 'typescript', _count: { courseTags: 3 } },
+      ];
+      prisma.tag.findMany.mockResolvedValue(tags);
+      prisma.tag.count.mockResolvedValue(2);
+
+      const result = await service.getTags({ page: 1, limit: 20 });
+
+      expect(result.data).toEqual(tags);
+      expect(result.meta).toEqual({ page: 1, limit: 20, total: 2, totalPages: 1 });
+      expect(prisma.tag.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { name: 'asc' },
+          skip: 0,
+          take: 20,
+        }),
+      );
+    });
+
+    it('should filter by search term', async () => {
+      prisma.tag.findMany.mockResolvedValue([]);
+      prisma.tag.count.mockResolvedValue(0);
+
+      await service.getTags({ page: 1, limit: 20, search: 'react' });
+
+      expect(prisma.tag.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { name: { contains: 'react', mode: 'insensitive' } },
+        }),
+      );
+    });
+
+    it('should use default pagination when not provided', async () => {
+      prisma.tag.findMany.mockResolvedValue([]);
+      prisma.tag.count.mockResolvedValue(0);
+
+      await service.getTags({});
+
+      expect(prisma.tag.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ skip: 0, take: 20 }),
+      );
+    });
+  });
 
   describe('createTag', () => {
     it('should create a tag with slug', async () => {

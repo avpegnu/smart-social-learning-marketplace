@@ -18,6 +18,13 @@ export class CategoriesService {
     });
   }
 
+  async findAllTags() {
+    return this.prisma.tag.findMany({
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, slug: true },
+    });
+  }
+
   async findBySlug(slug: string) {
     const category = await this.prisma.category.findUnique({
       where: { slug },

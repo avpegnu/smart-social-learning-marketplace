@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   Body,
+  Query,
   Inject,
   UseGuards,
   Put,
@@ -56,6 +57,20 @@ export class AdminContentController {
   }
 
   // --- Tags ---
+
+  @Get('tags')
+  @ApiOperation({ summary: 'List all tags (paginated)' })
+  async getTags(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.service.getTags({
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      search,
+    });
+  }
 
   @Post('tags')
   @ApiOperation({ summary: 'Create tag' })

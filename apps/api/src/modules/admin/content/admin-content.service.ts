@@ -1,6 +1,7 @@
 import { Injectable, Inject, ConflictException, BadRequestException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { createPaginatedResult } from '@/common/utils/pagination.util';
 import { generateSlug } from '@/common/utils/slug.util';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreateCategoryDto } from '../dto/create-category.dto';
@@ -47,6 +48,27 @@ export class AdminContentService {
   }
 
   // --- Tags ---
+
+  async getTags(query: { page?: number; limit?: number; search?: string }) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const where = query.search
+      ? { name: { contains: query.search, mode: 'insensitive' as const } }
+      : {};
+
+    const [tags, total] = await Promise.all([
+      this.prisma.tag.findMany({
+        where,
+        orderBy: { name: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: { _count: { select: { courseTags: true } } },
+      }),
+      this.prisma.tag.count({ where }),
+    ]);
+
+    return createPaginatedResult(tags, total, page, limit);
+  }
 
   async createTag(dto: CreateTagDto) {
     const slug = generateSlug(dto.name);
