@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Plus, Trash2, CheckCircle2, Circle, Upload } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, Circle, Upload, Database } from 'lucide-react';
 import { Button, Input, Label } from '@shared/ui';
 
 import { ImportQuizDialog } from './import-quiz-dialog';
+import { ImportFromBankDialog } from './import-from-bank-dialog';
 import type { ParsedQuizQuestion } from '@/lib/validations/course';
 import type { LocalQuizData } from './course-wizard';
 
@@ -35,6 +36,7 @@ export function QuizBuilder({ initialData, onChange }: QuizBuilderProps) {
   );
   const [questions, setQuestions] = useState<QuizQuestion[]>(initialData?.questions ?? []);
   const [importOpen, setImportOpen] = useState(false);
+  const [importBankOpen, setImportBankOpen] = useState(false);
 
   // Notify parent of changes
   const notifyChange = useCallback(
@@ -283,6 +285,10 @@ export function QuizBuilder({ initialData, onChange }: QuizBuilderProps) {
           <Upload className="mr-1 h-3.5 w-3.5" />
           {t('importFromText')}
         </Button>
+        <Button type="button" variant="outline" size="sm" onClick={() => setImportBankOpen(true)}>
+          <Database className="mr-1 h-3.5 w-3.5" />
+          {t('importFromBank')}
+        </Button>
       </div>
 
       <p className="text-muted-foreground text-xs">{t('quizSavedNote')}</p>
@@ -291,6 +297,17 @@ export function QuizBuilder({ initialData, onChange }: QuizBuilderProps) {
         open={importOpen}
         onClose={() => setImportOpen(false)}
         onImport={handleImport}
+      />
+
+      <ImportFromBankDialog
+        open={importBankOpen}
+        onClose={() => setImportBankOpen(false)}
+        onImport={(imported) => {
+          const merged = [...questions, ...imported];
+          setQuestions(merged);
+          notifyChange(merged, passingScore, maxAttempts, timeLimitSeconds);
+          setImportBankOpen(false);
+        }}
       />
     </div>
   );
