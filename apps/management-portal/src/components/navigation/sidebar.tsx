@@ -8,6 +8,7 @@ import { useSidebarStore } from '@shared/hooks';
 import {
   LayoutDashboard,
   BookOpen,
+  Database,
   DollarSign,
   Wallet,
   Ticket,
@@ -39,6 +40,7 @@ interface NavItem {
 const instructorNav: NavItem[] = [
   { label: 'dashboard', href: '/instructor/dashboard', icon: LayoutDashboard },
   { label: 'courses', href: '/instructor/courses', icon: BookOpen },
+  { label: 'questionBanks', href: '/instructor/question-banks', icon: Database },
   { label: 'revenue', href: '/instructor/revenue', icon: DollarSign },
   { label: 'withdrawals', href: '/instructor/withdrawals', icon: Wallet },
   { label: 'coupons', href: '/instructor/coupons', icon: Ticket },
