@@ -175,6 +175,13 @@ export function useDeleteCategory() {
   });
 }
 
+export function useAdminTags(params?: Record<string, string>) {
+  return useQuery({
+    queryKey: ['admin', 'tags', params],
+    queryFn: () => adminService.getTags(params),
+  });
+}
+
 export function useCreateTag() {
   const queryClient = useQueryClient();
   const getErrorMessage = useApiError();

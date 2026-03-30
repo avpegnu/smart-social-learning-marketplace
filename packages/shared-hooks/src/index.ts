@@ -93,6 +93,7 @@ export {
 export { useQuiz, useUpsertQuiz, useDeleteQuiz } from './queries/use-quiz';
 
 export { useCategories } from './queries/use-categories';
+export { useTags } from './queries/use-tags';
 
 export {
   useAdminDashboard,
@@ -110,6 +111,7 @@ export {
   useCreateCategory,
   useUpdateCategory,
   useDeleteCategory,
+  useAdminTags,
   useCreateTag,
   useUpdateTag,
   useDeleteTag,
@@ -265,6 +267,7 @@ export { aiTutorService } from './services/ai-tutor.service';
 export type { AskAiData } from './services/ai-tutor.service';
 export { recommendationService } from './services/recommendation.service';
 export type { RecommendedCourse, RecommendationContext } from './services/recommendation.service';
+export { tagService } from './services/tag.service';
 export { questionBankService } from './services/question-bank.service';
 export type { BankQuestionPayload } from './services/question-bank.service';
 export { userService } from './services/user.service';

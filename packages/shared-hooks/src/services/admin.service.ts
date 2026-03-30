@@ -41,7 +41,7 @@ export const adminService = {
   deleteCategory: (id: string) => apiClient.del(`/admin/categories/${id}`),
 
   // Tags
-  getTags: () => apiClient.get('/admin/tags'),
+  getTags: (params?: Record<string, string>) => apiClient.get('/admin/tags', params),
   createTag: (data: { name: string }) => apiClient.post('/admin/tags', data),
   updateTag: (id: string, data: { name: string }) => apiClient.patch(`/admin/tags/${id}`, data),
   deleteTag: (id: string) => apiClient.del(`/admin/tags/${id}`),
