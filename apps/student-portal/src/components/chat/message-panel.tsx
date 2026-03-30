@@ -21,6 +21,7 @@ interface MessageData {
   id: string;
   content: string;
   type: string;
+  fileUrl?: string;
   senderId: string;
   sender: { id: string; fullName: string; avatarUrl: string | null };
   createdAt: string;
@@ -36,7 +37,11 @@ interface ConversationInfo {
 interface MessagePanelProps {
   conversation: ConversationInfo | null;
   typingUserNames: string[];
-  onSendMessage: (conversationId: string, content: string) => void;
+  onSendMessage: (
+    conversationId: string,
+    content: string,
+    options?: { type?: string; fileUrl?: string; fileName?: string },
+  ) => void;
   onTyping: (conversationId: string) => void;
   onStopTyping: (conversationId: string) => void;
   onBack: () => void;
@@ -75,14 +80,17 @@ export function MessagePanel({
   const [localMessages, setLocalMessages] = useState<MessageData[]>([]);
 
   useEffect(() => {
-    if (serverMessages.length > 0) setLocalMessages([]);
-  }, [serverMessages.length]);
-
-  useEffect(() => {
     setLocalMessages([]);
   }, [conversation?.id]);
 
-  const messages = [...serverMessages, ...localMessages];
+  // Filter out optimistic messages already in server data (prevent duplicates)
+  const filteredLocal = localMessages.filter(
+    (local) =>
+      !serverMessages.some(
+        (server) => server.senderId === local.senderId && server.content === local.content,
+      ),
+  );
+  const messages = [...serverMessages, ...filteredLocal];
 
   // Scroll up to load older messages
   const handleScroll = useCallback(() => {
@@ -124,13 +132,14 @@ export function MessagePanel({
         : t('offline')
     : '';
 
-  // Auto-scroll on send
+  // Auto-scroll on new messages (send or receive)
+  const lastMessageId = messages[messages.length - 1]?.id;
   useEffect(() => {
     if (shouldScrollRef.current && containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
       shouldScrollRef.current = false;
     }
-  }, [messages.length]);
+  }, [lastMessageId]);
 
   // Scroll to bottom on conversation change
   useEffect(() => {
@@ -150,7 +159,6 @@ export function MessagePanel({
       if (!conversation || !currentUser) return;
       shouldScrollRef.current = true;
 
-      // Optimistic: show message immediately
       const optimisticMsg: MessageData = {
         id: `temp-${Date.now()}`,
         content,
@@ -166,6 +174,34 @@ export function MessagePanel({
       setLocalMessages((prev) => [...prev, optimisticMsg]);
 
       onSendMessage(conversation.id, content);
+    },
+    [conversation, currentUser, onSendMessage],
+  );
+
+  const handleSendImage = useCallback(
+    (imageUrl: string, fileName: string) => {
+      if (!conversation || !currentUser) return;
+      shouldScrollRef.current = true;
+
+      const optimisticMsg: MessageData = {
+        id: `temp-${Date.now()}`,
+        content: imageUrl,
+        type: 'IMAGE',
+        senderId: currentUser.id,
+        sender: {
+          id: currentUser.id,
+          fullName: currentUser.fullName ?? '',
+          avatarUrl: currentUser.avatarUrl ?? null,
+        },
+        createdAt: new Date().toISOString(),
+      };
+      setLocalMessages((prev) => [...prev, optimisticMsg]);
+
+      onSendMessage(conversation.id, fileName || 'image', {
+        type: 'IMAGE',
+        fileUrl: imageUrl,
+        fileName,
+      });
     },
     [conversation, currentUser, onSendMessage],
   );
@@ -271,7 +307,12 @@ export function MessagePanel({
       <TypingIndicator typingUserNames={typingUserNames} />
 
       {/* Input */}
-      <MessageInput onSend={handleSend} onTyping={handleTyping} onStopTyping={handleStopTyping} />
+      <MessageInput
+        onSend={handleSend}
+        onSendImage={handleSendImage}
+        onTyping={handleTyping}
+        onStopTyping={handleStopTyping}
+      />
     </div>
   );
 }
