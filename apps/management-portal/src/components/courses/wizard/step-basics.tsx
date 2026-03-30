@@ -13,6 +13,7 @@ import type { CourseBasicsValues } from '@/lib/validations/course';
 import { RichTextEditor } from '../rich-text-editor';
 import { ImageUpload } from '../image-upload';
 import { VideoUpload } from '../video-upload';
+import { TagSelector } from './tag-selector';
 
 interface StepBasicsProps {
   mode: 'create' | 'edit';
@@ -57,7 +58,6 @@ export function StepBasics({
 
   const outcomes = useFieldArray({ control, name: 'learningOutcomes' });
   const prerequisites = useFieldArray({ control, name: 'prerequisites' });
-  const tags = useFieldArray({ control, name: 'tags' });
 
   const description = watch('description');
   const thumbnailUrl = watch('thumbnailUrl');
@@ -76,7 +76,7 @@ export function StepBasics({
       ...data,
       learningOutcomes: data.learningOutcomes?.map((o) => o.value).filter(Boolean),
       prerequisites: data.prerequisites?.map((p) => p.value).filter(Boolean),
-      tags: data.tags?.map((t) => t.value).filter(Boolean),
+      tagIds: data.tagIds?.length ? data.tagIds : undefined,
       // Remove empty optional strings
       shortDescription: data.shortDescription || undefined,
       description: data.description || undefined,
@@ -248,15 +248,14 @@ export function StepBasics({
         />
 
         {/* Tags */}
-        <DynamicStringList
-          label={t('tags')}
-          fields={tags.fields}
-          onAppend={() => tags.append({ value: '' })}
-          onRemove={tags.remove}
-          register={register}
-          name="tags"
-          placeholder={t('tagPlaceholder')}
-        />
+        <div className="space-y-2">
+          <Label>{t('tags')}</Label>
+          <TagSelector
+            selectedTagIds={watch('tagIds') ?? []}
+            onChange={(ids) => setValue('tagIds', ids, { shouldValidate: true })}
+            maxTags={10}
+          />
+        </div>
       </fieldset>
 
       {/* Actions */}
@@ -288,9 +287,7 @@ function buildDefaults(
       promoVideoUrl: (course.promoVideoUrl as string) ?? '',
       learningOutcomes: ((course.learningOutcomes as string[]) ?? []).map((v) => ({ value: v })),
       prerequisites: ((course.prerequisites as string[]) ?? []).map((v) => ({ value: v })),
-      tags: ((course.courseTags as Array<{ tag: { name: string } }>) ?? []).map((ct) => ({
-        value: ct.tag.name,
-      })),
+      tagIds: ((course.courseTags as Array<{ tag: { id: string } }>) ?? []).map((ct) => ct.tag.id),
     };
   }
   return {
@@ -304,7 +301,7 @@ function buildDefaults(
     promoVideoUrl: '',
     learningOutcomes: [],
     prerequisites: [],
-    tags: [],
+    tagIds: [],
   };
 }
 
@@ -345,7 +342,7 @@ function DynamicStringList({
   onAppend: () => void;
   onRemove: (index: number) => void;
   register: ReturnType<typeof useForm<CourseBasicsValues>>['register'];
-  name: 'learningOutcomes' | 'prerequisites' | 'tags';
+  name: 'learningOutcomes' | 'prerequisites';
   placeholder: string;
 }) {
   return (

@@ -13,10 +13,7 @@ export const courseBasicsSchema = z.object({
   promoVideoUrl: z.string().url().optional().or(z.literal('')),
   learningOutcomes: z.array(z.object({ value: z.string().min(1) })).optional(),
   prerequisites: z.array(z.object({ value: z.string().min(1) })).optional(),
-  tags: z
-    .array(z.object({ value: z.string().min(1) }))
-    .max(10)
-    .optional(),
+  tagIds: z.array(z.string()).max(10).optional(),
 });
 
 export type CourseBasicsValues = z.infer<typeof courseBasicsSchema>;
