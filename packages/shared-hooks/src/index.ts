@@ -172,6 +172,18 @@ export { useAiQuota, useAiSessions, useSessionMessages } from './queries/use-ai-
 export { useRecommendations } from './queries/use-recommendations';
 
 export {
+  useQuestionBanks,
+  useQuestionBankDetail,
+  useCreateQuestionBank,
+  useUpdateQuestionBank,
+  useDeleteQuestionBank,
+  useAddBankQuestion,
+  useAddBankQuestionsBatch,
+  useUpdateBankQuestion,
+  useDeleteBankQuestion,
+} from './queries/use-question-banks';
+
+export {
   useSearchUsers,
   useMe,
   useUserProfile,
@@ -253,6 +265,8 @@ export { aiTutorService } from './services/ai-tutor.service';
 export type { AskAiData } from './services/ai-tutor.service';
 export { recommendationService } from './services/recommendation.service';
 export type { RecommendedCourse, RecommendationContext } from './services/recommendation.service';
+export { questionBankService } from './services/question-bank.service';
+export type { BankQuestionPayload } from './services/question-bank.service';
 export { userService } from './services/user.service';
 export type {
   UpdateProfilePayload,
