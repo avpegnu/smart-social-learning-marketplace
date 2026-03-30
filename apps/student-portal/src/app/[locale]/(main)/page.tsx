@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation';
 import { ArrowRight, Star, Users, Bot, Sparkles, GraduationCap, ChevronRight } from 'lucide-react';
 import { Button, Badge, Skeleton } from '@shared/ui';
 import { CourseGrid } from '@/components/course/course-grid';
+import { RecommendationSection } from '@/components/course/recommendation-section';
 import { useCourses, useCategories } from '@shared/hooks';
 import { cn } from '@/lib/utils';
 
@@ -186,6 +187,15 @@ export default function HomePage() {
           />
         </div>
       </section>
+
+      {/* Recommendations — only for logged-in users */}
+      <RecommendationSection
+        context="homepage"
+        limit={4}
+        title={t('recommendedTitle')}
+        subtitle={t('recommendedSubtitle')}
+        requireAuth
+      />
 
       {/* Why Us */}
       <section className="py-12 sm:py-16">

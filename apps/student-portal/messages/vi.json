@@ -50,6 +50,8 @@
     "featuredSubtitle": "Được yêu thích nhất bởi cộng đồng",
     "newCoursesTitle": "Khóa học mới",
     "newCoursesSubtitle": "Cập nhật kiến thức mới nhất",
+    "recommendedTitle": "Gợi ý cho bạn",
+    "recommendedSubtitle": "Dựa trên sở thích và lịch sử học tập của bạn",
     "viewAll": "Xem tất cả",
     "categories": "Danh mục",
     "whyUs": {
@@ -161,6 +163,7 @@
     "description": "Mô tả khóa học",
     "prerequisites": "Yêu cầu kiến thức",
     "instructor": "Giảng viên",
+    "similarCourses": "Khóa học tương tự",
     "preview": "Xem trước",
     "helpful": "Hữu ích",
     "addToCart": "Thêm vào giỏ",
@@ -221,7 +224,8 @@
     "todayDone": "Đã học hôm nay",
     "emptyTitle": "Chưa có khóa học nào",
     "emptyDesc": "Đăng ký khóa học để bắt đầu học",
-    "browseCourses": "Khám phá khóa học"
+    "browseCourses": "Khám phá khóa học",
+    "whatToLearnNext": "Học tiếp gì nữa?"
   },
   "social": {
     "myLearning": "Học tập",
@@ -668,7 +672,9 @@
     "backToOrders": "Quay lại đơn hàng",
     "pendingPayment": "Đơn hàng đang chờ thanh toán",
     "continuePayment": "Tiếp tục thanh toán",
-    "continueLearning": "Bắt đầu học"
+    "continueLearning": "Bắt đầu học",
+    "alsoLiked": "Học viên cũng thích",
+    "alsoLikedSubtitle": "Những người mua khóa học này cũng đăng ký"
   },
   "wishlist": {
     "title": "Yêu thích",

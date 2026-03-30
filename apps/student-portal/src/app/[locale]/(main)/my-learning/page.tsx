@@ -17,6 +17,7 @@ import {
 } from '@shared/ui';
 import { EmptyState } from '@/components/feedback/empty-state';
 import { useLearningDashboard } from '@shared/hooks';
+import { RecommendationSection } from '@/components/course/recommendation-section';
 import { cn } from '@/lib/utils';
 
 // --- Types ---
@@ -314,6 +315,14 @@ export default function MyLearningPage() {
           </TabsContent>
         </Tabs>
       )}
+
+      {/* What to learn next */}
+      <RecommendationSection
+        context="post_complete"
+        limit={4}
+        title={t('whatToLearnNext')}
+        requireAuth
+      />
     </div>
   );
 }

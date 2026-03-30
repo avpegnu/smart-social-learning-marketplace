@@ -50,6 +50,8 @@
     "featuredSubtitle": "Most loved by the community",
     "newCoursesTitle": "New courses",
     "newCoursesSubtitle": "Latest knowledge updates",
+    "recommendedTitle": "Recommended for You",
+    "recommendedSubtitle": "Based on your interests and learning history",
     "viewAll": "View all",
     "categories": "Categories",
     "whyUs": {
@@ -161,6 +163,7 @@
     "description": "Course description",
     "prerequisites": "Prerequisites",
     "instructor": "Instructor",
+    "similarCourses": "Similar Courses",
     "preview": "Preview",
     "helpful": "Helpful",
     "addToCart": "Add to cart",
@@ -221,7 +224,8 @@
     "todayDone": "Done today",
     "emptyTitle": "No courses yet",
     "emptyDesc": "Enroll in a course to start learning",
-    "browseCourses": "Browse courses"
+    "browseCourses": "Browse courses",
+    "whatToLearnNext": "What to Learn Next?"
   },
   "social": {
     "myLearning": "Learning",
@@ -668,7 +672,9 @@
     "backToOrders": "Back to orders",
     "pendingPayment": "Order pending payment",
     "continuePayment": "Continue Payment",
-    "continueLearning": "Start Learning"
+    "continueLearning": "Start Learning",
+    "alsoLiked": "Students Also Liked",
+    "alsoLikedSubtitle": "People who enrolled in this also bought"
   },
   "wishlist": {
     "title": "Wishlist",

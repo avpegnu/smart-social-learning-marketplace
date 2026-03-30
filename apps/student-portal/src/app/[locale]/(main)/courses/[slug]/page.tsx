@@ -25,6 +25,7 @@ import { CourseCurriculum } from '@/components/course/detail/course-curriculum';
 import { CourseReviews } from '@/components/course/detail/course-reviews';
 import { PurchaseCard } from '@/components/course/detail/purchase-card';
 import type { ApiCourse } from '@/components/course/detail/types';
+import { RecommendationSection } from '@/components/course/recommendation-section';
 import {
   useCourseDetail,
   useEnrollmentCheck,
@@ -301,6 +302,14 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
           </div>
         </div>
       </div>
+
+      {/* Similar Courses */}
+      <RecommendationSection
+        context="course_detail"
+        courseId={course.id}
+        limit={4}
+        title={t('similarCourses')}
+      />
 
       {/* Mobile sticky bottom bar */}
       <div className="bg-background border-border fixed right-0 bottom-0 left-0 z-30 border-t p-4 lg:hidden">

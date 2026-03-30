@@ -15,6 +15,7 @@ import {
   Skeleton,
 } from '@shared/ui';
 import { useOrderDetail } from '@shared/hooks';
+import { RecommendationSection } from '@/components/course/recommendation-section';
 import { formatPrice, formatDate } from '@shared/utils';
 
 interface OrderItem {
@@ -185,6 +186,15 @@ export default function OrderDetailPage({ params }: { params: Promise<{ orderId:
           </div>
         </CardContent>
       </Card>
+
+      {/* Post-purchase recommendations */}
+      <RecommendationSection
+        context="post_purchase"
+        limit={4}
+        title={t('alsoLiked')}
+        subtitle={t('alsoLikedSubtitle')}
+        requireAuth
+      />
     </div>
   );
 }
