@@ -986,7 +986,7 @@ model PlacementTest {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
+  @@unique([userId])
   @@map("placement_tests")
 }
 

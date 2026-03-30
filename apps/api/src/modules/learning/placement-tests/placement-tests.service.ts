@@ -32,13 +32,53 @@ export class PlacementTestsService {
       }
     }
 
-    // Fisher-Yates shuffle
-    for (let i = questions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [questions[i], questions[j]] = [questions[j]!, questions[i]!];
+    // Group by level and pick 5 from each (balanced selection)
+    const byLevel: Record<string, typeof questions> = {
+      BEGINNER: [],
+      INTERMEDIATE: [],
+      ADVANCED: [],
+    };
+    for (const q of questions) {
+      const level = q.level as string;
+      if (byLevel[level]) byLevel[level].push(q);
     }
 
-    const selected = questions.slice(0, 15);
+    // Shuffle each group
+    for (const group of Object.values(byLevel)) {
+      for (let i = group.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [group[i], group[j]] = [group[j]!, group[i]!];
+      }
+    }
+
+    // Take 5 per level, fill from others if a level has fewer
+    const perLevel = 5;
+    const picked: typeof questions = [];
+    const leftover: typeof questions = [];
+
+    for (const level of ['BEGINNER', 'INTERMEDIATE', 'ADVANCED']) {
+      const group = byLevel[level] ?? [];
+      picked.push(...group.slice(0, perLevel));
+      leftover.push(...group.slice(perLevel));
+    }
+
+    // If any level had < 5, fill remaining from leftover
+    const remaining = 15 - picked.length;
+    if (remaining > 0) {
+      for (let i = leftover.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [leftover[i], leftover[j]] = [leftover[j]!, leftover[i]!];
+      }
+      picked.push(...leftover.slice(0, remaining));
+    }
+
+    // Final shuffle so levels aren't grouped together
+    for (let i = picked.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [picked[i], picked[j]] = [picked[j]!, picked[i]!];
+    }
+
+    const selected = picked;
 
     // Return without answers
     return {
@@ -73,9 +113,14 @@ export class PlacementTestsService {
 
     const recommendedLevel = this.determineLevel(scores, totals);
 
-    // Save result
-    const test = await this.prisma.placementTest.create({
-      data: {
+    // Upsert result — one result per user, overwrite on re-test
+    const test = await this.prisma.placementTest.upsert({
+      where: { userId },
+      update: {
+        scores: scores as unknown as Prisma.InputJsonValue,
+        recommendedLevel,
+      },
+      create: {
         userId,
         scores: scores as unknown as Prisma.InputJsonValue,
         recommendedLevel,
