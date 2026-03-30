@@ -107,7 +107,8 @@
     "edit": "Edit",
     "curriculum": "Curriculum",
     "students": "Students",
-    "questionBanks": "Question Banks"
+    "questionBanks": "Question Banks",
+    "tags": "Tags"
   },
   "header": {
     "search": "Search...",
@@ -741,6 +742,32 @@
     "categoryCreated": "Category created",
     "categoryUpdated": "Category updated",
     "categoryDeleted": "Category deleted"
+  },
+  "tags": {
+    "title": "Tag Management",
+    "addTag": "Add Tag",
+    "editTag": "Edit Tag",
+    "name": "Tag Name",
+    "slug": "Slug",
+    "courseCount": "Courses",
+    "actions": "Actions",
+    "confirmDelete": "Delete Tag",
+    "confirmDeleteDesc": "Are you sure you want to delete tag \"{name}\"? This action cannot be undone.",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create",
+    "tagNamePlaceholder": "Enter tag name",
+    "tagCreated": "Tag created",
+    "tagUpdated": "Tag updated",
+    "tagDeleted": "Tag deleted",
+    "noTags": "No tags yet. Create your first tag.",
+    "searchPlaceholder": "Search tags...",
+    "searchTags": "Search tags...",
+    "createNewTag": "Create \"{name}\"",
+    "maxTagsReached": "Maximum {max} tags allowed",
+    "selectedCount": "{count} tags selected",
+    "selectTags": "Select tags"
   },
   "analytics": {
     "title": "Analytics",

@@ -107,7 +107,8 @@
     "edit": "Chỉnh sửa",
     "curriculum": "Chương trình",
     "students": "Học viên",
-    "questionBanks": "Ngân hàng câu hỏi"
+    "questionBanks": "Ngân hàng câu hỏi",
+    "tags": "Thẻ"
   },
   "header": {
     "search": "Tìm kiếm...",
@@ -742,6 +743,32 @@
     "categoryCreated": "Đã tạo danh mục",
     "categoryUpdated": "Đã cập nhật danh mục",
     "categoryDeleted": "Đã xóa danh mục"
+  },
+  "tags": {
+    "title": "Quản lý thẻ",
+    "addTag": "Thêm thẻ",
+    "editTag": "Sửa thẻ",
+    "name": "Tên thẻ",
+    "slug": "Slug",
+    "courseCount": "Khóa học",
+    "actions": "Hành động",
+    "confirmDelete": "Xóa thẻ",
+    "confirmDeleteDesc": "Bạn có chắc muốn xóa thẻ \"{name}\"? Hành động này không thể hoàn tác.",
+    "delete": "Xóa",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "create": "Tạo",
+    "tagNamePlaceholder": "Nhập tên thẻ",
+    "tagCreated": "Đã tạo thẻ",
+    "tagUpdated": "Đã cập nhật thẻ",
+    "tagDeleted": "Đã xóa thẻ",
+    "noTags": "Chưa có thẻ nào. Tạo thẻ đầu tiên.",
+    "searchPlaceholder": "Tìm thẻ...",
+    "searchTags": "Tìm thẻ...",
+    "createNewTag": "Tạo \"{name}\"",
+    "maxTagsReached": "Tối đa {max} thẻ",
+    "selectedCount": "Đã chọn {count} thẻ",
+    "selectTags": "Chọn thẻ"
   },
   "analytics": {
     "title": "Phân tích",
