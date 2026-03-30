@@ -2,9 +2,18 @@
 
 import { use, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Calendar, UserPlus, UserMinus, Pencil, Award, Loader2, GraduationCap } from 'lucide-react';
+import {
+  Calendar,
+  UserPlus,
+  UserMinus,
+  Pencil,
+  Award,
+  Loader2,
+  GraduationCap,
+  MessageCircle,
+} from 'lucide-react';
 import { Button, Card, CardContent, Avatar, AvatarFallback, AvatarImage } from '@shared/ui';
-import { Link } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 import {
   useUserProfile,
   useFollowUser,
@@ -13,6 +22,7 @@ import {
   useMyCertificates,
   useUserFollowers,
   useUserFollowing,
+  useGetOrCreateConversation,
 } from '@shared/hooks';
 import { formatRelativeTime } from '@shared/utils';
 
@@ -42,6 +52,9 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
       };
     }
   )?.data;
+
+  const router = useRouter();
+  const getOrCreate = useGetOrCreateConversation();
 
   const isOwnProfile = currentUser?.id === userId;
   const [activeTab, setActiveTab] = useState(isOwnProfile ? 'certificates' : 'followers');
@@ -199,24 +212,45 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
                   </Button>
                 </Link>
               ) : isAuthenticated ? (
-                <Button
-                  variant={isFollowing ? 'outline' : 'default'}
-                  className="gap-1.5"
-                  onClick={handleFollowToggle}
-                  disabled={followUser.isPending || unfollowUser.isPending}
-                >
-                  {isFollowing ? (
-                    <>
-                      <UserMinus className="h-4 w-4" />
-                      {t('unfollow')}
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="h-4 w-4" />
-                      {t('follow')}
-                    </>
-                  )}
-                </Button>
+                <>
+                  <Button
+                    variant={isFollowing ? 'outline' : 'default'}
+                    className="gap-1.5"
+                    onClick={handleFollowToggle}
+                    disabled={followUser.isPending || unfollowUser.isPending}
+                  >
+                    {isFollowing ? (
+                      <>
+                        <UserMinus className="h-4 w-4" />
+                        {t('unfollow')}
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="h-4 w-4" />
+                        {t('follow')}
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    title={t('message')}
+                    disabled={getOrCreate.isPending}
+                    onClick={() =>
+                      getOrCreate.mutate(
+                        { participantId: userId },
+                        {
+                          onSuccess: (res) => {
+                            const conv = (res as { data?: { id: string } })?.data;
+                            if (conv?.id) router.push(`/chat?id=${conv.id}`);
+                          },
+                        },
+                      )
+                    }
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </Button>
+                </>
               ) : null}
             </div>
           </div>
