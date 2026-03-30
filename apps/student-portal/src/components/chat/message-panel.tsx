@@ -87,7 +87,12 @@ export function MessagePanel({
   const filteredLocal = localMessages.filter(
     (local) =>
       !serverMessages.some(
-        (server) => server.senderId === local.senderId && server.content === local.content,
+        (server) =>
+          server.senderId === local.senderId &&
+          (server.content === local.content ||
+            (local.type === 'IMAGE' &&
+              server.type === 'IMAGE' &&
+              server.fileUrl === local.content)),
       ),
   );
   const messages = [...serverMessages, ...filteredLocal];
