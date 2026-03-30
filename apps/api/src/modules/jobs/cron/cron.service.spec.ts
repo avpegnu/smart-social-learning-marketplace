@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { CronService } from './cron.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { RedisService } from '@/redis/redis.service';
+import { RecommendationsService } from '@/modules/recommendations/recommendations.service';
 
 describe('CronService', () => {
   let service: CronService;
@@ -22,6 +23,9 @@ describe('CronService', () => {
     scan: jest.fn(),
     getdel: jest.fn(),
   };
+  const recommendations = {
+    computeAllSimilarities: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -29,6 +33,7 @@ describe('CronService', () => {
         CronService,
         { provide: PrismaService, useValue: prisma },
         { provide: RedisService, useValue: redis },
+        { provide: RecommendationsService, useValue: recommendations },
       ],
     }).compile();
     service = module.get(CronService);
@@ -144,38 +149,12 @@ describe('CronService', () => {
   });
 
   describe('computeRecommendationMatrix', () => {
-    it('should skip if less than 2 courses', async () => {
-      prisma.course.findMany.mockResolvedValue([{ id: 'c1', courseTags: [] }]);
+    it('should delegate to RecommendationsService.computeAllSimilarities', async () => {
+      recommendations.computeAllSimilarities.mockResolvedValue(undefined);
 
       await service.computeRecommendationMatrix();
 
-      expect(prisma.courseSimilarity.upsert).not.toHaveBeenCalled();
-    });
-
-    it('should compute jaccard similarity', async () => {
-      prisma.course.findMany.mockResolvedValue([
-        {
-          id: 'c1',
-          courseTags: [{ tagId: 't1' }, { tagId: 't2' }],
-        },
-        {
-          id: 'c2',
-          courseTags: [{ tagId: 't2' }, { tagId: 't3' }],
-        },
-      ]);
-
-      await service.computeRecommendationMatrix();
-
-      expect(prisma.courseSimilarity.upsert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          create: expect.objectContaining({
-            courseId: 'c1',
-            similarCourseId: 'c2',
-            score: 1 / 3, // intersection=1 (t2), union=3 (t1,t2,t3)
-            algorithm: 'CONTENT',
-          }),
-        }),
-      );
+      expect(recommendations.computeAllSimilarities).toHaveBeenCalledTimes(1);
     });
   });
 

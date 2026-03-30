@@ -3,6 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import type { AnalyticsType, Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { RedisService } from '@/redis/redis.service';
+import { RecommendationsService } from '@/modules/recommendations/recommendations.service';
 
 @Injectable()
 export class CronService {
@@ -11,6 +12,7 @@ export class CronService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(RedisService) private readonly redis: RedisService,
+    @Inject(RecommendationsService) private readonly recommendations: RecommendationsService,
   ) {}
 
   // 1. Expire pending orders (every 1 min)
@@ -97,8 +99,8 @@ export class CronService {
     this.logger.log(`Released ${pendingEarnings.length} earnings`);
   }
 
-  // 4. Cleanup failed uploads (daily 2 AM)
-  @Cron('0 2 * * *')
+  // 4. Cleanup failed uploads (every 6 hours)
+  @Cron('0 */6 * * *')
   async cleanupFailedUploads() {
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const result = await this.prisma.media.updateMany({
@@ -185,8 +187,8 @@ export class CronService {
     this.logger.log(`Analytics snapshot computed for ${yesterday.toISOString().split('T')[0]!}`);
   }
 
-  // 6. Cleanup expired tokens (daily 3 AM)
-  @Cron('0 3 * * *')
+  // 6. Cleanup expired tokens (every 6 hours)
+  @Cron('0 */6 * * *')
   async cleanupExpiredTokens() {
     const result = await this.prisma.refreshToken.deleteMany({
       where: { expiresAt: { lt: new Date() } },
@@ -199,53 +201,9 @@ export class CronService {
   // 7. Compute recommendation matrix (daily 4 AM)
   @Cron('0 4 * * *')
   async computeRecommendationMatrix() {
-    const courses = await this.prisma.course.findMany({
-      where: { status: 'PUBLISHED', deletedAt: null },
-      select: {
-        id: true,
-        courseTags: { select: { tagId: true } },
-      },
-    });
-
-    if (courses.length < 2) return;
-
-    let computed = 0;
-    for (let i = 0; i < courses.length; i++) {
-      for (let j = i + 1; j < courses.length; j++) {
-        const a = courses[i]!;
-        const b = courses[j]!;
-        const tagsA = new Set(a.courseTags.map((t) => t.tagId));
-        const tagsB = new Set(b.courseTags.map((t) => t.tagId));
-
-        const intersection = [...tagsA].filter((t) => tagsB.has(t)).length;
-        const union = new Set([...tagsA, ...tagsB]).size;
-        const score = union > 0 ? intersection / union : 0;
-
-        if (score > 0) {
-          await this.prisma.courseSimilarity.upsert({
-            where: {
-              courseId_similarCourseId_algorithm: {
-                courseId: a.id,
-                similarCourseId: b.id,
-                algorithm: 'CONTENT',
-              },
-            },
-            update: { score },
-            create: {
-              courseId: a.id,
-              similarCourseId: b.id,
-              score,
-              algorithm: 'CONTENT',
-            },
-          });
-          computed++;
-        }
-      }
-    }
-
-    this.logger.log(
-      `Recommendation matrix: ${computed} similarities for ${courses.length} courses`,
-    );
+    this.logger.log('Starting recommendation matrix computation...');
+    await this.recommendations.computeAllSimilarities();
+    this.logger.log('Recommendation matrix computation complete');
   }
 
   // 8. Cleanup old feed items (weekly Sunday 4 AM)

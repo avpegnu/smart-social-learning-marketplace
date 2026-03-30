@@ -16,7 +16,13 @@ export class PopularityService {
         avgRating: true,
         totalStudents: true,
         price: true,
+        originalPrice: true,
+        level: true,
         createdAt: true,
+        instructor: {
+          select: { id: true, fullName: true, avatarUrl: true },
+        },
+        totalLessons: true,
         _count: { select: { reviews: true } },
       },
     });
@@ -29,7 +35,7 @@ export class PopularityService {
 
       const score = wilsonScore * 0.7 + timeFactor * 0.3;
 
-      return { ...course, score };
+      return { ...course, score, reason: 'Popular course' };
     });
 
     return scored.sort((a, b) => b.score - a.score).slice(0, limit);

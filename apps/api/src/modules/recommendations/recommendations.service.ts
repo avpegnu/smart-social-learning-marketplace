@@ -14,6 +14,19 @@ const COURSE_SELECT = {
   avgRating: true,
   totalStudents: true,
   price: true,
+  originalPrice: true,
+  level: true,
+  instructor: {
+    select: {
+      id: true,
+      fullName: true,
+      avatarUrl: true,
+    },
+  },
+  totalLessons: true,
+  _count: {
+    select: { reviews: true },
+  },
 } as const;
 
 @Injectable()
