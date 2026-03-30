@@ -259,6 +259,7 @@ model User {
 
   notifications   Notification[]
   aiChatSessions  AiChatSession[]
+  questionBanks   QuestionBank[]
   reports         Report[]        @relation("reporter")
   reportedReports Report[]        @relation("reviewer")
 
@@ -589,6 +590,52 @@ model QuizOption {
 
   @@index([questionId])
   @@map("quiz_options")
+}
+
+// ── Question Bank ──
+
+model QuestionBank {
+  id            String   @id @default(cuid())
+  instructorId  String   @map("instructor_id")
+  name          String
+  description   String?
+  questionCount Int      @default(0) @map("question_count")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  instructor User               @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  questions  QuestionBankItem[]
+
+  @@index([instructorId])
+  @@map("question_banks")
+}
+
+model QuestionBankItem {
+  id          String   @id @default(cuid())
+  bankId      String   @map("bank_id")
+  question    String
+  explanation String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  bank    QuestionBank           @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  options QuestionBankOption[]
+
+  @@index([bankId])
+  @@map("question_bank_items")
+}
+
+model QuestionBankOption {
+  id         String  @id @default(cuid())
+  questionId String  @map("question_id")
+  text       String
+  isCorrect  Boolean @default(false) @map("is_correct")
+  order      Int     @default(0)
+
+  question QuestionBankItem @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@map("question_bank_options")
 }
 
 // ============================================

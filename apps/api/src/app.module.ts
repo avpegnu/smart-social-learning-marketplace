@@ -30,6 +30,7 @@ import { QnaModule } from './modules/qna/qna.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AiTutorModule } from './modules/ai-tutor/ai-tutor.module';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
+import { QuestionBanksModule } from './modules/question-banks/question-banks.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { JobsModule } from './modules/jobs/jobs.module';
@@ -98,6 +99,7 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
     NotificationsModule,
     AiTutorModule,
     RecommendationsModule,
+    QuestionBanksModule,
     AdminModule,
     ReportsModule,
     JobsModule,
