@@ -169,6 +169,8 @@ export {
 
 export { useAiQuota, useAiSessions, useSessionMessages } from './queries/use-ai-tutor';
 
+export { useRecommendations } from './queries/use-recommendations';
+
 export {
   useSearchUsers,
   useMe,
@@ -249,6 +251,8 @@ export type {
 } from './services/qna.service';
 export { aiTutorService } from './services/ai-tutor.service';
 export type { AskAiData } from './services/ai-tutor.service';
+export { recommendationService } from './services/recommendation.service';
+export type { RecommendedCourse, RecommendationContext } from './services/recommendation.service';
 export { userService } from './services/user.service';
 export type {
   UpdateProfilePayload,
