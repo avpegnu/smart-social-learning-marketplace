@@ -9,6 +9,8 @@ import { ParseCuidPipe } from '@/common/pipes/parse-cuid.pipe';
 import { AddCartItemDto } from './dto/add-cart-item.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { MergeCartDto } from './dto/merge-cart.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { ApplyCouponDto } from './dto/apply-coupon.dto';
 
 @Controller('cart')
 @ApiTags('Cart')
@@ -54,7 +56,7 @@ export class CartController {
 
   @Post('apply-coupon')
   @ApiOperation({ summary: 'Preview coupon discount on cart' })
-  async applyCoupon(@CurrentUser() user: JwtPayload, @Body('code') code: string) {
+  async applyCoupon(@CurrentUser() user: JwtPayload, @Body() dto: ApplyCouponDto) {
     const cart = await this.cartService.getCart(user.sub);
     const cartItems = cart.items.map((item) => ({
       courseId: item.courseId,
@@ -62,13 +64,13 @@ export class CartController {
     }));
 
     const { discount } = await this.couponsService.validateAndCalculateDiscount(
-      code,
+      dto.code,
       user.sub,
       cartItems,
     );
 
     return {
-      coupon: { code },
+      coupon: { code: dto.code },
       discount,
       subtotal: cart.subtotal,
       total: cart.subtotal - discount,

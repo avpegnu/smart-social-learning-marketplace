@@ -14,6 +14,8 @@ import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreateCommentDto } from '../dto/create-comment.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { SharePostDto } from '../dto/share-post.dto';
 
 @Controller('posts')
 @ApiTags('Posts')
@@ -64,9 +66,9 @@ export class PostsController {
   async share(
     @Param('id', ParseCuidPipe) id: string,
     @CurrentUser() user: JwtPayload,
-    @Body('content') content?: string,
+    @Body() dto: SharePostDto,
   ) {
-    return this.postsService.share(user.sub, id, content);
+    return this.postsService.share(user.sub, id, dto.content);
   }
 
   @ApiBearerAuth()

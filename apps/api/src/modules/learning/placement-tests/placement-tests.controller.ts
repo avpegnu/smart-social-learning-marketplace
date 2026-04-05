@@ -5,6 +5,8 @@ import { CurrentUser, Public } from '@/common/decorators';
 import type { JwtPayload } from '@/common/interfaces/jwt-payload.interface';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { SubmitPlacementDto } from '../dto/submit-placement.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { StartPlacementTestDto } from '../dto/start-placement-test.dto';
 
 @Controller('placement-tests')
 @ApiTags('Placement Tests')
@@ -16,8 +18,8 @@ export class PlacementTestsController {
   @Public()
   @Post('start')
   @ApiOperation({ summary: 'Start placement test by category' })
-  async startTest(@Body('categoryId') categoryId: string) {
-    return this.placementTestsService.startTest(categoryId);
+  async startTest(@Body() dto: StartPlacementTestDto) {
+    return this.placementTestsService.startTest(dto.categoryId);
   }
 
   @ApiBearerAuth()

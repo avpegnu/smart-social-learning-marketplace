@@ -13,6 +13,8 @@ import { UpdateQuestionDto } from '../dto/update-question.dto';
 import { QueryQuestionsDto } from '../dto/query-questions.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreateAnswerDto } from '../dto/create-answer.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { MarkBestAnswerDto } from '../dto/mark-best-answer.dto';
 
 @Controller('questions')
 @ApiTags('Q&A')
@@ -87,8 +89,8 @@ export class QuestionsController {
   async markBestAnswer(
     @Param('id', ParseCuidPipe) id: string,
     @CurrentUser() user: JwtPayload,
-    @Body('answerId') answerId: string,
+    @Body() dto: MarkBestAnswerDto,
   ) {
-    return this.questionsService.markBestAnswer(id, answerId, user.sub);
+    return this.questionsService.markBestAnswer(id, dto.answerId, user.sub);
   }
 }

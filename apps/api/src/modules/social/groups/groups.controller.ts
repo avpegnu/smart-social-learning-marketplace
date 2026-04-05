@@ -5,7 +5,6 @@ import { PostsService } from '../posts/posts.service';
 import { CurrentUser, Public } from '@/common/decorators';
 import type { JwtPayload } from '@/common/interfaces/jwt-payload.interface';
 import { ParseCuidPipe } from '@/common/pipes/parse-cuid.pipe';
-import type { GroupRole } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PaginationDto } from '@/common/dto/pagination.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -16,6 +15,8 @@ import { UpdateGroupDto } from '../dto/update-group.dto';
 import { QueryGroupsDto } from '../dto/query-groups.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreatePostDto } from '../dto/create-post.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { UpdateMemberRoleDto } from '../dto/update-member-role.dto';
 
 @Controller('groups')
 @ApiTags('Groups')
@@ -92,9 +93,9 @@ export class GroupsController {
     @Param('id', ParseCuidPipe) id: string,
     @Param('userId', ParseCuidPipe) targetUserId: string,
     @CurrentUser() user: JwtPayload,
-    @Body('role') role: GroupRole,
+    @Body() dto: UpdateMemberRoleDto,
   ) {
-    return this.groupsService.updateMemberRole(id, user.sub, targetUserId, role);
+    return this.groupsService.updateMemberRole(id, user.sub, targetUserId, dto.role);
   }
 
   @ApiBearerAuth()

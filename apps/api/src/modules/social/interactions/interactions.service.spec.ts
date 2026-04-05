@@ -38,24 +38,24 @@ describe('InteractionsService', () => {
   afterEach(() => jest.clearAllMocks());
 
   describe('toggleLike', () => {
-    it('should create like and return likeCount + 1', async () => {
+    it('should create like and return updated likeCount', async () => {
       mockPrisma.post.findUnique.mockResolvedValue({
         id: 'post-1',
         authorId: 'other-user',
         likeCount: 5,
       });
       mockPrisma.like.findUnique.mockResolvedValue(null);
-      mockPrisma.$transaction.mockResolvedValue([]);
+      mockPrisma.$transaction.mockResolvedValue([{}, { likeCount: 6 }]);
       mockPrisma.user.findUnique.mockResolvedValue({ fullName: 'Test User' });
 
       const result = await service.toggleLike('user-1', 'post-1');
       expect(result).toEqual({ liked: true, likeCount: 6 });
     });
 
-    it('should remove like and return likeCount - 1', async () => {
+    it('should remove like and return updated likeCount', async () => {
       mockPrisma.post.findUnique.mockResolvedValue({ id: 'post-1', likeCount: 5 });
       mockPrisma.like.findUnique.mockResolvedValue({ id: 'like-1' });
-      mockPrisma.$transaction.mockResolvedValue([]);
+      mockPrisma.$transaction.mockResolvedValue([{}, { likeCount: 4 }]);
 
       const result = await service.toggleLike('user-1', 'post-1');
       expect(result).toEqual({ liked: false, likeCount: 4 });

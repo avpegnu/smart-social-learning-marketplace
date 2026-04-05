@@ -23,21 +23,23 @@ export class InteractionsService {
     });
 
     if (existing) {
-      await this.prisma.$transaction([
+      const [, updatedPost] = await this.prisma.$transaction([
         this.prisma.like.delete({ where: { id: existing.id } }),
         this.prisma.post.update({
           where: { id: postId },
           data: { likeCount: { decrement: 1 } },
+          select: { likeCount: true },
         }),
       ]);
-      return { liked: false, likeCount: post.likeCount - 1 };
+      return { liked: false, likeCount: updatedPost.likeCount };
     }
 
-    await this.prisma.$transaction([
+    const [, updatedPost] = await this.prisma.$transaction([
       this.prisma.like.create({ data: { userId, postId } }),
       this.prisma.post.update({
         where: { id: postId },
         data: { likeCount: { increment: 1 } },
+        select: { likeCount: true },
       }),
     ]);
 
@@ -52,7 +54,7 @@ export class InteractionsService {
         .catch(() => {});
     }
 
-    return { liked: true, likeCount: post.likeCount + 1 };
+    return { liked: true, likeCount: updatedPost.likeCount };
   }
 
   async toggleBookmark(userId: string, postId: string) {

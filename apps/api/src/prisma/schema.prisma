@@ -670,6 +670,7 @@ model CartItem {
   course  Course?  @relation(fields: [courseId], references: [id], onDelete: Cascade)
   chapter Chapter? @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, courseId, chapterId])
   @@index([userId])
   @@map("cart_items")
 }

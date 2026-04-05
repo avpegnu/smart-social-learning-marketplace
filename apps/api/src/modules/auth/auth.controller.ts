@@ -27,6 +27,8 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { ValidateOttDto } from './dto/validate-ott.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { ResendVerificationDto } from './dto/resend-verification.dto';
 
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
@@ -95,7 +97,7 @@ export class AuthController {
 
     res.cookie(cookieName, result.refreshToken, REFRESH_COOKIE_OPTIONS);
 
-    return { accessToken: result.accessToken };
+    return { accessToken: result.accessToken, user: result.user };
   }
 
   @ApiBearerAuth()
@@ -123,8 +125,8 @@ export class AuthController {
   @Public()
   @Post('resend-verification')
   @ApiOperation({ summary: 'Resend email verification' })
-  async resendVerification(@Body('email') email: string) {
-    return this.authService.resendVerification(email);
+  async resendVerification(@Body() dto: ResendVerificationDto) {
+    return this.authService.resendVerification(dto.email);
   }
 
   @Public()
