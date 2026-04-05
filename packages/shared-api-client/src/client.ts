@@ -64,17 +64,23 @@ class ApiClient {
   }
 
   async fetch<T>(path: string, options?: RequestInit, _isRetry = false): Promise<ApiResponse<T>> {
-    const res = await fetch(`${API_BASE}${path}`, {
-      ...options,
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(this.accessToken && {
-          Authorization: `Bearer ${this.accessToken}`,
-        }),
-        ...options?.headers,
-      },
-    });
+    let res: Response;
+
+    try {
+      res = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(this.accessToken && {
+            Authorization: `Bearer ${this.accessToken}`,
+          }),
+          ...options?.headers,
+        },
+      });
+    } catch {
+      throw { code: 'NETWORK_ERROR', statusCode: 0, message: 'Network error' } as ApiError;
+    }
 
     // 401 → token expired, try refresh once
     if (res.status === 401 && this.accessToken && !_isRetry) {
@@ -91,7 +97,12 @@ class ApiClient {
     }
 
     if (!res.ok) {
-      const error: ApiError = await res.json();
+      let error: ApiError;
+      try {
+        error = await res.json();
+      } catch {
+        error = { code: 'UNKNOWN_ERROR', statusCode: res.status, message: res.statusText };
+      }
       throw error;
     }
 
@@ -174,15 +185,19 @@ class ApiClient {
 
   /** Raw fetch for SSE streaming — returns Response without JSON parsing */
   async streamFetch(path: string, body?: unknown): Promise<Response> {
-    return fetch(`${API_BASE}${path}`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(this.accessToken && { Authorization: `Bearer ${this.accessToken}` }),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    try {
+      return await fetch(`${API_BASE}${path}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(this.accessToken && { Authorization: `Bearer ${this.accessToken}` }),
+        },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } catch {
+      throw { code: 'NETWORK_ERROR', statusCode: 0, message: 'Network error' } as ApiError;
+    }
   }
 }
 
