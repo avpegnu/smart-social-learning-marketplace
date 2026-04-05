@@ -66,6 +66,12 @@ export function useChatSocket(callbacks?: ChatSocketCallbacks) {
     socketRef.current = socket;
 
     return () => {
+      socket.off('new_message');
+      socket.off('user_typing');
+      socket.off('user_stop_typing');
+      socket.off('message_read');
+      socket.off('mark_read_confirmed');
+      socket.off('new_message_notification');
       socket.disconnect();
     };
   }, [isAuthenticated, accessToken, queryClient]);

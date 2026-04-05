@@ -40,6 +40,8 @@ export function useNotificationSocket() {
     socketRef.current = socket;
 
     return () => {
+      socket.off('notification');
+      socket.off('unread_count');
       socket.disconnect();
     };
   }, [isAuthenticated, accessToken, queryClient]);
