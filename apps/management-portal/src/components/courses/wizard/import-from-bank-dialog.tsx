@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import * as ReactDOM from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { X, ArrowLeft, ArrowRight, RefreshCw, CheckSquare, Square } from 'lucide-react';
-import { Button, Label, Input, Select, cn } from '@shared/ui';
+import { Button, Label, Input, Select, Badge, cn } from '@shared/ui';
 import { useQuestionBanks, useQuestionBankDetail } from '@shared/hooks';
 
 interface ImportedQuestion {
@@ -21,12 +21,27 @@ interface ImportFromBankDialogProps {
 
 type ImportMode = 'manual' | 'random';
 
+interface BankTag {
+  id: string;
+  name: string;
+}
+
 interface BankQuestion {
   id: string;
   question: string;
   explanation?: string;
+  difficulty?: string | null;
+  tagIds?: string[];
   options: Array<{ id: string; text: string; isCorrect: boolean }>;
 }
+
+const DIFFICULTY_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const;
+
+const DIFFICULTY_VARIANT: Record<string, 'secondary' | 'default' | 'destructive'> = {
+  BEGINNER: 'secondary',
+  INTERMEDIATE: 'default',
+  ADVANCED: 'destructive',
+};
 
 function shuffleAndPick<T>(arr: T[], count: number): T[] {
   const shuffled = [...arr].sort(() => Math.random() - 0.5);
@@ -44,13 +59,17 @@ export function ImportFromBankDialog({ open, onClose, onImport }: ImportFromBank
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [randomQuestions, setRandomQuestions] = useState<BankQuestion[]>([]);
 
+  // Filters
+  const [filterDifficulty, setFilterDifficulty] = useState<string>('');
+  const [filterTagIds, setFilterTagIds] = useState<string[]>([]);
+
   const { data: banksData, isLoading: banksLoading } = useQuestionBanks();
   const { data: bankDetail, isLoading: detailLoading } = useQuestionBankDetail(selectedBankId);
 
   const banks = useMemo(() => {
     if (!banksData) return [];
     const data = banksData as {
-      data: Array<{ id: string; name: string; _count?: { questions: number } }>;
+      data: Array<{ id: string; name: string; questionCount: number }>;
     };
     return data.data ?? [];
   }, [banksData]);
@@ -61,8 +80,28 @@ export function ImportFromBankDialog({ open, onClose, onImport }: ImportFromBank
     return detail.data?.questions ?? [];
   }, [bankDetail]);
 
+  const bankTags: BankTag[] = useMemo(() => {
+    if (!bankDetail) return [];
+    const detail = bankDetail as { data: { tags?: BankTag[] } };
+    return detail.data?.tags ?? [];
+  }, [bankDetail]);
+
   const selectedBank = banks.find((b) => b.id === selectedBankId);
-  const questionCount = selectedBank?._count?.questions ?? questions.length;
+  const questionCount = selectedBank?.questionCount ?? questions.length;
+
+  // Filtered questions
+  const filteredQuestions = useMemo(() => {
+    let result = questions;
+    if (filterDifficulty) {
+      result = result.filter((q) => q.difficulty === filterDifficulty);
+    }
+    if (filterTagIds.length > 0) {
+      result = result.filter((q) => q.tagIds?.some((id) => filterTagIds.includes(id)));
+    }
+    return result;
+  }, [questions, filterDifficulty, filterTagIds]);
+
+  const hasActiveFilters = filterDifficulty !== '' || filterTagIds.length > 0;
 
   // Reset state when dialog opens/closes
   useEffect(() => {
@@ -73,32 +112,49 @@ export function ImportFromBankDialog({ open, onClose, onImport }: ImportFromBank
       setRandomCount(10);
       setSelectedIds(new Set());
       setRandomQuestions([]);
+      setFilterDifficulty('');
+      setFilterTagIds([]);
     }
   }, [open]);
 
-  // Clamp randomCount to available questions
+  // Reset filters when bank changes
   useEffect(() => {
-    if (questionCount > 0 && randomCount > questionCount) {
-      setRandomCount(questionCount);
+    setFilterDifficulty('');
+    setFilterTagIds([]);
+    setSelectedIds(new Set());
+  }, [selectedBankId]);
+
+  // Clamp randomCount to available filtered questions
+  useEffect(() => {
+    if (filteredQuestions.length > 0 && randomCount > filteredQuestions.length) {
+      setRandomCount(filteredQuestions.length);
     }
-  }, [questionCount, randomCount]);
+  }, [filteredQuestions.length, randomCount]);
 
   const bankOptions = banks.map((b) => ({
     value: b.id,
-    label: `${b.name} (${b._count?.questions ?? 0})`,
+    label: `${b.name} (${b.questionCount ?? 0})`,
   }));
+
+  const difficultyFilterOptions = [
+    { value: '', label: t('allDifficulties') },
+    ...DIFFICULTY_LEVELS.map((l) => ({
+      value: l,
+      label: t(l.toLowerCase() as 'beginner'),
+    })),
+  ];
 
   const handleNext = () => {
     if (mode === 'random') {
-      const count = Math.min(randomCount, questions.length);
-      setRandomQuestions(shuffleAndPick(questions, count));
+      const count = Math.min(randomCount, filteredQuestions.length);
+      setRandomQuestions(shuffleAndPick(filteredQuestions, count));
     }
     setStep(2);
   };
 
   const handleReRandom = () => {
-    const count = Math.min(randomCount, questions.length);
-    setRandomQuestions(shuffleAndPick(questions, count));
+    const count = Math.min(randomCount, filteredQuestions.length);
+    setRandomQuestions(shuffleAndPick(filteredQuestions, count));
   };
 
   const toggleQuestion = (id: string) => {
@@ -113,6 +169,12 @@ export function ImportFromBankDialog({ open, onClose, onImport }: ImportFromBank
     });
   };
 
+  const toggleFilterTag = (tagId: string) => {
+    setFilterTagIds((prev) =>
+      prev.includes(tagId) ? prev.filter((x) => x !== tagId) : [...prev, tagId],
+    );
+  };
+
   const mapToImportFormat = (qs: BankQuestion[]): ImportedQuestion[] =>
     qs.map((q) => ({
       question: q.question,
@@ -125,7 +187,7 @@ export function ImportFromBankDialog({ open, onClose, onImport }: ImportFromBank
 
   const handleImport = () => {
     if (mode === 'manual') {
-      const selected = questions.filter((q) => selectedIds.has(q.id));
+      const selected = filteredQuestions.filter((q) => selectedIds.has(q.id));
       onImport(mapToImportFormat(selected));
     } else {
       onImport(mapToImportFormat(randomQuestions));
@@ -174,7 +236,7 @@ export function ImportFromBankDialog({ open, onClose, onImport }: ImportFromBank
                   placeholder={t('selectBank')}
                 />
               )}
-              {selectedBankId && questionCount > 0 && (
+              {selectedBankId && questionCount > 0 && !hasActiveFilters && (
                 <p className="text-muted-foreground text-sm">
                   {t('available', { count: questionCount })}
                 </p>
@@ -183,6 +245,56 @@ export function ImportFromBankDialog({ open, onClose, onImport }: ImportFromBank
                 <p className="text-muted-foreground text-sm">{t('noQuestions')}</p>
               )}
             </div>
+
+            {/* Filters (shown when bank has questions) */}
+            {selectedBankId && questions.length > 0 && (
+              <div className="border-border space-y-3 border-t pt-3">
+                <Label className="text-sm font-medium">{t('filters')}</Label>
+
+                {/* Difficulty filter */}
+                <div className="space-y-1">
+                  <Select
+                    options={difficultyFilterOptions}
+                    value={filterDifficulty}
+                    onChange={(e) => setFilterDifficulty(e.target.value)}
+                  />
+                </div>
+
+                {/* Tag filter */}
+                {bankTags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {bankTags.map((tag) => {
+                      const isActive = filterTagIds.includes(tag.id);
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          onClick={() => toggleFilterTag(tag.id)}
+                          className={cn(
+                            'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                            isActive
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted text-muted-foreground hover:bg-muted/80',
+                          )}
+                        >
+                          {tag.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Filtered count */}
+                {hasActiveFilters && (
+                  <p className="text-muted-foreground text-xs">
+                    {t('matchingQuestions', {
+                      count: filteredQuestions.length,
+                      total: questions.length,
+                    })}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Mode selection */}
             <div className="space-y-2">
@@ -228,7 +340,7 @@ export function ImportFromBankDialog({ open, onClose, onImport }: ImportFromBank
                   value={randomCount}
                   onChange={(e) => setRandomCount(Math.max(1, Number(e.target.value)))}
                   min={1}
-                  max={questionCount || 100}
+                  max={filteredQuestions.length || 100}
                 />
               </div>
             )}
@@ -241,7 +353,7 @@ export function ImportFromBankDialog({ open, onClose, onImport }: ImportFromBank
               <Button
                 type="button"
                 onClick={handleNext}
-                disabled={!selectedBankId || questionCount === 0 || detailLoading}
+                disabled={!selectedBankId || filteredQuestions.length === 0 || detailLoading}
               >
                 {t('next')}
                 <ArrowRight className="ml-1 h-4 w-4" />
@@ -253,11 +365,11 @@ export function ImportFromBankDialog({ open, onClose, onImport }: ImportFromBank
         {step === 2 && mode === 'manual' && (
           <div className="space-y-4">
             <p className="text-muted-foreground text-sm">
-              {t('selected', { count: selectedIds.size })} / {questions.length}
+              {t('selected', { count: selectedIds.size })} / {filteredQuestions.length}
             </p>
 
             <div className="max-h-[50vh] space-y-2 overflow-y-auto">
-              {questions.map((q, idx) => (
+              {filteredQuestions.map((q, idx) => (
                 <button
                   key={q.id}
                   type="button"
@@ -274,9 +386,19 @@ export function ImportFromBankDialog({ open, onClose, onImport }: ImportFromBank
                       <Square className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium">
-                        Q{idx + 1}: {q.question}
-                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium">
+                          Q{idx + 1}: {q.question}
+                        </p>
+                        {q.difficulty && (
+                          <Badge
+                            variant={DIFFICULTY_VARIANT[q.difficulty] ?? 'secondary'}
+                            className="px-1.5 py-0 text-[10px]"
+                          >
+                            {t(q.difficulty.toLowerCase() as 'beginner')}
+                          </Badge>
+                        )}
+                      </div>
                       <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
                         {q.options.map((o, oIdx) => (
                           <span
@@ -320,9 +442,19 @@ export function ImportFromBankDialog({ open, onClose, onImport }: ImportFromBank
             <div className="max-h-[50vh] space-y-2 overflow-y-auto">
               {randomQuestions.map((q, idx) => (
                 <div key={q.id} className="border-border rounded-lg border p-3">
-                  <p className="text-sm font-medium">
-                    {idx + 1}. {q.question}
-                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-medium">
+                      {idx + 1}. {q.question}
+                    </p>
+                    {q.difficulty && (
+                      <Badge
+                        variant={DIFFICULTY_VARIANT[q.difficulty] ?? 'secondary'}
+                        className="px-1.5 py-0 text-[10px]"
+                      >
+                        {t(q.difficulty.toLowerCase() as 'beginner')}
+                      </Badge>
+                    )}
+                  </div>
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
                     {q.options.map((o, oIdx) => (
                       <span
