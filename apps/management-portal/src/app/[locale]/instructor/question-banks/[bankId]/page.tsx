@@ -3,9 +3,30 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Plus, Pencil, Trash2, CheckCircle2, Circle, FileText } from 'lucide-react';
+import {
+  ArrowLeft,
+  Plus,
+  Pencil,
+  Trash2,
+  CheckCircle2,
+  Circle,
+  FileText,
+  X,
+  Check,
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { Button, Card, CardContent, Input, Label, Textarea, Skeleton } from '@shared/ui';
+import {
+  Button,
+  Card,
+  CardContent,
+  Input,
+  Label,
+  Textarea,
+  Skeleton,
+  Badge,
+  Select,
+  cn,
+} from '@shared/ui';
 import {
   useQuestionBankDetail,
   useUpdateQuestionBank,
@@ -14,9 +35,11 @@ import {
   useUpdateBankQuestion,
   useDeleteBankQuestion,
   useAddBankQuestionsBatch,
+  useCreateBankTag,
+  useDeleteBankTag,
 } from '@shared/hooks';
 import { ConfirmDialog } from '@/components/feedback/confirm-dialog';
-import { ImportQuizDialog } from '@/components/courses/wizard/import-quiz-dialog';
+import { ImportBankTextDialog } from '@/components/question-banks/import-bank-text-dialog';
 import { Link } from '@/i18n/navigation';
 
 // Types
@@ -27,11 +50,18 @@ interface QuestionOption {
   order: number;
 }
 
+interface BankTag {
+  id: string;
+  name: string;
+}
+
 interface QuestionBankItem {
   id: string;
   question: string;
   explanation: string | null;
   order: number;
+  difficulty: string | null;
+  tagIds: string[];
   options: QuestionOption[];
 }
 
@@ -43,6 +73,7 @@ interface QuestionBankDetail {
   createdAt: string;
   updatedAt: string;
   questions: QuestionBankItem[];
+  tags: BankTag[];
 }
 
 interface OptionFormData {
@@ -53,16 +84,28 @@ interface OptionFormData {
 interface QuestionFormData {
   question: string;
   explanation: string;
+  difficulty: string;
+  tagIds: string[];
   options: OptionFormData[];
 }
 
 const EMPTY_QUESTION_FORM: QuestionFormData = {
   question: '',
   explanation: '',
+  difficulty: '',
+  tagIds: [],
   options: [
     { text: '', isCorrect: true },
     { text: '', isCorrect: false },
   ],
+};
+
+const DIFFICULTY_LEVELS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const;
+
+const DIFFICULTY_VARIANT: Record<string, 'secondary' | 'default' | 'destructive'> = {
+  BEGINNER: 'secondary',
+  INTERMEDIATE: 'default',
+  ADVANCED: 'destructive',
 };
 
 export default function QuestionBankDetailPage() {
@@ -83,6 +126,10 @@ export default function QuestionBankDetailPage() {
   const [showImportText, setShowImportText] = useState(false);
   const [questionForm, setQuestionForm] = useState<QuestionFormData>(EMPTY_QUESTION_FORM);
 
+  // Tag state
+  const [showTagInput, setShowTagInput] = useState(false);
+  const [newTagName, setNewTagName] = useState('');
+
   // Queries & Mutations
   const { data: raw, isLoading } = useQuestionBankDetail(bankId);
   const updateBank = useUpdateQuestionBank();
@@ -91,8 +138,15 @@ export default function QuestionBankDetailPage() {
   const addQuestionsBatch = useAddBankQuestionsBatch();
   const updateQuestion = useUpdateBankQuestion();
   const deleteQuestion = useDeleteBankQuestion();
+  const createTag = useCreateBankTag();
+  const deleteTagMutation = useDeleteBankTag();
 
   const bank = (raw as { data?: QuestionBankDetail })?.data as QuestionBankDetail | undefined;
+
+  const difficultyOptions = DIFFICULTY_LEVELS.map((l) => ({
+    value: l,
+    label: t(`difficulty_${l.toLowerCase()}` as 'difficulty_beginner'),
+  }));
 
   // Handlers
   const handleUpdateBank = () => {
@@ -133,6 +187,8 @@ export default function QuestionBankDetailPage() {
     setQuestionForm({
       question: q.question,
       explanation: q.explanation ?? '',
+      difficulty: q.difficulty ?? '',
+      tagIds: q.tagIds ?? [],
       options: q.options
         .sort((a, b) => a.order - b.order)
         .map((o) => ({ text: o.text, isCorrect: o.isCorrect })),
@@ -163,6 +219,8 @@ export default function QuestionBankDetailPage() {
     const payload = {
       question: questionForm.question.trim(),
       explanation: questionForm.explanation.trim() || undefined,
+      difficulty: questionForm.difficulty || undefined,
+      tagIds: questionForm.tagIds,
       options: questionForm.options
         .filter((o) => o.text.trim())
         .map((o) => ({ text: o.text.trim(), isCorrect: o.isCorrect })),
@@ -204,6 +262,31 @@ export default function QuestionBankDetailPage() {
     );
   };
 
+  // Tag handlers
+  const handleCreateTag = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTagName.trim()) return;
+    createTag.mutate(
+      { bankId, name: newTagName.trim() },
+      {
+        onSuccess: () => {
+          setNewTagName('');
+          setShowTagInput(false);
+          toast.success(t('tagCreated'));
+        },
+      },
+    );
+  };
+
+  const handleDeleteTag = (tagId: string) => {
+    deleteTagMutation.mutate(
+      { bankId, tagId },
+      {
+        onSuccess: () => toast.success(t('tagDeleted')),
+      },
+    );
+  };
+
   // Option helpers
   const updateOption = (index: number, field: keyof OptionFormData, value: string | boolean) => {
     setQuestionForm((prev) => ({
@@ -231,6 +314,15 @@ export default function QuestionBankDetailPage() {
     setQuestionForm((prev) => ({
       ...prev,
       options: prev.options.filter((_, i) => i !== index),
+    }));
+  };
+
+  const toggleFormTag = (tagId: string) => {
+    setQuestionForm((prev) => ({
+      ...prev,
+      tagIds: prev.tagIds.includes(tagId)
+        ? prev.tagIds.filter((id) => id !== tagId)
+        : [...prev.tagIds, tagId],
     }));
   };
 
@@ -310,6 +402,64 @@ export default function QuestionBankDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Bank Tags */}
+      <div className="space-y-2">
+        <h2 className="text-lg font-semibold">{t('bankTags')}</h2>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {bank.tags.map((tag) => (
+            <Badge key={tag.id} variant="secondary" className="gap-1 pr-1">
+              {tag.name}
+              <button
+                type="button"
+                onClick={() => handleDeleteTag(tag.id)}
+                className="hover:bg-muted rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+
+          {showTagInput ? (
+            <form onSubmit={handleCreateTag} className="flex items-center gap-1">
+              <Input
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                placeholder={t('tagNamePlaceholder')}
+                className="h-7 w-32 text-xs"
+                autoFocus
+                onBlur={() => {
+                  if (!newTagName.trim()) setShowTagInput(false);
+                }}
+              />
+              <Button
+                type="submit"
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7"
+                disabled={!newTagName.trim()}
+              >
+                <Check className="h-3.5 w-3.5" />
+              </Button>
+            </form>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => setShowTagInput(true)}
+            >
+              <Plus className="mr-1 h-3 w-3" />
+              {t('addTag')}
+            </Button>
+          )}
+        </div>
+
+        {bank.tags.length === 0 && !showTagInput && (
+          <p className="text-muted-foreground text-xs">{t('noTags')}</p>
+        )}
+      </div>
+
       {/* Questions Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">{t('questionCount')}</h2>
@@ -360,6 +510,29 @@ export default function QuestionBankDetailPage() {
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
+
+                {/* Difficulty + Tags badges */}
+                {(q.difficulty || q.tagIds.length > 0) && (
+                  <div className="flex flex-wrap gap-1.5 pl-6">
+                    {q.difficulty && (
+                      <Badge
+                        variant={DIFFICULTY_VARIANT[q.difficulty] ?? 'secondary'}
+                        className="text-[10px]"
+                      >
+                        {t(`difficulty_${q.difficulty.toLowerCase()}` as 'difficulty_beginner')}
+                      </Badge>
+                    )}
+                    {q.tagIds.map((tagId) => {
+                      const tag = bank.tags.find((tg) => tg.id === tagId);
+                      return tag ? (
+                        <Badge key={tagId} variant="outline" className="text-[10px]">
+                          {tag.name}
+                        </Badge>
+                      ) : null;
+                    })}
+                  </div>
+                )}
+
                 <div className="space-y-1.5 pl-6">
                   {q.options
                     .sort((a, b) => a.order - b.order)
@@ -502,6 +675,44 @@ export default function QuestionBankDetailPage() {
               }
             />
           </div>
+
+          {/* Difficulty */}
+          <div className="space-y-1">
+            <Label className="text-sm">{t('difficulty')}</Label>
+            <Select
+              options={difficultyOptions}
+              value={questionForm.difficulty}
+              onChange={(e) => setQuestionForm((prev) => ({ ...prev, difficulty: e.target.value }))}
+              placeholder={t('selectDifficulty')}
+            />
+          </div>
+
+          {/* Bank Tags */}
+          {bank.tags.length > 0 && (
+            <div className="space-y-1">
+              <Label className="text-sm">{t('questionTags')}</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {bank.tags.map((tag) => {
+                  const isSelected = questionForm.tagIds.includes(tag.id);
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => toggleFormTag(tag.id)}
+                      className={cn(
+                        'cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                        isSelected
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80',
+                      )}
+                    >
+                      {tag.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </ConfirmDialog>
 
@@ -517,15 +728,11 @@ export default function QuestionBankDetailPage() {
       />
 
       {/* Import From Text Dialog */}
-      <ImportQuizDialog
+      <ImportBankTextDialog
         open={showImportText}
         onClose={() => setShowImportText(false)}
-        onImport={(parsed) => {
-          const questions = parsed.map((q) => ({
-            question: q.question,
-            explanation: q.explanation ?? '',
-            options: q.options.map((o) => ({ text: o.text, isCorrect: o.isCorrect })),
-          }));
+        bankTags={bank.tags}
+        onImport={(questions) => {
           addQuestionsBatch.mutate(
             { bankId, questions },
             {

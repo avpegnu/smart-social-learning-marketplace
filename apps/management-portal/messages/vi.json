@@ -975,7 +975,26 @@
     "atLeastTwoOptions": "Cần ít nhất 2 lựa chọn",
     "oneCorrectRequired": "Ít nhất một lựa chọn phải được đánh dấu là đúng",
     "questionRequired": "Nội dung câu hỏi là bắt buộc",
-    "totalQuestions": "Tổng số câu hỏi"
+    "totalQuestions": "Tổng số câu hỏi",
+    "bankTags": "Nhãn",
+    "addTag": "Thêm nhãn",
+    "tagNamePlaceholder": "Tên nhãn...",
+    "tagCreated": "Đã tạo nhãn",
+    "tagDeleted": "Đã xóa nhãn",
+    "noTags": "Chưa có nhãn. Thêm nhãn để phân loại câu hỏi.",
+    "questionTags": "Nhãn",
+    "difficulty": "Độ khó",
+    "selectDifficulty": "Chọn độ khó...",
+    "difficulty_beginner": "Cơ bản",
+    "difficulty_intermediate": "Trung bình",
+    "difficulty_advanced": "Nâng cao",
+    "importTextDesc": "Dán câu hỏi theo định dạng bên dưới. Đánh dấu đáp án đúng bằng *",
+    "importPasteText": "Dán câu hỏi",
+    "importTextPlaceholder": "Dán câu hỏi của bạn ở đây...",
+    "importNext": "Tiếp theo",
+    "importBack": "Quay lại",
+    "importAssignMeta": "Gán độ khó và nhãn cho {count} câu hỏi đã import",
+    "importSubmit": "Import {count} câu hỏi"
   },
   "importFromBank": {
     "title": "Nhập từ ngân hàng câu hỏi",
@@ -995,7 +1014,13 @@
     "next": "Tiếp theo",
     "noQuestions": "Ngân hàng này chưa có câu hỏi",
     "noBanks": "Chưa có ngân hàng câu hỏi. Hãy tạo mới trước.",
-    "loading": "Đang tải..."
+    "loading": "Đang tải...",
+    "filters": "Bộ lọc",
+    "allDifficulties": "Tất cả",
+    "matchingQuestions": "{count} / {total} câu hỏi phù hợp",
+    "beginner": "Cơ bản",
+    "intermediate": "Trung bình",
+    "advanced": "Nâng cao"
   },
   "placementQuestions": {
     "title": "Câu hỏi xếp lớp",

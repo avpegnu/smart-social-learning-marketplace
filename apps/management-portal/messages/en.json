@@ -974,7 +974,26 @@
     "atLeastTwoOptions": "At least 2 options are required",
     "oneCorrectRequired": "At least one option must be marked as correct",
     "questionRequired": "Question text is required",
-    "totalQuestions": "Total Questions"
+    "totalQuestions": "Total Questions",
+    "bankTags": "Tags",
+    "addTag": "Add Tag",
+    "tagNamePlaceholder": "Tag name...",
+    "tagCreated": "Tag created",
+    "tagDeleted": "Tag deleted",
+    "noTags": "No tags yet. Add tags to categorize questions.",
+    "questionTags": "Tags",
+    "difficulty": "Difficulty",
+    "selectDifficulty": "Select difficulty...",
+    "difficulty_beginner": "Beginner",
+    "difficulty_intermediate": "Intermediate",
+    "difficulty_advanced": "Advanced",
+    "importTextDesc": "Paste questions in the format below. Mark correct answer with *",
+    "importPasteText": "Paste questions",
+    "importTextPlaceholder": "Paste your questions here...",
+    "importNext": "Next",
+    "importBack": "Back",
+    "importAssignMeta": "Assign difficulty and tags for {count} imported questions",
+    "importSubmit": "Import {count} questions"
   },
   "importFromBank": {
     "title": "Import from Question Bank",
@@ -994,7 +1013,13 @@
     "next": "Next",
     "noQuestions": "This bank has no questions",
     "noBanks": "No question banks yet. Create one first.",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "filters": "Filters",
+    "allDifficulties": "All difficulties",
+    "matchingQuestions": "{count} / {total} questions match",
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced"
   },
   "placementQuestions": {
     "title": "Placement Questions",
