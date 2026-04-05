@@ -3,6 +3,8 @@ import { apiClient } from '@shared/api-client';
 export interface BankQuestionPayload {
   question: string;
   explanation?: string;
+  difficulty?: string;
+  tagIds?: string[];
   options: Array<{ text: string; isCorrect: boolean }>;
 }
 
@@ -39,4 +41,16 @@ export const questionBankService = {
 
   deleteQuestion: (bankId: string, questionId: string) =>
     apiClient.del(`/instructor/question-banks/${bankId}/questions/${questionId}`),
+
+  // Tags
+  getTags: (bankId: string) => apiClient.get(`/instructor/question-banks/${bankId}/tags`),
+
+  createTag: (bankId: string, data: { name: string }) =>
+    apiClient.post(`/instructor/question-banks/${bankId}/tags`, data),
+
+  updateTag: (bankId: string, tagId: string, data: { name: string }) =>
+    apiClient.patch(`/instructor/question-banks/${bankId}/tags/${tagId}`, data),
+
+  deleteTag: (bankId: string, tagId: string) =>
+    apiClient.del(`/instructor/question-banks/${bankId}/tags/${tagId}`),
 };

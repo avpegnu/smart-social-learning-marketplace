@@ -128,3 +128,44 @@ export function useDeleteBankQuestion() {
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
+
+// ── Bank Tag Hooks ──
+
+export function useCreateBankTag() {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: ({ bankId, name }: { bankId: string; name: string }) =>
+      questionBankService.createTag(bankId, { name }),
+    onSuccess: (_, { bankId }) => {
+      queryClient.invalidateQueries({ queryKey: keys.detail(bankId) });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useUpdateBankTag() {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: ({ bankId, tagId, name }: { bankId: string; tagId: string; name: string }) =>
+      questionBankService.updateTag(bankId, tagId, { name }),
+    onSuccess: (_, { bankId }) => {
+      queryClient.invalidateQueries({ queryKey: keys.detail(bankId) });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useDeleteBankTag() {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: ({ bankId, tagId }: { bankId: string; tagId: string }) =>
+      questionBankService.deleteTag(bankId, tagId),
+    onSuccess: (_, { bankId }) => {
+      queryClient.invalidateQueries({ queryKey: keys.detail(bankId) });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}

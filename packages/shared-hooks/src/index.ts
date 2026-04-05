@@ -190,6 +190,9 @@ export {
   useAddBankQuestionsBatch,
   useUpdateBankQuestion,
   useDeleteBankQuestion,
+  useCreateBankTag,
+  useUpdateBankTag,
+  useDeleteBankTag,
 } from './queries/use-question-banks';
 
 export {
