@@ -5,11 +5,12 @@ import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronRight, BookOpen, ShoppingCart } from 'lucide-react';
 import { Badge, Button } from '@shared/ui';
 import { formatDuration, formatPrice } from '@shared/utils';
-import { toast } from 'sonner';
+import { Link } from '@/i18n/navigation';
 import type { ApiSection, ApiChapter } from './types';
 import { LESSON_ICONS } from './types';
 
 interface CourseCurriculumProps {
+  courseSlug: string;
   sections: ApiSection[];
   totalLessons: number;
   totalDuration: number;
@@ -17,6 +18,7 @@ interface CourseCurriculumProps {
 }
 
 export function CourseCurriculum({
+  courseSlug,
   sections,
   totalLessons,
   totalDuration,
@@ -114,19 +116,12 @@ export function CourseCurriculum({
                     {expandedChapters.includes(chapter.id) &&
                       chapter.lessons.map((lesson) => {
                         const LessonIcon = LESSON_ICONS[lesson.type] ?? BookOpen;
-                        return (
-                          <div
-                            key={lesson.id}
-                            className="border-border/30 flex items-center gap-3 border-t px-8 py-2 text-sm"
-                          >
+                        const lessonContent = (
+                          <>
                             <LessonIcon className="text-muted-foreground h-4 w-4 shrink-0" />
                             <span className="flex-1">{lesson.title}</span>
                             {chapter.isFreePreview && (
-                              <Badge
-                                variant="outline"
-                                className="text-primary cursor-pointer text-xs"
-                                onClick={() => toast.info(t('previewComingSoon'))}
-                              >
+                              <Badge variant="outline" className="text-primary text-xs">
                                 {t('preview')}
                               </Badge>
                             )}
@@ -135,6 +130,22 @@ export function CourseCurriculum({
                                 {formatDuration(lesson.estimatedDuration)}
                               </span>
                             )}
+                          </>
+                        );
+                        return chapter.isFreePreview ? (
+                          <Link
+                            key={lesson.id}
+                            href={`/courses/${courseSlug}/lessons/${lesson.id}`}
+                            className="border-border/30 hover:bg-accent/50 flex items-center gap-3 border-t px-8 py-2 text-sm transition-colors"
+                          >
+                            {lessonContent}
+                          </Link>
+                        ) : (
+                          <div
+                            key={lesson.id}
+                            className="border-border/30 flex items-center gap-3 border-t px-8 py-2 text-sm"
+                          >
+                            {lessonContent}
                           </div>
                         );
                       })}

@@ -267,6 +267,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
               {/* Content Tab */}
               <TabsContent value="content">
                 <CourseCurriculum
+                  courseSlug={slug}
                   sections={course.sections}
                   totalLessons={course.totalLessons}
                   totalDuration={course.totalDuration}
