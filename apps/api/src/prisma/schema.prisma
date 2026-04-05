@@ -605,18 +605,33 @@ model QuestionBank {
 
   instructor User               @relation(fields: [instructorId], references: [id], onDelete: Cascade)
   questions  QuestionBankItem[]
+  tags       QuestionBankTag[]
 
   @@index([instructorId])
   @@map("question_banks")
 }
 
+model QuestionBankTag {
+  id     String @id @default(cuid())
+  bankId String @map("bank_id")
+  name   String
+
+  bank QuestionBank @relation(fields: [bankId], references: [id], onDelete: Cascade)
+
+  @@unique([bankId, name])
+  @@index([bankId])
+  @@map("question_bank_tags")
+}
+
 model QuestionBankItem {
-  id          String   @id @default(cuid())
-  bankId      String   @map("bank_id")
+  id          String       @id @default(cuid())
+  bankId      String       @map("bank_id")
   question    String
   explanation String?
-  order       Int      @default(0)
-  createdAt   DateTime @default(now()) @map("created_at")
+  order       Int          @default(0)
+  difficulty  CourseLevel?
+  tagIds      String[]     @default([]) @map("tag_ids")
+  createdAt   DateTime     @default(now()) @map("created_at")
 
   bank    QuestionBank           @relation(fields: [bankId], references: [id], onDelete: Cascade)
   options QuestionBankOption[]

@@ -3,12 +3,14 @@ import {
   IsOptional,
   IsArray,
   IsBoolean,
+  IsEnum,
   ArrayMinSize,
   ArrayMaxSize,
   ValidateNested,
   MinLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { CourseLevel } from '@prisma/client';
 
 class BankOptionDto {
   @IsString()
@@ -27,6 +29,15 @@ export class CreateBankQuestionDto {
   @IsOptional()
   @IsString()
   explanation?: string;
+
+  @IsOptional()
+  @IsEnum(CourseLevel)
+  difficulty?: CourseLevel;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tagIds?: string[];
 
   @IsArray()
   @ArrayMinSize(2)

@@ -23,7 +23,15 @@ describe('QuestionBanksService', () => {
     questionBankOption: {
       deleteMany: jest.fn(),
     },
+    questionBankTag: {
+      findMany: jest.fn(),
+      findFirst: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
     $transaction: jest.fn(),
+    $executeRaw: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -76,15 +84,35 @@ describe('QuestionBanksService', () => {
   });
 
   describe('findById', () => {
-    it('should return bank with questions', async () => {
+    it('should return bank with questions and tags', async () => {
       prisma.questionBank.findUnique.mockResolvedValue({
         id: 'qb1',
         instructorId: 'inst1',
         questions: [],
+        tags: [{ id: 't1', name: 'Chapter 1' }],
       });
 
       const result = await service.findById('qb1', 'inst1');
       expect(result.id).toBe('qb1');
+      expect(result.tags).toHaveLength(1);
+    });
+
+    it('should include tags in the query', async () => {
+      prisma.questionBank.findUnique.mockResolvedValue({
+        id: 'qb1',
+        instructorId: 'inst1',
+        questions: [],
+        tags: [],
+      });
+
+      await service.findById('qb1', 'inst1');
+      expect(prisma.questionBank.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({
+          include: expect.objectContaining({
+            tags: { orderBy: { name: 'asc' } },
+          }),
+        }),
+      );
     });
 
     it('should throw if not found', async () => {
@@ -127,16 +155,18 @@ describe('QuestionBanksService', () => {
   });
 
   describe('addQuestion', () => {
-    const dto = {
-      question: 'What is JS?',
-      explanation: 'JavaScript',
-      options: [
-        { text: 'A language', isCorrect: true },
-        { text: 'A framework', isCorrect: false },
-      ],
-    };
+    it('should add question with difficulty and tagIds', async () => {
+      const dto = {
+        question: 'What is JS?',
+        explanation: 'JavaScript',
+        difficulty: 'INTERMEDIATE' as const,
+        tagIds: ['tag1', 'tag2'],
+        options: [
+          { text: 'A language', isCorrect: true },
+          { text: 'A framework', isCorrect: false },
+        ],
+      };
 
-    it('should add question and increment count', async () => {
       prisma.questionBank.findUnique.mockResolvedValue({ instructorId: 'inst1' });
       prisma.questionBankItem.findFirst.mockResolvedValue(null);
 
@@ -148,10 +178,47 @@ describe('QuestionBanksService', () => {
 
       await service.addQuestion('qb1', 'inst1', dto);
 
-      expect(tx.questionBankItem.create).toHaveBeenCalled();
+      expect(tx.questionBankItem.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            difficulty: 'INTERMEDIATE',
+            tagIds: ['tag1', 'tag2'],
+          }),
+        }),
+      );
       expect(tx.questionBank.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: { questionCount: { increment: 1 } },
+        }),
+      );
+    });
+
+    it('should default difficulty to null and tagIds to [] when not provided', async () => {
+      const dto = {
+        question: 'What is JS?',
+        options: [
+          { text: 'A language', isCorrect: true },
+          { text: 'A framework', isCorrect: false },
+        ],
+      };
+
+      prisma.questionBank.findUnique.mockResolvedValue({ instructorId: 'inst1' });
+      prisma.questionBankItem.findFirst.mockResolvedValue(null);
+
+      const tx = {
+        questionBankItem: { create: jest.fn().mockResolvedValue({ id: 'q1' }) },
+        questionBank: { update: jest.fn() },
+      };
+      prisma.$transaction.mockImplementation((fn) => fn(tx));
+
+      await service.addQuestion('qb1', 'inst1', dto);
+
+      expect(tx.questionBankItem.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            difficulty: null,
+            tagIds: [],
+          }),
         }),
       );
     });
@@ -189,6 +256,57 @@ describe('QuestionBanksService', () => {
     });
   });
 
+  describe('addQuestionsBatch', () => {
+    it('should add multiple questions with difficulty and tagIds', async () => {
+      prisma.questionBank.findUnique.mockResolvedValue({ instructorId: 'inst1' });
+      prisma.questionBankItem.findFirst.mockResolvedValue(null);
+
+      const questions = [
+        {
+          question: 'Q1?',
+          difficulty: 'BEGINNER' as const,
+          tagIds: ['tag1'],
+          options: [
+            { text: 'A', isCorrect: true },
+            { text: 'B', isCorrect: false },
+          ],
+        },
+        {
+          question: 'Q2?',
+          difficulty: 'ADVANCED' as const,
+          tagIds: ['tag2'],
+          options: [
+            { text: 'C', isCorrect: false },
+            { text: 'D', isCorrect: true },
+          ],
+        },
+      ];
+
+      const tx = {
+        questionBankItem: { create: jest.fn().mockResolvedValue({ id: 'q1' }) },
+        questionBank: { update: jest.fn() },
+      };
+      prisma.$transaction.mockImplementation((fn) => fn(tx));
+
+      await service.addQuestionsBatch('qb1', 'inst1', questions);
+
+      expect(tx.questionBankItem.create).toHaveBeenCalledTimes(2);
+      expect(tx.questionBankItem.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            difficulty: 'BEGINNER',
+            tagIds: ['tag1'],
+          }),
+        }),
+      );
+      expect(tx.questionBank.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { questionCount: { increment: 2 } },
+        }),
+      );
+    });
+  });
+
   describe('deleteQuestion', () => {
     it('should delete question and decrement count', async () => {
       prisma.questionBank.findUnique.mockResolvedValue({ instructorId: 'inst1' });
@@ -208,42 +326,89 @@ describe('QuestionBanksService', () => {
     });
   });
 
-  describe('addQuestionsBatch', () => {
-    it('should add multiple questions in transaction', async () => {
+  // ── Bank Tags ──
+
+  describe('getTags', () => {
+    it('should return tags for bank', async () => {
       prisma.questionBank.findUnique.mockResolvedValue({ instructorId: 'inst1' });
-      prisma.questionBankItem.findFirst.mockResolvedValue(null);
+      prisma.questionBankTag.findMany.mockResolvedValue([
+        { id: 't1', bankId: 'qb1', name: 'Chapter 1' },
+        { id: 't2', bankId: 'qb1', name: 'Chapter 2' },
+      ]);
 
-      const questions = [
-        {
-          question: 'Q1?',
-          options: [
-            { text: 'A', isCorrect: true },
-            { text: 'B', isCorrect: false },
-          ],
-        },
-        {
-          question: 'Q2?',
-          options: [
-            { text: 'C', isCorrect: false },
-            { text: 'D', isCorrect: true },
-          ],
-        },
-      ];
+      const result = await service.getTags('qb1', 'inst1');
+      expect(result).toHaveLength(2);
+      expect(prisma.questionBankTag.findMany).toHaveBeenCalledWith({
+        where: { bankId: 'qb1' },
+        orderBy: { name: 'asc' },
+      });
+    });
+  });
 
-      const tx = {
-        questionBankItem: { create: jest.fn().mockResolvedValue({ id: 'q1' }) },
-        questionBank: { update: jest.fn() },
-      };
-      prisma.$transaction.mockImplementation((fn) => fn(tx));
+  describe('createTag', () => {
+    it('should create a tag', async () => {
+      prisma.questionBank.findUnique.mockResolvedValue({ instructorId: 'inst1' });
+      prisma.questionBankTag.create.mockResolvedValue({
+        id: 't1',
+        bankId: 'qb1',
+        name: 'Chapter 1',
+      });
 
-      await service.addQuestionsBatch('qb1', 'inst1', questions);
+      const result = await service.createTag('qb1', 'inst1', { name: 'Chapter 1' });
+      expect(result.name).toBe('Chapter 1');
+      expect(prisma.questionBankTag.create).toHaveBeenCalledWith({
+        data: { bankId: 'qb1', name: 'Chapter 1' },
+      });
+    });
 
-      expect(tx.questionBankItem.create).toHaveBeenCalledTimes(2);
-      expect(tx.questionBank.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: { questionCount: { increment: 2 } },
-        }),
+    it('should throw if not bank owner', async () => {
+      prisma.questionBank.findUnique.mockResolvedValue({ instructorId: 'other' });
+      await expect(service.createTag('qb1', 'inst1', { name: 'X' })).rejects.toThrow(
+        ForbiddenException,
       );
+    });
+  });
+
+  describe('updateTag', () => {
+    it('should update tag name', async () => {
+      prisma.questionBank.findUnique.mockResolvedValue({ instructorId: 'inst1' });
+      prisma.questionBankTag.findFirst.mockResolvedValue({ id: 't1', bankId: 'qb1', name: 'Old' });
+      prisma.questionBankTag.update.mockResolvedValue({ id: 't1', name: 'New Name' });
+
+      const result = await service.updateTag('qb1', 't1', 'inst1', { name: 'New Name' });
+      expect(result.name).toBe('New Name');
+    });
+
+    it('should throw if tag not found', async () => {
+      prisma.questionBank.findUnique.mockResolvedValue({ instructorId: 'inst1' });
+      prisma.questionBankTag.findFirst.mockResolvedValue(null);
+
+      await expect(service.updateTag('qb1', 't1', 'inst1', { name: 'X' })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('deleteTag', () => {
+    it('should delete tag and clean up tagIds on questions', async () => {
+      prisma.questionBank.findUnique.mockResolvedValue({ instructorId: 'inst1' });
+      prisma.questionBankTag.findFirst.mockResolvedValue({ id: 't1' });
+      prisma.$transaction.mockResolvedValue([]);
+
+      await service.deleteTag('qb1', 't1', 'inst1');
+      expect(prisma.$transaction).toHaveBeenCalled();
+    });
+
+    it('should throw if tag not found', async () => {
+      prisma.questionBank.findUnique.mockResolvedValue({ instructorId: 'inst1' });
+      prisma.questionBankTag.findFirst.mockResolvedValue(null);
+
+      await expect(service.deleteTag('qb1', 't1', 'inst1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw if not bank owner', async () => {
+      prisma.questionBank.findUnique.mockResolvedValue({ instructorId: 'other' });
+      await expect(service.deleteTag('qb1', 't1', 'inst1')).rejects.toThrow(ForbiddenException);
     });
   });
 });

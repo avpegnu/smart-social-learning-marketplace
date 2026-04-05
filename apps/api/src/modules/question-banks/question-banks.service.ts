@@ -9,6 +9,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { CreateQuestionBankDto, UpdateQuestionBankDto } from './dto/create-question-bank.dto';
 import type { CreateBankQuestionDto } from './dto/create-bank-question.dto';
+import type { CreateBankTagDto, UpdateBankTagDto } from './dto/bank-tag.dto';
 
 @Injectable()
 export class QuestionBanksService {
@@ -49,6 +50,7 @@ export class QuestionBanksService {
           orderBy: { order: 'asc' },
           include: { options: { orderBy: { order: 'asc' } } },
         },
+        tags: { orderBy: { name: 'asc' } },
       },
     });
 
@@ -89,6 +91,8 @@ export class QuestionBanksService {
           bankId,
           question: dto.question,
           explanation: dto.explanation,
+          difficulty: dto.difficulty ?? null,
+          tagIds: dto.tagIds ?? [],
           order: (lastQuestion?.order ?? -1) + 1,
           options: {
             create: dto.options.map((opt, i) => ({
@@ -133,6 +137,8 @@ export class QuestionBanksService {
             bankId,
             question: dto.question,
             explanation: dto.explanation,
+            difficulty: dto.difficulty ?? null,
+            tagIds: dto.tagIds ?? [],
             order: nextOrder++,
             options: {
               create: dto.options.map((opt, i) => ({
@@ -178,6 +184,8 @@ export class QuestionBanksService {
       data: {
         question: dto.question,
         explanation: dto.explanation,
+        difficulty: dto.difficulty ?? null,
+        tagIds: dto.tagIds ?? [],
         options: {
           create: dto.options.map((opt, i) => ({
             text: opt.text,
@@ -204,6 +212,52 @@ export class QuestionBanksService {
         where: { id: bankId },
         data: { questionCount: { decrement: 1 } },
       }),
+    ]);
+  }
+
+  // ── Bank Tag CRUD ──
+
+  async getTags(bankId: string, instructorId: string) {
+    await this.verifyOwnership(bankId, instructorId);
+    return this.prisma.questionBankTag.findMany({
+      where: { bankId },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async createTag(bankId: string, instructorId: string, dto: CreateBankTagDto) {
+    await this.verifyOwnership(bankId, instructorId);
+    return this.prisma.questionBankTag.create({
+      data: { bankId, name: dto.name.trim() },
+    });
+  }
+
+  async updateTag(bankId: string, tagId: string, instructorId: string, dto: UpdateBankTagDto) {
+    await this.verifyOwnership(bankId, instructorId);
+    const tag = await this.prisma.questionBankTag.findFirst({
+      where: { id: tagId, bankId },
+    });
+    if (!tag) throw new NotFoundException({ code: 'BANK_TAG_NOT_FOUND' });
+    return this.prisma.questionBankTag.update({
+      where: { id: tagId },
+      data: { name: dto.name.trim() },
+    });
+  }
+
+  async deleteTag(bankId: string, tagId: string, instructorId: string) {
+    await this.verifyOwnership(bankId, instructorId);
+    const tag = await this.prisma.questionBankTag.findFirst({
+      where: { id: tagId, bankId },
+    });
+    if (!tag) throw new NotFoundException({ code: 'BANK_TAG_NOT_FOUND' });
+
+    await this.prisma.$transaction([
+      this.prisma.questionBankTag.delete({ where: { id: tagId } }),
+      this.prisma.$executeRaw`
+        UPDATE question_bank_items
+        SET tag_ids = array_remove(tag_ids, ${tagId})
+        WHERE bank_id = ${bankId} AND ${tagId} = ANY(tag_ids)
+      `,
     ]);
   }
 

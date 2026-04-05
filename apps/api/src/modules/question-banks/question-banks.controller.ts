@@ -21,6 +21,8 @@ import type { JwtPayload } from '@/common/interfaces/jwt-payload.interface';
 import { CreateQuestionBankDto, UpdateQuestionBankDto } from './dto/create-question-bank.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreateBankQuestionDto, BatchCreateBankQuestionsDto } from './dto/create-bank-question.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { CreateBankTagDto, UpdateBankTagDto } from './dto/bank-tag.dto';
 
 @Controller('instructor/question-banks')
 @ApiTags('Question Banks')
@@ -76,6 +78,48 @@ export class QuestionBanksController {
     await this.service.delete(id, user.sub);
     return { message: 'Question bank deleted' };
   }
+
+  // ── Bank Tags ──
+
+  @Get(':id/tags')
+  @ApiOperation({ summary: 'List tags for a question bank' })
+  async getTags(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: JwtPayload) {
+    return this.service.getTags(id, user.sub);
+  }
+
+  @Post(':id/tags')
+  @ApiOperation({ summary: 'Create a tag in a question bank' })
+  async createTag(
+    @Param('id', ParseCuidPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: CreateBankTagDto,
+  ) {
+    return this.service.createTag(id, user.sub, dto);
+  }
+
+  @Patch(':id/tags/:tagId')
+  @ApiOperation({ summary: 'Update a tag in a question bank' })
+  async updateTag(
+    @Param('id', ParseCuidPipe) id: string,
+    @Param('tagId', ParseCuidPipe) tagId: string,
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: UpdateBankTagDto,
+  ) {
+    return this.service.updateTag(id, tagId, user.sub, dto);
+  }
+
+  @Delete(':id/tags/:tagId')
+  @ApiOperation({ summary: 'Delete a tag from a question bank' })
+  async deleteTag(
+    @Param('id', ParseCuidPipe) id: string,
+    @Param('tagId', ParseCuidPipe) tagId: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    await this.service.deleteTag(id, tagId, user.sub);
+    return { message: 'Tag deleted' };
+  }
+
+  // ── Bank Questions ──
 
   @Post(':id/questions')
   @ApiOperation({ summary: 'Add a question to bank' })
