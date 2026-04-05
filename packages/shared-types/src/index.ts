@@ -23,6 +23,7 @@ export enum Role {
 }
 
 export enum UserStatus {
+  UNVERIFIED = 'UNVERIFIED',
   ACTIVE = 'ACTIVE',
   SUSPENDED = 'SUSPENDED',
 }
@@ -98,8 +99,10 @@ export enum CourseLevel {
 export enum CourseStatus {
   DRAFT = 'DRAFT',
   PENDING_REVIEW = 'PENDING_REVIEW',
+  APPROVED = 'APPROVED',
   PUBLISHED = 'PUBLISHED',
   REJECTED = 'REJECTED',
+  ARCHIVED = 'ARCHIVED',
 }
 
 export enum LessonType {
