@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Inject, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { QuestionsService } from './questions.service';
 import { AnswersService } from '../answers/answers.service';
 import { CurrentUser, Public } from '@/common/decorators';
@@ -28,6 +29,7 @@ export class QuestionsController {
 
   @ApiBearerAuth()
   @Post()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @ApiOperation({ summary: 'Create a question' })
   async create(@CurrentUser() user: JwtPayload, @Body() dto: CreateQuestionDto) {
     return this.questionsService.create(user.sub, dto);

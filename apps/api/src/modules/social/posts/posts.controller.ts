@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Inject, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { PostsService } from './posts.service';
 import { CommentsService } from '../comments/comments.service';
 import { InteractionsService } from '../interactions/interactions.service';
@@ -30,6 +31,7 @@ export class PostsController {
 
   @ApiBearerAuth()
   @Post()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @ApiOperation({ summary: 'Create a new post' })
   async create(@CurrentUser() user: JwtPayload, @Body() dto: CreatePostDto) {
     return this.postsService.create(user.sub, dto);
