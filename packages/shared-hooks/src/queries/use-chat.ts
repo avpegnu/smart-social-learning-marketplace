@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { chatService } from '../services/chat.service';
 import type { CreateConversationData, SendMessageData } from '../services/chat.service';
 import { useApiError } from '../use-api-error';
@@ -35,7 +36,7 @@ export function useGetOrCreateConversation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chat', 'conversations'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -49,6 +50,6 @@ export function useSendMessage() {
       queryClient.invalidateQueries({ queryKey: ['chat', vars.conversationId, 'messages'] });
       queryClient.invalidateQueries({ queryKey: ['chat', 'conversations'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }

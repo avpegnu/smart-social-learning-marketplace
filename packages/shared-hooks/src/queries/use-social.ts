@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { socialService } from '../services/social.service';
 import type { CreatePostData, UpdatePostData, CreateCommentData } from '../services/social.service';
 import { useApiError } from '../use-api-error';
@@ -57,7 +58,7 @@ export function useCreatePost() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['social', 'feed'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -71,7 +72,7 @@ export function useUpdatePost() {
       queryClient.invalidateQueries({ queryKey: ['social', 'posts', vars.id] });
       queryClient.invalidateQueries({ queryKey: ['social', 'feed'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -83,28 +84,32 @@ export function useDeletePost() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['social', 'feed'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
 export function useToggleLike() {
   const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
   return useMutation({
     mutationFn: (postId: string) => socialService.toggleLike(postId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['social', 'feed'] });
     },
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
 export function useToggleBookmark() {
   const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
   return useMutation({
     mutationFn: (postId: string) => socialService.toggleBookmark(postId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['social', 'feed'] });
       queryClient.invalidateQueries({ queryKey: ['social', 'bookmarks'] });
     },
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -117,7 +122,7 @@ export function useSharePost() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['social', 'feed'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -131,7 +136,7 @@ export function useCreateComment() {
       queryClient.invalidateQueries({ queryKey: ['social', 'posts', vars.postId, 'comments'] });
       queryClient.invalidateQueries({ queryKey: ['social', 'feed'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -145,6 +150,6 @@ export function useDeleteComment() {
       queryClient.invalidateQueries({ queryKey: ['social', 'posts', vars.postId, 'comments'] });
       queryClient.invalidateQueries({ queryKey: ['social', 'feed'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }

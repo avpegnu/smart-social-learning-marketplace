@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { groupService } from '../services/group.service';
 import type { CreateGroupData, UpdateGroupData } from '../services/group.service';
 import { useApiError } from '../use-api-error';
@@ -56,7 +57,7 @@ export function useCreateGroup() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -70,7 +71,7 @@ export function useUpdateGroup() {
       queryClient.invalidateQueries({ queryKey: ['groups', vars.id] });
       queryClient.invalidateQueries({ queryKey: ['groups'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -82,7 +83,7 @@ export function useDeleteGroup() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -95,7 +96,7 @@ export function useJoinGroup() {
       queryClient.invalidateQueries({ queryKey: ['groups', id] });
       queryClient.invalidateQueries({ queryKey: ['groups'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -108,7 +109,7 @@ export function useLeaveGroup() {
       queryClient.invalidateQueries({ queryKey: ['groups', id] });
       queryClient.invalidateQueries({ queryKey: ['groups'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -131,7 +132,7 @@ export function useCreateGroupPost() {
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ['groups', vars.groupId, 'posts'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -144,7 +145,7 @@ export function useUpdateMemberRole() {
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ['groups', vars.groupId, 'members'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -158,7 +159,7 @@ export function useKickMember() {
       queryClient.invalidateQueries({ queryKey: ['groups', vars.groupId, 'members'] });
       queryClient.invalidateQueries({ queryKey: ['groups', vars.groupId] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -173,7 +174,7 @@ export function useApproveRequest() {
       queryClient.invalidateQueries({ queryKey: ['groups', vars.groupId, 'members'] });
       queryClient.invalidateQueries({ queryKey: ['groups', vars.groupId] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -186,6 +187,6 @@ export function useRejectRequest() {
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ['groups', vars.groupId, 'requests'] });
     },
-    onError: getErrorMessage,
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
