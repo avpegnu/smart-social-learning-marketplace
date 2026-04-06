@@ -40,36 +40,37 @@ export default function HomePage() {
       icon: Users,
       title: t('whyUs.social.title'),
       description: t('whyUs.social.desc'),
-      color: 'text-blue-500 bg-blue-500/10',
+      color: 'text-accent-cyan bg-accent-cyan/10',
     },
     {
       icon: Bot,
       title: t('whyUs.ai.title'),
       description: t('whyUs.ai.desc'),
-      color: 'text-violet-500 bg-violet-500/10',
+      color: 'text-accent-violet bg-accent-violet/10',
     },
     {
       icon: GraduationCap,
       title: t('whyUs.quality.title'),
       description: t('whyUs.quality.desc'),
-      color: 'text-emerald-500 bg-emerald-500/10',
+      color: 'text-accent-emerald bg-accent-emerald/10',
     },
   ];
 
   return (
     <div>
       {/* Hero Section */}
-      <section className="from-primary/10 via-background relative overflow-hidden bg-gradient-to-br to-violet-500/10 py-16 sm:py-24">
-        <div className="bg-primary/10 absolute -top-40 -right-40 h-80 w-80 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-violet-500/10 blur-3xl" />
+      <section className="bg-mesh-1 relative overflow-hidden py-16 sm:py-24">
+        <div className="bg-primary/15 absolute -top-40 -right-40 h-96 w-96 rounded-full blur-3xl" />
+        <div className="bg-accent-violet/15 absolute -bottom-40 -left-40 h-96 w-96 rounded-full blur-3xl" />
+        <div className="bg-accent-pink/10 absolute top-1/2 left-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" />
         <div className="relative container mx-auto px-4">
-          <div className="mx-auto max-w-3xl text-center">
-            <Badge className="border-primary/20 from-primary/10 text-primary mb-4 border bg-gradient-to-r to-violet-500/10 px-4 py-1.5 text-sm">
+          <div className="animate-fade-in-up mx-auto max-w-3xl text-center">
+            <Badge className="border-primary/20 bg-background/60 text-primary mb-4 border px-4 py-1.5 text-sm shadow-sm backdrop-blur-md">
               <Sparkles className="mr-1.5 h-3.5 w-3.5" />
               {t('heroBadge')}
             </Badge>
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              {t('heroTitle')}
+              <span className="text-gradient">{t('heroTitle')}</span>
             </h1>
             <p className="text-muted-foreground mx-auto mb-8 max-w-2xl text-lg">
               {t('heroSubtitle')}
@@ -98,22 +99,16 @@ export default function HomePage() {
             {/* Stats */}
             <div className="mt-12 flex items-center justify-center gap-8 sm:gap-12">
               <div className="text-center">
-                <div className="from-primary bg-gradient-to-r to-violet-500 bg-clip-text text-3xl font-bold text-transparent">
-                  500+
-                </div>
+                <div className="text-gradient text-3xl font-bold">500+</div>
                 <div className="text-muted-foreground text-sm">{t('statCourses')}</div>
               </div>
               <div className="text-center">
-                <div className="from-primary bg-gradient-to-r to-violet-500 bg-clip-text text-3xl font-bold text-transparent">
-                  10K+
-                </div>
+                <div className="text-gradient text-3xl font-bold">10K+</div>
                 <div className="text-muted-foreground text-sm">{t('statStudents')}</div>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 text-3xl font-bold">
-                  <span className="from-primary bg-gradient-to-r to-violet-500 bg-clip-text text-transparent">
-                    4.8
-                  </span>
+                  <span className="text-gradient">4.8</span>
                   <Star className="fill-warning text-warning h-5 w-5" />
                 </div>
                 <div className="text-muted-foreground text-sm">{t('statRating')}</div>
@@ -176,7 +171,7 @@ export default function HomePage() {
 
       {/* New Courses */}
       <section className="relative overflow-hidden py-12 sm:py-16">
-        <div className="from-primary/[0.03] absolute inset-0 bg-gradient-to-r to-violet-500/[0.03]" />
+        <div className="from-primary/4 to-accent-violet/4 absolute inset-0 bg-linear-to-r" />
         <div className="relative container mx-auto px-4">
           <div className="mb-8 flex items-center justify-between">
             <div>

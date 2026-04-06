@@ -167,25 +167,25 @@ export default function MyLearningPage() {
       icon: BookOpen,
       label: t('coursesInProgress'),
       value: activeCourses.length,
-      color: 'text-primary bg-primary/10',
+      color: 'text-primary bg-primary/12',
     },
     {
       icon: CheckCircle2,
       label: t('coursesCompleted'),
       value: completedCourses.length,
-      color: 'text-success bg-success/10',
+      color: 'text-accent-emerald bg-accent-emerald/12',
     },
     {
       icon: Flame,
       label: t('learningStreak'),
       value: `${streak?.currentStreak ?? 0} ${t('days')}`,
-      color: 'text-warning bg-warning/10',
+      color: 'text-accent-amber bg-accent-amber/15',
     },
     {
       icon: Award,
       label: t('certificates'),
       value: completedCourses.filter((c) => c.certificate).length,
-      color: 'text-primary bg-primary/10',
+      color: 'text-accent-violet bg-accent-violet/12',
     },
   ];
 
@@ -196,11 +196,14 @@ export default function MyLearningPage() {
       {/* Stats */}
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map(({ icon: Icon, label, value, color }) => (
-          <Card key={label}>
+          <Card
+            key={label}
+            className="group hover:border-primary/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+          >
             <CardContent className="flex items-center gap-3 p-4">
               <div
                 className={cn(
-                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
+                  'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110',
                   color,
                 )}
               >

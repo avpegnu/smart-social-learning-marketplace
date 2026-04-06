@@ -62,7 +62,7 @@ export function CourseCard({ course, className }: CourseCardProps) {
     <Link href={`/courses/${course.slug}`}>
       <Card
         className={cn(
-          'group hover:shadow-primary/5 hover:border-primary/30 h-full overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg',
+          'group hover:border-primary/40 hover:shadow-glow-md relative h-full overflow-hidden transition-all duration-300 hover:-translate-y-1',
           className,
         )}
       >
@@ -72,16 +72,17 @@ export function CourseCard({ course, className }: CourseCardProps) {
             <img
               src={course.thumbnailUrl}
               alt={course.title}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
           ) : (
-            <div className="from-primary/20 to-primary/5 flex h-full w-full items-center justify-center bg-gradient-to-br">
-              <BookOpen className="text-primary/30 h-12 w-12" />
+            <div className="from-primary/25 via-accent-violet/15 to-accent-pink/10 flex h-full w-full items-center justify-center bg-linear-to-br">
+              <BookOpen className="text-primary/40 h-12 w-12" />
             </div>
           )}
-          <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
+          {/* Gradient overlay on hover */}
+          <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           {isNew && (
-            <Badge className="bg-success text-success-foreground absolute top-2 left-2">
+            <Badge className="bg-success text-success-foreground absolute top-2 left-2 shadow-md">
               {t('new')}
             </Badge>
           )}
