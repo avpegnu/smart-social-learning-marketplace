@@ -716,6 +716,7 @@ model OrderItem {
   earning Earning?
 
   @@index([orderId])
+  @@index([courseId])
   @@map("order_items")
 }
 
@@ -749,6 +750,7 @@ model ChapterPurchase {
   chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
   @@unique([userId, chapterId])
+  @@index([chapterId])
   @@map("chapter_purchases")
 }
 
@@ -898,6 +900,7 @@ model LessonProgress {
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@id([userId, lessonId])
+  @@index([lessonId])
   @@map("lesson_progress")
 }
 
