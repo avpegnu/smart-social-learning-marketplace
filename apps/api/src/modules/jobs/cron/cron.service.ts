@@ -129,9 +129,12 @@ export class CronService {
       lte: endOfDay,
     };
 
-    const [users, revenue, enrollments, courses] = await Promise.all([
+    const [students, instructors, revenue, enrollments, courses] = await Promise.all([
       this.prisma.user.count({
-        where: { createdAt: dateRange, deletedAt: null },
+        where: { createdAt: dateRange, deletedAt: null, role: 'STUDENT' },
+      }),
+      this.prisma.user.count({
+        where: { createdAt: dateRange, deletedAt: null, role: 'INSTRUCTOR' },
       }),
       this.prisma.order.aggregate({
         where: {
@@ -151,6 +154,11 @@ export class CronService {
       }),
     ]);
 
+    // Data shape must match the chart consumers in the management portal:
+    // - DAILY_USERS:       { students, instructors }
+    // - DAILY_REVENUE:     { revenue }
+    // - DAILY_ENROLLMENTS: { count }
+    // - DAILY_COURSES:     { count }
     const snapshots: Array<{
       date: Date;
       type: AnalyticsType;
@@ -159,12 +167,12 @@ export class CronService {
       {
         date: yesterday,
         type: 'DAILY_USERS',
-        data: { count: users },
+        data: { students, instructors },
       },
       {
         date: yesterday,
         type: 'DAILY_REVENUE',
-        data: { amount: revenue._sum.finalAmount || 0 },
+        data: { revenue: revenue._sum.finalAmount || 0 },
       },
       {
         date: yesterday,

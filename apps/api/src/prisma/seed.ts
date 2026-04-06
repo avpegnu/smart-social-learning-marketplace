@@ -1498,10 +1498,10 @@ async function main() {
   console.log(`✓ ${qnaData.length} questions with answers`);
 
   // ============================================================
-  // 11. ANALYTICS SNAPSHOTS (30 days of data)
+  // 11. ANALYTICS SNAPSHOTS (365 days of data — exercises all date ranges)
   // ============================================================
 
-  for (let d = 30; d >= 1; d--) {
+  for (let d = 365; d >= 1; d--) {
     const date = new Date();
     date.setDate(date.getDate() - d);
     date.setHours(0, 0, 0, 0);
@@ -1524,7 +1524,7 @@ async function main() {
       });
     }
   }
-  console.log('✓ 30 days of analytics snapshots');
+  console.log('✓ 365 days of analytics snapshots');
 
   // ============================================================
   // 12. TAG COURSE COUNTS

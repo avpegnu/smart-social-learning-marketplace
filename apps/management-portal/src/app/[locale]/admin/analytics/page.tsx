@@ -22,8 +22,17 @@ interface AnalyticsSnapshot {
   data: Record<string, number>;
 }
 
-function formatDateLabel(dateStr: string): string {
+interface ApiWrapper<T> {
+  data: T;
+}
+
+function formatDateLabel(dateStr: string, dateRange: string): string {
   const d = new Date(dateStr);
+  // 12 months range → backend aggregates monthly, so show MM/YYYY
+  if (dateRange === '12months') {
+    return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+  }
+  // Other ranges show day/month
   return `${d.getDate()}/${d.getMonth() + 1}`;
 }
 
@@ -39,10 +48,22 @@ function useAnalyticsRange(dateRange: string) {
   }, [dateRange]);
 }
 
-function transformSnapshots(snapshots: AnalyticsSnapshot[] | undefined) {
-  if (!snapshots || !Array.isArray(snapshots)) return [];
+function unwrapSnapshots(
+  response: ApiWrapper<AnalyticsSnapshot[]> | AnalyticsSnapshot[] | undefined,
+): AnalyticsSnapshot[] {
+  if (!response) return [];
+  if (Array.isArray(response)) return response;
+  if (Array.isArray(response.data)) return response.data;
+  return [];
+}
+
+function transformSnapshots(
+  response: ApiWrapper<AnalyticsSnapshot[]> | AnalyticsSnapshot[] | undefined,
+  dateRange: string,
+) {
+  const snapshots = unwrapSnapshots(response);
   return snapshots.map((s) => ({
-    date: formatDateLabel(s.date),
+    date: formatDateLabel(s.date, dateRange),
     ...(typeof s.data === 'object' ? s.data : {}),
   }));
 }
@@ -59,12 +80,22 @@ export default function AnalyticsPage() {
   const enrollmentsQuery = useAdminAnalytics({ type: 'DAILY_ENROLLMENTS', from, to });
   const coursesQuery = useAdminAnalytics({ type: 'DAILY_COURSES', from, to });
 
-  const usersData = transformSnapshots(usersQuery.data as AnalyticsSnapshot[] | undefined);
-  const revenueData = transformSnapshots(revenueQuery.data as AnalyticsSnapshot[] | undefined);
-  const enrollmentsData = transformSnapshots(
-    enrollmentsQuery.data as AnalyticsSnapshot[] | undefined,
+  const usersData = transformSnapshots(
+    usersQuery.data as ApiWrapper<AnalyticsSnapshot[]> | undefined,
+    dateRange,
   );
-  const coursesData = transformSnapshots(coursesQuery.data as AnalyticsSnapshot[] | undefined);
+  const revenueData = transformSnapshots(
+    revenueQuery.data as ApiWrapper<AnalyticsSnapshot[]> | undefined,
+    dateRange,
+  );
+  const enrollmentsData = transformSnapshots(
+    enrollmentsQuery.data as ApiWrapper<AnalyticsSnapshot[]> | undefined,
+    dateRange,
+  );
+  const coursesData = transformSnapshots(
+    coursesQuery.data as ApiWrapper<AnalyticsSnapshot[]> | undefined,
+    dateRange,
+  );
 
   const isLoading =
     usersQuery.isLoading ||
@@ -73,9 +104,11 @@ export default function AnalyticsPage() {
     coursesQuery.isLoading;
 
   const dashboardData = dashboard as
-    | { overview?: Record<string, number>; pendingApprovals?: Record<string, number> }
+    | {
+        data?: { overview?: Record<string, number>; pendingApprovals?: Record<string, number> };
+      }
     | undefined;
-  const overview = dashboardData?.overview;
+  const overview = dashboardData?.data?.overview;
 
   const ranges = [
     { value: '7days', label: t('last7Days') },
