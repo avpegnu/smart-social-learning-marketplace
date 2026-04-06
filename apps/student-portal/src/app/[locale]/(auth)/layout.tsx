@@ -6,7 +6,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { LocaleSwitcher } from '@/components/navigation/locale-switcher';
 import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@shared/hooks';
-import { useRouter } from '@/i18n/navigation';
+import { useRouter, Link } from '@/i18n/navigation';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations('auth');
@@ -30,10 +30,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Left side - Form */}
       <div className="flex flex-1 flex-col items-center justify-center p-6 sm:p-8">
         <div className="w-full max-w-md">
-          <div className="mb-8 flex items-center gap-2">
+          <Link
+            href="/"
+            className="hover:text-primary mb-8 inline-flex items-center gap-2 transition-colors"
+          >
             <GraduationCap className="text-primary h-8 w-8" />
             <span className="text-xl font-bold">SSLM</span>
-          </div>
+          </Link>
           {children}
         </div>
         <div className="mt-8 flex items-center gap-3">
