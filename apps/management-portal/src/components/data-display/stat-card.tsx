@@ -12,6 +12,15 @@ const iconMap: Record<string, React.ElementType> = {
   Clock,
 };
 
+// Each stat type gets a distinct accent color from the multi-accent palette
+const iconColorMap: Record<string, string> = {
+  DollarSign: 'bg-accent-emerald/12 text-accent-emerald',
+  Users: 'bg-accent-cyan/12 text-accent-cyan',
+  BookOpen: 'bg-primary/12 text-primary',
+  Star: 'bg-accent-amber/15 text-accent-amber',
+  Clock: 'bg-accent-violet/12 text-accent-violet',
+};
+
 interface StatCardProps {
   label: string;
   value: string;
@@ -23,19 +32,30 @@ interface StatCardProps {
 
 export function StatCard({ label, value, change, changeLabel, icon, className }: StatCardProps) {
   const IconComponent = iconMap[icon] || DollarSign;
+  const iconColor = iconColorMap[icon] || iconColorMap.DollarSign;
   const isPositive = change > 0;
   const isNeutral = change === 0;
 
   return (
-    <Card className={cn('', className)}>
+    <Card
+      className={cn(
+        'hover:border-primary/30 group transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md',
+        className,
+      )}
+    >
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-muted-foreground text-sm font-medium">{label}</p>
-            <p className="text-2xl font-bold">{value}</p>
+            <p className="text-2xl font-bold tracking-tight">{value}</p>
           </div>
-          <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-lg">
-            <IconComponent className="text-primary h-6 w-6" />
+          <div
+            className={cn(
+              'flex h-12 w-12 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110',
+              iconColor,
+            )}
+          >
+            <IconComponent className="h-6 w-6" />
           </div>
         </div>
         {!isNeutral && (
@@ -45,7 +65,7 @@ export function StatCard({ label, value, change, changeLabel, icon, className }:
             ) : (
               <TrendingDown className="text-destructive h-3 w-3" />
             )}
-            <span className={cn(isPositive ? 'text-success' : 'text-destructive')}>
+            <span className={cn('font-medium', isPositive ? 'text-success' : 'text-destructive')}>
               {isPositive ? '+' : ''}
               {change}%
             </span>
