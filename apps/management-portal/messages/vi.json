@@ -675,8 +675,20 @@
     "expertisePlaceholder": "Thêm chuyên môn (nhấn Enter)",
     "payoutInfo": "Thông tin ngân hàng được cung cấp khi yêu cầu rút tiền.",
     "goToWithdrawals": "Đi tới Rút tiền",
-    "notificationsComingSoon": "Cài đặt thông báo sẽ có sớm",
-    "profileSaved": "Đã lưu hồ sơ"
+    "notificationsComingSoon": "Cấu hình tùy chỉnh sẽ có trong bản cập nhật tiếp theo",
+    "profileSaved": "Đã lưu hồ sơ",
+    "totalRevenue": "Tổng doanh thu",
+    "availableBalance": "Số dư khả dụng",
+    "pendingBalance": "Đang chờ xử lý",
+    "balanceDesc": "Số dư khả dụng có thể được rút về tài khoản ngân hàng. Số dư đang chờ sẽ được cộng vào sau khi đơn hàng hoàn tất.",
+    "notificationsDesc": "Các loại thông báo email bạn đang nhận được",
+    "notif_newEnrollment": "Học viên mới đăng ký khóa học",
+    "notif_newReview": "Đánh giá khóa học mới",
+    "notif_courseApproval": "Khóa học được duyệt hoặc từ chối",
+    "notif_payoutCompleted": "Yêu cầu rút tiền hoàn tất",
+    "notif_weeklyReport": "Báo cáo doanh thu hàng tuần",
+    "enabled": "Bật",
+    "disabled": "Tắt"
   },
   "users": {
     "title": "Quản lý người dùng",

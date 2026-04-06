@@ -674,8 +674,20 @@
     "expertisePlaceholder": "Add expertise (press Enter)",
     "payoutInfo": "Bank information is provided when making withdrawal requests.",
     "goToWithdrawals": "Go to Withdrawals",
-    "notificationsComingSoon": "Notification preferences coming soon",
-    "profileSaved": "Profile saved"
+    "notificationsComingSoon": "Customizable preferences coming in a future update",
+    "profileSaved": "Profile saved",
+    "totalRevenue": "Total Revenue",
+    "availableBalance": "Available Balance",
+    "pendingBalance": "Pending Balance",
+    "balanceDesc": "Available balance can be withdrawn to your bank account. Pending balance will be added once orders are completed.",
+    "notificationsDesc": "The email notifications you currently receive",
+    "notif_newEnrollment": "New student enrollment",
+    "notif_newReview": "New course review",
+    "notif_courseApproval": "Course approved or rejected",
+    "notif_payoutCompleted": "Withdrawal request completed",
+    "notif_weeklyReport": "Weekly revenue report",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
   },
   "users": {
     "title": "User Management",

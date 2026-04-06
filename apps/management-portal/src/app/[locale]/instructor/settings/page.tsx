@@ -20,7 +20,13 @@ import {
   Label,
   Skeleton,
 } from '@shared/ui';
-import { useInstructorProfile, useUpdateInstructorProfile, useAuthStore } from '@shared/hooks';
+import {
+  useInstructorProfile,
+  useUpdateInstructorProfile,
+  useAuthStore,
+  useInstructorDashboard,
+} from '@shared/hooks';
+import { formatPrice } from '@shared/utils';
 
 interface InstructorProfile {
   headline: string | null;
@@ -31,13 +37,29 @@ interface InstructorProfile {
   user: { fullName: string; email: string; avatarUrl: string | null };
 }
 
+interface DashboardOverview {
+  totalRevenue: number;
+  availableBalance: number;
+  pendingBalance: number;
+}
+
+const NOTIFICATION_PREFERENCES = [
+  { key: 'newEnrollment', enabled: true },
+  { key: 'newReview', enabled: true },
+  { key: 'courseApproval', enabled: true },
+  { key: 'payoutCompleted', enabled: true },
+  { key: 'weeklyReport', enabled: false },
+] as const;
+
 export default function SettingsPage() {
   const t = useTranslations('settings');
   const user = useAuthStore((s) => s.user);
   const { data, isLoading } = useInstructorProfile();
+  const { data: dashboardData } = useInstructorDashboard();
   const updateProfile = useUpdateInstructorProfile();
 
   const profile = data?.data as InstructorProfile | undefined;
+  const overview = (dashboardData?.data as { overview?: DashboardOverview } | undefined)?.overview;
 
   const [headline, setHeadline] = useState('');
   const [biography, setBiography] = useState('');
@@ -170,8 +192,31 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="text-base">{t('payout')}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-muted-foreground text-xs">{t('totalRevenue')}</p>
+                  <p className="mt-1 text-xl font-bold">
+                    {formatPrice(overview?.totalRevenue ?? 0)}
+                  </p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-muted-foreground text-xs">{t('availableBalance')}</p>
+                  <p className="mt-1 text-xl font-bold text-green-600 dark:text-green-500">
+                    {formatPrice(overview?.availableBalance ?? 0)}
+                  </p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-muted-foreground text-xs">{t('pendingBalance')}</p>
+                  <p className="mt-1 text-xl font-bold text-yellow-600 dark:text-yellow-500">
+                    {formatPrice(overview?.pendingBalance ?? 0)}
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-muted-foreground text-sm">{t('balanceDesc')}</p>
               <p className="text-muted-foreground text-sm">{t('payoutInfo')}</p>
+
               <Link href="/instructor/withdrawals">
                 <Button variant="outline" className="gap-2">
                   <ExternalLink className="h-4 w-4" />
@@ -188,8 +233,26 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="text-base">{t('emailNotifications')}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-sm">{t('notificationsComingSoon')}</p>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground text-sm">{t('notificationsDesc')}</p>
+              <div className="space-y-2">
+                {NOTIFICATION_PREFERENCES.map(({ key, enabled }) => (
+                  <div
+                    key={key}
+                    className="border-border flex items-center justify-between rounded-lg border p-3"
+                  >
+                    <span className="text-sm">{t(`notif_${key}`)}</span>
+                    <span
+                      className={`text-xs font-medium ${
+                        enabled ? 'text-green-600 dark:text-green-500' : 'text-muted-foreground'
+                      }`}
+                    >
+                      {enabled ? t('enabled') : t('disabled')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-muted-foreground text-xs">{t('notificationsComingSoon')}</p>
             </CardContent>
           </Card>
         </TabsContent>
