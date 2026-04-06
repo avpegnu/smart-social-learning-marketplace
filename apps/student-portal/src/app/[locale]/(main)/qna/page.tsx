@@ -95,7 +95,7 @@ export default function QnaPage() {
           <p className="text-lg">{t('noQuestions')}</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-4">
           {questions.map((q) => (
             <QuestionCard key={q.id} question={q} />
           ))}
