@@ -3,14 +3,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useApiError } from '../use-api-error';
+import { useAuthStore } from '../stores/auth-store';
 import { wishlistService } from '../services/wishlist.service';
 
 // ── Get Wishlist (paginated) ──
 
 export function useWishlist(params?: Record<string, string>) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: ['wishlists', params],
     queryFn: () => wishlistService.getAll(params),
+    enabled: isAuthenticated,
   });
 }
 

@@ -291,6 +291,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
           <div className="hidden w-80 shrink-0 lg:block">
             <div className="sticky top-20">
               <PurchaseCard
+                courseId={course.id}
                 thumbnailUrl={course.thumbnailUrl}
                 title={course.title}
                 price={course.price}

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import {
   Play,
   Heart,
@@ -14,8 +15,16 @@ import {
 import { Card, CardContent, Separator } from '@shared/ui';
 import { PriceDisplay } from '@/components/course/price-display';
 import { formatDuration } from '@shared/utils';
+import { useAuthStore, useWishlist, useAddToWishlist, useRemoveFromWishlist } from '@shared/hooks';
+import { useRouter, usePathname } from '@/i18n/navigation';
+import { cn } from '@/lib/utils';
+
+interface WishlistItemShape {
+  courseId: string;
+}
 
 interface PurchaseCardProps {
+  courseId: string;
   thumbnailUrl: string | null;
   title: string;
   price: number;
@@ -26,6 +35,7 @@ interface PurchaseCardProps {
 }
 
 export function PurchaseCard({
+  courseId,
   thumbnailUrl,
   title,
   price,
@@ -35,6 +45,43 @@ export function PurchaseCard({
   ctaButton,
 }: PurchaseCardProps) {
   const t = useTranslations('courseDetail');
+  const router = useRouter();
+  const pathname = usePathname();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  const { data: wishlistData } = useWishlist();
+  const addToWishlist = useAddToWishlist();
+  const removeFromWishlist = useRemoveFromWishlist();
+
+  const wishlistItems = (wishlistData?.data as WishlistItemShape[] | undefined) ?? [];
+  const isInWishlist = wishlistItems.some((item) => item.courseId === courseId);
+  const isWishlistPending = addToWishlist.isPending || removeFromWishlist.isPending;
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success(t('linkCopied'));
+    } catch {
+      toast.error(t('linkCopyFailed'));
+    }
+  };
+
+  const handleWishlistToggle = () => {
+    if (!isAuthenticated) {
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+    if (isWishlistPending) return;
+    if (isInWishlist) {
+      removeFromWishlist.mutate(courseId, {
+        onSuccess: () => toast.success(t('removedFromWishlist')),
+      });
+    } else {
+      addToWishlist.mutate(courseId, {
+        onSuccess: () => toast.success(t('addedToWishlist')),
+      });
+    }
+  };
 
   return (
     <Card>
@@ -57,11 +104,25 @@ export function PurchaseCard({
         <div className="space-y-3">{ctaButton}</div>
 
         <div className="mt-4 flex items-center justify-center gap-4">
-          <button className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1 text-sm">
-            <Heart className="h-4 w-4" />
+          <button
+            type="button"
+            onClick={handleWishlistToggle}
+            disabled={isWishlistPending}
+            className={cn(
+              'flex cursor-pointer items-center gap-1 text-sm transition-colors disabled:opacity-50',
+              isInWishlist
+                ? 'text-destructive hover:text-destructive/80'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <Heart className={cn('h-4 w-4', isInWishlist && 'fill-current')} />
             {t('wishlist')}
           </button>
-          <button className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1 text-sm">
+          <button
+            type="button"
+            onClick={handleShare}
+            className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1 text-sm transition-colors"
+          >
             <Share2 className="h-4 w-4" />
             {t('share')}
           </button>
