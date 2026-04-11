@@ -3,18 +3,46 @@
 import { useState, useEffect } from 'react';
 import * as ReactDOM from 'react-dom';
 import { useTranslations } from 'next-intl';
-import { Video, FileText, HelpCircle, X } from 'lucide-react';
-import { Button, Input, Label, cn } from '@shared/ui';
+import { Video, FileText, HelpCircle, File, X } from 'lucide-react';
+import { Button, Input, Label, cn, FileViewer } from '@shared/ui';
+import type { FileViewerLabels } from '@shared/ui';
 import { toast } from 'sonner';
 
 import type { LocalLesson, LocalQuizData } from './course-wizard';
 import { RichTextEditor } from '../rich-text-editor';
 import { VideoUpload } from '../video-upload';
+import { FileUpload } from '../file-upload';
+import type { FileUploadResult } from '../file-upload';
 import { QuizBuilder } from './quiz-builder';
 
 let tempIdCounter = 0;
 function generateTempId(): string {
   return `temp-${Date.now()}-${++tempIdCounter}`;
+}
+
+function FilePreviewModal({
+  fileUrl,
+  mimeType,
+  fileName,
+  onClose,
+  labels,
+}: {
+  fileUrl: string;
+  mimeType: string;
+  fileName: string;
+  onClose: () => void;
+  labels: FileViewerLabels;
+}) {
+  return (
+    <FileViewer
+      url={fileUrl}
+      mimeType={mimeType}
+      fileName={fileName}
+      mode="modal"
+      onClose={onClose}
+      labels={labels}
+    />
+  );
 }
 
 interface LessonDialogProps {
@@ -24,11 +52,12 @@ interface LessonDialogProps {
   onClose: () => void;
 }
 
-type LessonType = 'VIDEO' | 'TEXT' | 'QUIZ';
+type LessonType = 'VIDEO' | 'TEXT' | 'QUIZ' | 'FILE';
 
 const TYPE_TABS: Array<{ type: LessonType; icon: typeof Video; label: string }> = [
   { type: 'VIDEO', icon: Video, label: 'video' },
   { type: 'TEXT', icon: FileText, label: 'text' },
+  { type: 'FILE', icon: File, label: 'file' },
   { type: 'QUIZ', icon: HelpCircle, label: 'quiz' },
 ];
 
@@ -40,6 +69,8 @@ export function LessonDialog({ open, lesson, onSave, onClose }: LessonDialogProp
   const [type, setType] = useState<LessonType>('VIDEO');
   const [textContent, setTextContent] = useState('');
   const [videoData, setVideoData] = useState<{ url: string; duration: number } | undefined>();
+  const [fileData, setFileData] = useState<FileUploadResult | undefined>();
+  const [filePreviewOpen, setFilePreviewOpen] = useState(false);
   const [quizData, setQuizData] = useState<LocalQuizData | undefined>();
 
   // Reset form when dialog opens
@@ -55,13 +86,25 @@ export function LessonDialog({ open, lesson, onSave, onClose }: LessonDialogProp
         } else {
           setVideoData(undefined);
         }
+        if (lesson.fileUrl) {
+          setFileData({
+            url: lesson.fileUrl,
+            mimeType: lesson.fileMimeType ?? 'application/octet-stream',
+            fileName: lesson.title,
+            size: 0,
+          });
+        } else {
+          setFileData(undefined);
+        }
       } else {
         setTitle('');
         setType('VIDEO');
         setTextContent('');
         setVideoData(undefined);
+        setFileData(undefined);
         setQuizData(undefined);
       }
+      setFilePreviewOpen(false);
     }
   }, [open, lesson]);
 
@@ -92,6 +135,8 @@ export function LessonDialog({ open, lesson, onSave, onClose }: LessonDialogProp
       textContent: type === 'TEXT' ? textContent : undefined,
       estimatedDuration: type === 'VIDEO' ? videoData?.duration : undefined,
       videoUrl: type === 'VIDEO' ? videoData?.url : undefined,
+      fileUrl: type === 'FILE' ? fileData?.url : undefined,
+      fileMimeType: type === 'FILE' ? fileData?.mimeType : undefined,
       quizData: type === 'QUIZ' ? quizData : undefined,
       isNew: lesson ? lesson.isNew : true,
       isModified: lesson && !lesson.isNew ? true : undefined,
@@ -192,6 +237,46 @@ export function LessonDialog({ open, lesson, onSave, onClose }: LessonDialogProp
                 placeholder={t('textContentPlaceholder')}
                 minHeight="300px"
               />
+            </div>
+          )}
+
+          {type === 'FILE' && (
+            <div className="space-y-3">
+              <Label>{t('uploadFile')}</Label>
+              <FileUpload
+                value={fileData}
+                onChange={setFileData}
+                onRemove={() => setFileData(undefined)}
+              />
+              {fileData && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFilePreviewOpen(true)}
+                  >
+                    {t('previewFile')}
+                  </Button>
+                  {filePreviewOpen && (
+                    <FilePreviewModal
+                      fileUrl={fileData.url}
+                      mimeType={fileData.mimeType}
+                      fileName={fileData.fileName}
+                      onClose={() => setFilePreviewOpen(false)}
+                      labels={
+                        {
+                          download: t('download'),
+                          openInNewTab: t('openInNewTab'),
+                          unsupportedFile: t('unsupportedFile'),
+                          loadingViewer: t('loadingViewer'),
+                          close: t('close'),
+                        } satisfies FileViewerLabels
+                      }
+                    />
+                  )}
+                </>
+              )}
             </div>
           )}
 

@@ -15,6 +15,7 @@ import {
   Video,
   FileText,
   HelpCircle,
+  File,
 } from 'lucide-react';
 import { Button, Input } from '@shared/ui';
 import {
@@ -46,12 +47,14 @@ function generateTempId(): string {
 const LESSON_TYPE_ICONS = {
   VIDEO: Video,
   TEXT: FileText,
+  FILE: File,
   QUIZ: HelpCircle,
 } as const;
 
 const LESSON_TYPE_COLORS = {
   VIDEO: 'text-blue-500',
   TEXT: 'text-green-500',
+  FILE: 'text-violet-500',
   QUIZ: 'text-amber-500',
 } as const;
 
@@ -490,6 +493,8 @@ export function StepCurriculum({
                   type: lesson.type,
                   textContent: lesson.textContent,
                   videoUrl: lesson.videoUrl,
+                  fileUrl: lesson.fileUrl,
+                  fileMimeType: lesson.fileMimeType,
                   estimatedDuration: lesson.estimatedDuration,
                   order: lesson.order ?? li,
                 },
@@ -523,6 +528,8 @@ export function StepCurriculum({
                   title: lesson.title,
                   textContent: lesson.textContent,
                   videoUrl: lesson.videoUrl,
+                  fileUrl: lesson.fileUrl,
+                  fileMimeType: lesson.fileMimeType,
                   estimatedDuration: lesson.estimatedDuration,
                 },
               });

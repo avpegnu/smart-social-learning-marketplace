@@ -30,10 +30,12 @@ export interface LocalLesson {
   id?: string;
   tempId: string;
   title: string;
-  type: 'VIDEO' | 'TEXT' | 'QUIZ';
+  type: 'VIDEO' | 'TEXT' | 'QUIZ' | 'FILE';
   textContent?: string;
   estimatedDuration?: number;
   videoUrl?: string;
+  fileUrl?: string;
+  fileMimeType?: string;
   quizData?: LocalQuizData;
   chapterId?: string;
   order?: number;
@@ -128,10 +130,12 @@ export function CourseWizard({ mode, courseId: initialCourseId }: CourseWizardPr
                     id: l.id as string,
                     tempId: l.id as string,
                     title: l.title as string,
-                    type: l.type as 'VIDEO' | 'TEXT' | 'QUIZ',
+                    type: l.type as 'VIDEO' | 'TEXT' | 'QUIZ' | 'FILE',
                     textContent: (l.textContent as string) ?? '',
                     estimatedDuration: (l.estimatedDuration as number) ?? 0,
                     videoUrl: (l.videoUrl as string) ?? undefined,
+                    fileUrl: (l.fileUrl as string) ?? undefined,
+                    fileMimeType: (l.fileMimeType as string) ?? undefined,
                     chapterId: ch.id as string,
                     quizData: quiz
                       ? {

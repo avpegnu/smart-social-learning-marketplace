@@ -2,12 +2,14 @@
 
 import * as ReactDOM from 'react-dom';
 import { useTranslations } from 'next-intl';
-import { X, Video, FileText, HelpCircle } from 'lucide-react';
-import { Badge, Button } from '@shared/ui';
+import { X, Video, FileText, HelpCircle, File } from 'lucide-react';
+import { Badge, Button, FileViewer } from '@shared/ui';
+import type { FileViewerLabels } from '@shared/ui';
 
 const LESSON_TYPE_ICONS = {
   VIDEO: Video,
   TEXT: FileText,
+  FILE: File,
   QUIZ: HelpCircle,
 } as const;
 
@@ -25,6 +27,8 @@ export function LessonDetailDialog({ lesson, onClose }: LessonDetailDialogProps)
   const title = lesson.title as string;
   const textContent = lesson.textContent as string | undefined;
   const videoUrl = lesson.videoUrl as string | undefined;
+  const fileUrl = lesson.fileUrl as string | undefined;
+  const fileMimeType = (lesson.fileMimeType as string | undefined) ?? 'application/octet-stream';
   const duration = (lesson.estimatedDuration as number) ?? 0;
   const TypeIcon = LESSON_TYPE_ICONS[type as keyof typeof LESSON_TYPE_ICONS] ?? FileText;
 
@@ -84,6 +88,32 @@ export function LessonDetailDialog({ lesson, onClose }: LessonDetailDialogProps)
               <div
                 className="prose prose-sm dark:prose-invert border-border bg-card max-w-none rounded-md border p-4"
                 dangerouslySetInnerHTML={{ __html: textContent }}
+              />
+            ) : (
+              <div className="border-border text-muted-foreground flex h-24 items-center justify-center rounded-lg border border-dashed">
+                {t('noContent')}
+              </div>
+            )}
+          </div>
+        )}
+
+        {type === 'FILE' && (
+          <div className="h-125">
+            {fileUrl ? (
+              <FileViewer
+                url={fileUrl}
+                mimeType={fileMimeType}
+                fileName={title}
+                mode="inline"
+                labels={
+                  {
+                    download: t('download'),
+                    openInNewTab: t('openInNewTab'),
+                    unsupportedFile: t('noContent'),
+                    loadingViewer: t('loading'),
+                  } satisfies FileViewerLabels
+                }
+                className="h-full"
               />
             ) : (
               <div className="border-border text-muted-foreground flex h-24 items-center justify-center rounded-lg border border-dashed">

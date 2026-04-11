@@ -10,7 +10,7 @@ export interface CloudinaryUploadResult {
 
 export function uploadToCloudinary(
   file: File,
-  resourceType: 'image' | 'video' | 'raw',
+  resourceType: 'image' | 'video' | 'raw' | 'auto',
   onProgress?: (percent: number) => void,
 ): Promise<CloudinaryUploadResult> {
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;

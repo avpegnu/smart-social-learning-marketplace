@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   FolderTree,
   BarChart3,
+  Brain,
   FileText,
   Tag,
   ClipboardCheck,
@@ -69,6 +70,7 @@ const adminNav: NavItem[] = [
   { label: 'withdrawals', href: '/admin/withdrawals', icon: Wallet },
   { label: 'reports', href: '/admin/reports', icon: FileText },
   { label: 'analytics', href: '/admin/analytics', icon: BarChart3 },
+  { label: 'aiIndexing', href: '/admin/ai-indexing', icon: Brain },
   { label: 'settings', href: '/admin/settings', icon: Settings },
 ];
 
