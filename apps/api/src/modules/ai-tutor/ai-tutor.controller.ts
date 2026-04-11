@@ -21,6 +21,8 @@ import { RolesGuard } from '@/common/guards/roles.guard';
 import { Role } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { AskQuestionDto } from './dto/ask-question.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { BulkIndexDto } from './dto/bulk-index.dto';
 
 @Controller('ai/tutor')
 @ApiTags('AI Tutor')
@@ -90,6 +92,24 @@ export class AiTutorController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.service.getSessionMessages(id, user.sub);
+  }
+
+  @Get('courses/index-status')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Get AI indexing status for all published courses (admin)' })
+  async getIndexStatus() {
+    return this.embeddingsService.getIndexStatus();
+  }
+
+  // 'index/bulk' MUST be declared before 'index/:courseId' to prevent
+  // NestJS from capturing 'bulk' as the courseId param
+  @Post('index/bulk')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Bulk index multiple courses for AI Tutor (admin)' })
+  async bulkIndexCourses(@Body() dto: BulkIndexDto) {
+    return this.embeddingsService.bulkIndexCourses(dto.courseIds);
   }
 
   @Post('index/:courseId')
