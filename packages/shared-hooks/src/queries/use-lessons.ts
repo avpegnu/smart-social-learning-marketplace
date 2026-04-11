@@ -17,9 +17,11 @@ export function useCreateLesson() {
       chapterId: string;
       data: {
         title: string;
-        type: 'VIDEO' | 'TEXT' | 'QUIZ';
+        type: 'VIDEO' | 'TEXT' | 'QUIZ' | 'FILE';
         textContent?: string;
         videoUrl?: string;
+        fileUrl?: string;
+        fileMimeType?: string;
         estimatedDuration?: number;
         order?: number;
       };
@@ -40,7 +42,14 @@ export function useUpdateLesson() {
       courseId: string;
       chapterId: string;
       lessonId: string;
-      data: { title?: string; textContent?: string; videoUrl?: string; estimatedDuration?: number };
+      data: {
+        title?: string;
+        textContent?: string;
+        videoUrl?: string;
+        fileUrl?: string;
+        fileMimeType?: string;
+        estimatedDuration?: number;
+      };
     }) => lessonService.update(courseId, chapterId, lessonId, data),
     onError: (error) => toast.error(getErrorMessage(error)),
   });

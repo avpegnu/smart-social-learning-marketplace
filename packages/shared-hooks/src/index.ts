@@ -174,7 +174,15 @@ export {
   useVoteAnswer,
 } from './queries/use-qna';
 
-export { useAiQuota, useAiSessions, useSessionMessages } from './queries/use-ai-tutor';
+export {
+  useAiQuota,
+  useAiSessions,
+  useSessionMessages,
+  useIndexStatus,
+  useIndexCourse,
+  useBulkIndexCourses,
+} from './queries/use-ai-tutor';
+export type { IndexStatusItem, BulkIndexResult } from './services/ai-tutor.service';
 
 export { useRecommendations } from './queries/use-recommendations';
 
@@ -313,3 +321,4 @@ export { useAuthHydrated } from './use-auth-hydrated';
 export { useChatSocket } from './use-chat-socket';
 export type { ChatSocketCallbacks } from './use-chat-socket';
 export { useNotificationSocket } from './use-notification-socket';
+export { useFileProxy } from './use-file-proxy';

@@ -79,6 +79,8 @@ export interface Lesson {
   type: LessonType;
   order: number;
   estimatedDuration: number | null;
+  fileUrl?: string | null;
+  fileMimeType?: string | null;
 }
 
 export interface Review {
@@ -109,6 +111,7 @@ export enum LessonType {
   VIDEO = 'VIDEO',
   TEXT = 'TEXT',
   QUIZ = 'QUIZ',
+  FILE = 'FILE',
 }
 
 // ============================================================

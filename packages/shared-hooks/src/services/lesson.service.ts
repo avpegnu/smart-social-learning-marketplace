@@ -6,8 +6,11 @@ export const lessonService = {
     chapterId: string,
     data: {
       title: string;
-      type: 'VIDEO' | 'TEXT' | 'QUIZ';
+      type: 'VIDEO' | 'TEXT' | 'QUIZ' | 'FILE';
       textContent?: string;
+      videoUrl?: string;
+      fileUrl?: string;
+      fileMimeType?: string;
       estimatedDuration?: number;
       order?: number;
     },
@@ -17,7 +20,14 @@ export const lessonService = {
     courseId: string,
     chapterId: string,
     lessonId: string,
-    data: { title?: string; textContent?: string; estimatedDuration?: number },
+    data: {
+      title?: string;
+      textContent?: string;
+      videoUrl?: string;
+      fileUrl?: string;
+      fileMimeType?: string;
+      estimatedDuration?: number;
+    },
   ) =>
     apiClient.patch(
       `/instructor/courses/${courseId}/chapters/${chapterId}/lessons/${lessonId}`,
