@@ -33,6 +33,8 @@ export class LessonsService {
         order: dto.order,
         textContent: dto.textContent,
         videoUrl: dto.videoUrl,
+        fileUrl: dto.fileUrl,
+        fileMimeType: dto.fileMimeType,
         estimatedDuration: dto.estimatedDuration,
         chapterId,
       },
@@ -50,7 +52,11 @@ export class LessonsService {
 
     const updated = await this.prisma.lesson.update({
       where: { id: lessonId },
-      data: dto,
+      data: {
+        ...dto,
+        // Reset cached extracted text when file URL changes so next index run re-extracts
+        ...(dto.fileUrl !== undefined ? { fileExtractedText: null } : {}),
+      },
     });
 
     // Recalculate if duration changed

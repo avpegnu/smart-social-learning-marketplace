@@ -4,7 +4,7 @@ describe('EmbeddingsService', () => {
   let service: EmbeddingsService;
 
   beforeEach(() => {
-    service = new EmbeddingsService(null as never);
+    service = new EmbeddingsService(null as never, null as never);
   });
 
   describe('chunkText (private → test via reflection)', () => {

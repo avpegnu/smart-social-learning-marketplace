@@ -58,6 +58,7 @@ enum LessonType {
   VIDEO
   TEXT
   QUIZ
+  FILE
 }
 
 enum MediaType {
@@ -489,6 +490,9 @@ model Lesson {
   order             Int        @default(0)
   textContent       String?    @map("text_content")
   videoUrl          String?    @map("video_url")
+  fileUrl           String?    @map("file_url")
+  fileMimeType      String?    @map("file_mime_type")
+  fileExtractedText String?    @map("file_extracted_text")
   estimatedDuration Int?       @map("estimated_duration")
   chapterId         String     @map("chapter_id")
 

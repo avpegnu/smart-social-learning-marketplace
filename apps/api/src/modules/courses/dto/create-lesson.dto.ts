@@ -28,6 +28,16 @@ export class CreateLessonDto {
   @IsString()
   videoUrl?: string;
 
+  @ApiPropertyOptional({ description: 'Cloudinary raw URL (for FILE type)' })
+  @IsOptional()
+  @IsString()
+  fileUrl?: string;
+
+  @ApiPropertyOptional({ description: 'MIME type of the uploaded file (for FILE type)' })
+  @IsOptional()
+  @IsString()
+  fileMimeType?: string;
+
   @ApiPropertyOptional({ description: 'Duration in seconds' })
   @IsOptional()
   @IsInt()
@@ -62,6 +72,16 @@ export class UpdateLessonDto {
   @IsOptional()
   @IsString()
   videoUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Cloudinary raw URL (for FILE type)' })
+  @IsOptional()
+  @IsString()
+  fileUrl?: string;
+
+  @ApiPropertyOptional({ description: 'MIME type of the uploaded file (for FILE type)' })
+  @IsOptional()
+  @IsString()
+  fileMimeType?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

@@ -128,6 +128,8 @@ export class CourseManagementService {
                     order: true,
                     textContent: true,
                     videoUrl: true,
+                    fileUrl: true,
+                    fileMimeType: true,
                     estimatedDuration: true,
                     chapterId: true,
                     quiz: {

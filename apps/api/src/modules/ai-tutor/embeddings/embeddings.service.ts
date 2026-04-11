@@ -1,13 +1,17 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import type { OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { TextExtractionService } from '../text-extraction/text-extraction.service';
 
 @Injectable()
 export class EmbeddingsService implements OnModuleInit {
   private readonly logger = new Logger(EmbeddingsService.name);
   private embedder: unknown = null;
 
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(TextExtractionService) private readonly textExtraction: TextExtractionService,
+  ) {}
 
   async onModuleInit() {
     try {
@@ -76,6 +80,9 @@ export class EmbeddingsService implements OnModuleInit {
                     title: true,
                     type: true,
                     textContent: true,
+                    fileUrl: true,
+                    fileMimeType: true,
+                    fileExtractedText: true,
                     quiz: {
                       select: {
                         questions: {
@@ -151,12 +158,128 @@ export class EmbeddingsService implements OnModuleInit {
             if (text.length >= 30) {
               chunksInserted += await this.insertChunks(courseId, lesson.id, text);
             }
+          } else if ((lesson.type as string) === 'FILE') {
+            // FILE lesson — use cached extractedText, or extract + cache on first index run
+            // Cast needed until Prisma client TS types pick up the new fields after migration
+            const fileLesson = lesson as typeof lesson & {
+              fileUrl: string | null;
+              fileMimeType: string | null;
+              fileExtractedText: string | null;
+            };
+
+            if (!fileLesson.fileUrl) continue;
+
+            let extractedText = fileLesson.fileExtractedText;
+
+            if (
+              !extractedText &&
+              fileLesson.fileMimeType &&
+              this.textExtraction.canExtract(fileLesson.fileMimeType)
+            ) {
+              this.logger.log(`Extracting text from FILE lesson ${lesson.id}...`);
+              extractedText = await this.textExtraction.extract(
+                fileLesson.fileUrl,
+                fileLesson.fileMimeType,
+              );
+
+              if (extractedText) {
+                // Cache extracted text to avoid re-downloading on subsequent index runs
+                await this.prisma.$executeRaw`
+                  UPDATE lessons SET file_extracted_text = ${extractedText} WHERE id = ${lesson.id}
+                `;
+              }
+            }
+
+            if (extractedText) {
+              const text = `${chapterHeader}\n[File Lesson] ${lesson.title}\n${extractedText}`;
+              chunksInserted += await this.insertChunks(courseId, lesson.id, text);
+            } else {
+              // Unsupported file type or empty extraction — index title only
+              const text = `${chapterHeader}\n[File Lesson] ${lesson.title}`;
+              if (text.length >= 30) {
+                chunksInserted += await this.insertChunks(courseId, lesson.id, text);
+              }
+            }
           }
         }
       }
     }
 
     this.logger.log(`Course ${courseId} indexed: ${chunksInserted} chunks`);
+  }
+
+  // ==================== INDEX STATUS ====================
+
+  async getIndexStatus(): Promise<
+    Array<{
+      courseId: string;
+      title: string;
+      chunkCount: number;
+      lastIndexed: Date | null;
+    }>
+  > {
+    const courses = await this.prisma.course.findMany({
+      where: { status: 'PUBLISHED', deletedAt: null },
+      select: { id: true, title: true },
+      orderBy: { title: 'asc' },
+    });
+
+    if (courses.length === 0) return [];
+
+    const courseIds = courses.map((c) => c.id);
+
+    // Raw SQL to aggregate chunk stats per course
+    const stats = await this.prisma.$queryRaw<
+      Array<{ course_id: string; chunk_count: bigint; last_indexed: Date | null }>
+    >`
+      SELECT
+        course_id,
+        COUNT(*)::bigint AS chunk_count,
+        MAX(created_at)  AS last_indexed
+      FROM course_chunks
+      WHERE course_id = ANY(${courseIds}::text[])
+      GROUP BY course_id
+    `;
+
+    const statsMap = new Map(
+      stats.map((s) => [
+        s.course_id,
+        { chunkCount: Number(s.chunk_count), lastIndexed: s.last_indexed },
+      ]),
+    );
+
+    return courses.map((c) => ({
+      courseId: c.id,
+      title: c.title,
+      chunkCount: statsMap.get(c.id)?.chunkCount ?? 0,
+      lastIndexed: statsMap.get(c.id)?.lastIndexed ?? null,
+    }));
+  }
+
+  // ==================== BULK INDEX ====================
+
+  async bulkIndexCourses(courseIds: string[]): Promise<{
+    indexed: number;
+    failed: number;
+    errors: Array<{ courseId: string; error: string }>;
+  }> {
+    let indexed = 0;
+    let failed = 0;
+    const errors: Array<{ courseId: string; error: string }> = [];
+
+    for (const courseId of courseIds) {
+      try {
+        await this.indexCourseContent(courseId);
+        indexed++;
+      } catch (error) {
+        failed++;
+        errors.push({ courseId, error: String(error) });
+        this.logger.warn(`Bulk index failed for course ${courseId}: ${String(error)}`);
+      }
+    }
+
+    this.logger.log(`Bulk index complete: ${indexed} indexed, ${failed} failed`);
+    return { indexed, failed, errors };
   }
 
   private async insertChunks(
