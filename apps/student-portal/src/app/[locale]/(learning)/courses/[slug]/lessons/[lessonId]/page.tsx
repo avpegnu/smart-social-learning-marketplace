@@ -9,6 +9,7 @@ import { useLesson, useCourseDetail } from '@shared/hooks';
 import { VideoPlayer } from '@/components/learning/video-player';
 import { TextViewer } from '@/components/learning/text-viewer';
 import { QuizPlayer } from '@/components/learning/quiz-player';
+import { FileLessonViewer } from '@/components/learning/file-lesson-viewer';
 import { CurriculumSidebar } from '@/components/learning/curriculum-sidebar';
 import { LessonNav } from '@/components/learning/lesson-nav';
 import { cn } from '@/lib/utils';
@@ -22,6 +23,8 @@ interface LessonData {
   type: string;
   textContent: string | null;
   videoUrl: string | null;
+  fileUrl: string | null;
+  fileMimeType: string | null;
   estimatedDuration: number | null;
   isCompleted: boolean;
   progress: {
@@ -235,6 +238,14 @@ export default function LessonPlayerPage({
               <QuizPlayer
                 lessonId={lessonId}
                 quiz={lessonContent.quiz}
+                isCompleted={lessonContent.isCompleted}
+              />
+            ) : lessonContent.type === 'FILE' && lessonContent.fileUrl ? (
+              <FileLessonViewer
+                lessonId={lessonId}
+                fileUrl={lessonContent.fileUrl}
+                fileMimeType={lessonContent.fileMimeType ?? 'application/octet-stream'}
+                fileName={lessonContent.title}
                 isCompleted={lessonContent.isCompleted}
               />
             ) : (

@@ -10,6 +10,7 @@ import {
   Play,
   FileText,
   FileQuestion,
+  File,
   BookOpen,
 } from 'lucide-react';
 import { Badge } from '@shared/ui';
@@ -44,6 +45,7 @@ interface SidebarSection {
 const LESSON_ICONS: Record<string, typeof Play> = {
   VIDEO: Play,
   TEXT: FileText,
+  FILE: File,
   QUIZ: FileQuestion,
 };
 
