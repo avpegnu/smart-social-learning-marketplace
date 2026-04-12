@@ -6,6 +6,7 @@ import { useAuthStore, useAuthHydrated, useSidebarStore } from '@shared/hooks';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/navigation/sidebar';
 import { Header } from '@/components/navigation/header';
+import { SocketProvider } from '@/components/providers/socket-provider';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { collapsed } = useSidebarStore();
@@ -30,6 +31,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="bg-background min-h-screen">
+      <SocketProvider />
       <div className="hidden md:block">
         <Sidebar variant="admin" />
       </div>

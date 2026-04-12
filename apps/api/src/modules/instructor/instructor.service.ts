@@ -1,12 +1,16 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import type { CreateApplicationDto } from './dto/create-application.dto';
 import type { UpdateInstructorProfileDto } from './dto/update-instructor-profile.dto';
 
 @Injectable()
 export class InstructorService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(QueueService) private readonly queue: QueueService,
+  ) {}
 
   // ==================== APPLICATION ====================
 
@@ -28,9 +32,21 @@ export class InstructorService {
       throw new BadRequestException({ code: 'APPLICATION_ALREADY_PENDING' });
     }
 
-    return this.prisma.instructorApplication.create({
+    const application = await this.prisma.instructorApplication.create({
       data: { userId, ...dto },
     });
+
+    const applicant = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { fullName: true },
+    });
+    this.queue.addAdminNotification('NEW_APPLICATION', {
+      applicationId: application.id,
+      userId,
+      fullName: applicant?.fullName,
+    });
+
+    return application;
   }
 
   async getApplicationStatus(userId: string) {

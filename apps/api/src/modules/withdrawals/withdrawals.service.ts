@@ -1,13 +1,17 @@
 import { BadRequestException, ConflictException, Inject, Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
 import type { CreateWithdrawalDto } from './dto/create-withdrawal.dto';
 
 @Injectable()
 export class WithdrawalsService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(QueueService) private readonly queue: QueueService,
+  ) {}
 
   async requestWithdrawal(instructorId: string, dto: CreateWithdrawalDto) {
     // 1. Check no pending withdrawal exists
@@ -43,6 +47,13 @@ export class WithdrawalsService {
       await tx.instructorProfile.update({
         where: { userId: instructorId },
         data: { availableBalance: { decrement: dto.amount } },
+      });
+
+      // Notify admins
+      this.queue.addAdminNotification('WITHDRAWAL_PENDING', {
+        withdrawalId: withdrawal.id,
+        amount: dto.amount,
+        instructorId,
       });
 
       return withdrawal;

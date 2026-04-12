@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@shared/api-client';
 import { useAuthStore, useSidebarStore, useLogout } from '@shared/hooks';
 import { cn } from '@/lib/utils';
@@ -19,7 +18,8 @@ import {
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LocaleSwitcher } from '@/components/navigation/locale-switcher';
 import { Breadcrumb } from '@/components/navigation/breadcrumb';
-import { Bell, Search, Settings, LogOut, Menu, X, GraduationCap, ExternalLink } from 'lucide-react';
+import { Search, Settings, LogOut, Menu, X, GraduationCap, ExternalLink } from 'lucide-react';
+import { NotificationPopover } from '@/components/notifications/notification-popover';
 import { Link, usePathname } from '@/i18n/navigation';
 
 interface HeaderProps {
@@ -31,20 +31,11 @@ export function Header({ variant = 'instructor' }: HeaderProps) {
   const tAuth = useTranslations('auth');
   const tNav = useTranslations('nav');
   const { collapsed } = useSidebarStore();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
   const logoutMutation = useLogout();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const { data: unreadData } = useQuery({
-    queryKey: ['notifications', 'unread-count'],
-    queryFn: () => apiClient.get<number>('/notifications/unread-count'),
-    enabled: isAuthenticated,
-    refetchInterval: 30_000,
-  });
-
-  const unreadCount = unreadData?.data ?? 0;
   const settingsHref = variant === 'admin' ? '/admin/settings' : '/instructor/settings';
 
   const mobileNavItems =
@@ -99,14 +90,7 @@ export function Header({ variant = 'instructor' }: HeaderProps) {
           </div>
 
           {/* Notifications */}
-          <button className="hover:bg-accent relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border transition-colors">
-            <Bell className="h-4 w-4" />
-            {unreadCount > 0 && (
-              <span className="bg-destructive text-destructive-foreground absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px]">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
+          <NotificationPopover />
 
           {/* Theme toggle — desktop only */}
           <div className="hidden sm:block">

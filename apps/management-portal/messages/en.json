@@ -986,7 +986,6 @@
     "courseSubmitted": "Course submitted for review",
     "allChecksMustPass": "All checks must pass before submitting",
     "courseReadOnly": "This course is pending review. You can only view, not edit.",
-    "next": "Next",
     "importFromBank": "Import from Bank"
   },
   "questionBanks": {
@@ -1155,5 +1154,10 @@
     "indexSuccess": "Indexed successfully",
     "bulkIndexSuccess": "Successfully indexed {count} courses",
     "bulkIndexPartial": "Complete: {indexed} succeeded, {failed} failed"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications yet"
   }
 }

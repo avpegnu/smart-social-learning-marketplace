@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import type { Prisma, ReportTargetType, ReportStatus } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreateReportDto } from './dto/create-report.dto';
@@ -17,7 +18,10 @@ import { ReviewReportDto } from '../admin/dto/review-report.dto';
 
 @Injectable()
 export class ReportsService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(QueueService) private readonly queue: QueueService,
+  ) {}
 
   async create(userId: string, dto: CreateReportDto) {
     // Prevent duplicate pending report
@@ -33,7 +37,7 @@ export class ReportsService {
       throw new ConflictException({ code: 'REPORT_ALREADY_EXISTS' });
     }
 
-    return this.prisma.report.create({
+    const report = await this.prisma.report.create({
       data: {
         reporterId: userId,
         targetType: dto.targetType as ReportTargetType,
@@ -42,6 +46,14 @@ export class ReportsService {
         description: dto.description,
       },
     });
+
+    this.queue.addAdminNotification('NEW_REPORT', {
+      reportId: report.id,
+      targetType: dto.targetType,
+      reason: dto.reason,
+    });
+
+    return report;
   }
 
   async getReports(query: QueryReportsDto) {

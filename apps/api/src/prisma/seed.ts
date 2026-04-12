@@ -165,6 +165,16 @@ async function main() {
     { key: 'ai_daily_limit', value: 10 },
     { key: 'review_min_progress', value: 0.3 },
     { key: 'lesson_complete_threshold', value: 0.8 },
+    // Admin settings page keys
+    { key: 'platform_name', value: 'Smart Social Learning Marketplace' },
+    { key: 'platform_description', value: 'Nền tảng học trực tuyến kết hợp mạng xã hội' },
+    { key: 'support_email', value: 'support@sslm.com' },
+    { key: 'default_commission_rate', value: 30 },
+    { key: 'minimum_withdrawal', value: 50000 },
+    { key: 'minimum_payout', value: 100000 },
+    { key: 'max_upload_size_mb', value: 100 },
+    { key: 'auto_approve_courses', value: false },
+    { key: 'allow_free_courses', value: true },
   ]) {
     await prisma.platformSetting.upsert({
       where: { key: s.key },

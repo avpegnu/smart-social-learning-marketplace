@@ -1,6 +1,7 @@
 import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import type { WithdrawalStatus } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PaginationDto } from '@/common/dto/pagination.dto';
@@ -9,7 +10,10 @@ import { ReviewWithdrawalDto } from '../dto/review-withdrawal.dto';
 
 @Injectable()
 export class AdminWithdrawalsService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(QueueService) private readonly queue: QueueService,
+  ) {}
 
   async getPendingWithdrawals(query: PaginationDto) {
     const where = { status: 'PENDING' as const };
@@ -45,7 +49,7 @@ export class AdminWithdrawalsService {
       });
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const updated = await tx.withdrawal.update({
         where: { id: withdrawalId },
         data: {
@@ -91,5 +95,15 @@ export class AdminWithdrawalsService {
 
       return updated;
     });
+
+    // Notify instructor
+    const notifType = dto.status === 'COMPLETED' ? 'WITHDRAWAL_COMPLETED' : 'WITHDRAWAL_REJECTED';
+    this.queue.addNotification(withdrawal.instructorId, notifType, {
+      withdrawalId,
+      amount: withdrawal.amount,
+      ...(dto.reviewNote && { reviewNote: dto.reviewNote }),
+    });
+
+    return result;
   }
 }

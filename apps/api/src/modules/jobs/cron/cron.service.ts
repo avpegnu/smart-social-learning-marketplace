@@ -2,6 +2,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import type { AnalyticsType, Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import { RedisService } from '@/redis/redis.service';
 import { RecommendationsService } from '@/modules/recommendations/recommendations.service';
 import { EmbeddingsService } from '@/modules/ai-tutor/embeddings/embeddings.service';
@@ -12,6 +13,7 @@ export class CronService {
 
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(QueueService) private readonly queue: QueueService,
     @Inject(RedisService) private readonly redis: RedisService,
     @Inject(RecommendationsService) private readonly recommendations: RecommendationsService,
     @Inject(EmbeddingsService) private readonly embeddingsService: EmbeddingsService,
@@ -20,12 +22,22 @@ export class CronService {
   // 1. Expire pending orders (every 1 min)
   @Cron('*/1 * * * *')
   async expirePendingOrders() {
-    const result = await this.prisma.order.updateMany({
+    const expiredOrders = await this.prisma.order.findMany({
       where: { status: 'PENDING', expiresAt: { lt: new Date() } },
+      select: { id: true, userId: true },
+    });
+    if (expiredOrders.length === 0) return;
+
+    await this.prisma.order.updateMany({
+      where: { id: { in: expiredOrders.map((o) => o.id) } },
       data: { status: 'EXPIRED' },
     });
-    if (result.count > 0) {
-      this.logger.log(`Expired ${result.count} pending orders`);
+    this.logger.log(`Expired ${expiredOrders.length} pending orders`);
+
+    for (const order of expiredOrders) {
+      this.queue.addNotification(order.userId, 'ORDER_EXPIRED', {
+        orderId: order.id,
+      });
     }
   }
 

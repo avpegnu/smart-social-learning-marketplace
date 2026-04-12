@@ -6,12 +6,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
 
 @Injectable()
 export class EnrollmentsService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(QueueService) private readonly queue: QueueService,
+  ) {}
 
   async checkEnrollment(userId: string, courseId: string) {
     const enrollment = await this.prisma.enrollment.findUnique({
@@ -85,6 +89,13 @@ export class EnrollmentsService {
         where: { id: courseId },
         data: { totalStudents: { increment: 1 } },
       });
+
+      // Notify instructor about new enrollment
+      this.queue.addNotification(course.instructorId, 'COURSE_ENROLLED', {
+        courseId,
+        courseTitle: course.title,
+      });
+
       return enrollment;
     });
   }

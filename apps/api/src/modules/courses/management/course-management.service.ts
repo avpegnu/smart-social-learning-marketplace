@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import { generateSlug, generateUniqueSlug } from '@/common/utils/slug.util';
 import type { QueryCoursesDto } from '../dto/query-courses.dto';
@@ -16,7 +17,10 @@ import type { QueryCourseStudentsDto } from './dto/query-course-students.dto';
 
 @Injectable()
 export class CourseManagementService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(QueueService) private readonly queue: QueueService,
+  ) {}
 
   // ==================== CRUD ====================
 
@@ -262,10 +266,18 @@ export class CourseManagementService {
 
     await this.validateCourseCompleteness(courseId);
 
-    return this.prisma.course.update({
+    const updated = await this.prisma.course.update({
       where: { id: courseId },
       data: { status: 'PENDING_REVIEW' },
     });
+
+    this.queue.addAdminNotification('COURSE_PENDING_REVIEW', {
+      courseId,
+      courseTitle: course.title,
+      instructorId,
+    });
+
+    return updated;
   }
 
   async softDelete(courseId: string, instructorId: string) {

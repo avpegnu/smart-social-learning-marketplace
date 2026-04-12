@@ -310,7 +310,6 @@
     "autoApproveCourses": "Tự động duyệt khóa học",
     "autoApproveCoursesDesc": "Khóa học sẽ được tự động duyệt mà không cần phê duyệt thủ công",
     "maxUploadSize": "Kích thước upload tối đa",
-    "platformDescription": "Mô tả nền tảng",
     "supportEmail": "Email hỗ trợ",
     "minimumPayout": "Thanh toán tối thiểu",
     "allowFreeCourses": "Cho phép khóa miễn phí",
@@ -987,7 +986,6 @@
     "courseSubmitted": "Đã gửi khóa học để duyệt",
     "allChecksMustPass": "Tất cả mục kiểm tra phải đạt trước khi gửi duyệt",
     "courseReadOnly": "Khóa học đang chờ duyệt. Bạn chỉ có thể xem, không thể chỉnh sửa.",
-    "next": "Tiếp theo",
     "importFromBank": "Nhập từ ngân hàng"
   },
   "questionBanks": {
@@ -1156,5 +1154,10 @@
     "indexSuccess": "Index thành công",
     "bulkIndexSuccess": "Đã index thành công {count} khóa học",
     "bulkIndexPartial": "Hoàn tất: {indexed} thành công, {failed} thất bại"
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "markAllRead": "Đánh dấu đã đọc tất cả",
+    "empty": "Chưa có thông báo nào"
   }
 }

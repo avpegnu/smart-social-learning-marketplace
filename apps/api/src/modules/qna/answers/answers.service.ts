@@ -149,6 +149,21 @@ export class AnswersService {
         data: { voteCount: { increment: value } },
       }),
     ]);
+
+    // Notify answer author on upvote
+    if (value === 1) {
+      const voter = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { fullName: true },
+      });
+      this.queue.addNotification(answer.authorId, 'ANSWER_VOTED', {
+        answerId,
+        questionId: answer.questionId,
+        userId,
+        fullName: voter?.fullName,
+      });
+    }
+
     return {
       voteCount: answer.voteCount + value,
       userVote: value,

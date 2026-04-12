@@ -25,6 +25,8 @@ import {
   useUpdateInstructorProfile,
   useAuthStore,
   useInstructorDashboard,
+  useMe,
+  useUpdateNotificationPreferences,
 } from '@shared/hooks';
 import { formatPrice } from '@shared/utils';
 
@@ -43,12 +45,12 @@ interface DashboardOverview {
   pendingBalance: number;
 }
 
-const NOTIFICATION_PREFERENCES = [
-  { key: 'newEnrollment', enabled: true },
-  { key: 'newReview', enabled: true },
-  { key: 'courseApproval', enabled: true },
-  { key: 'payoutCompleted', enabled: true },
-  { key: 'weeklyReport', enabled: false },
+const NOTIFICATION_TYPES = [
+  'newEnrollment',
+  'newReview',
+  'courseApproval',
+  'payoutCompleted',
+  'weeklyReport',
 ] as const;
 
 export default function SettingsPage() {
@@ -229,34 +231,74 @@ export default function SettingsPage() {
 
         {/* Notifications Tab */}
         <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t('emailNotifications')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground text-sm">{t('notificationsDesc')}</p>
-              <div className="space-y-2">
-                {NOTIFICATION_PREFERENCES.map(({ key, enabled }) => (
-                  <div
-                    key={key}
-                    className="border-border flex items-center justify-between rounded-lg border p-3"
-                  >
-                    <span className="text-sm">{t(`notif_${key}`)}</span>
-                    <span
-                      className={`text-xs font-medium ${
-                        enabled ? 'text-green-600 dark:text-green-500' : 'text-muted-foreground'
-                      }`}
-                    >
-                      {enabled ? t('enabled') : t('disabled')}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-muted-foreground text-xs">{t('notificationsComingSoon')}</p>
-            </CardContent>
-          </Card>
+          <NotificationsTab />
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+// ── Notifications Tab ──
+
+function NotificationsTab() {
+  const t = useTranslations('settings');
+  const { data: meRaw } = useMe();
+  const me = (
+    meRaw as {
+      data?: { notificationPreferences?: Record<string, { inApp: boolean; email: boolean }> };
+    }
+  )?.data;
+  const updatePrefs = useUpdateNotificationPreferences();
+
+  const prefs = me?.notificationPreferences ?? {};
+
+  const handleToggle = (key: string, field: 'inApp' | 'email') => {
+    const current = prefs[key] ?? { inApp: true, email: false };
+    const updated = { ...prefs, [key]: { ...current, [field]: !current[field] } };
+    updatePrefs.mutate(updated);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{t('emailNotifications')}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-muted-foreground text-sm">{t('notificationsDesc')}</p>
+        <div className="space-y-2">
+          {NOTIFICATION_TYPES.map((key) => {
+            const pref = prefs[key] ?? { inApp: true, email: false };
+            return (
+              <div
+                key={key}
+                className="border-border flex items-center justify-between rounded-lg border p-3"
+              >
+                <span className="text-sm">{t(`notif_${key}`)}</span>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={pref.inApp}
+                      onChange={() => handleToggle(key, 'inApp')}
+                      className="accent-primary h-4 w-4 rounded"
+                    />
+                    In-app
+                  </label>
+                  <label className="flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={pref.email}
+                      onChange={() => handleToggle(key, 'email')}
+                      className="accent-primary h-4 w-4 rounded"
+                    />
+                    Email
+                  </label>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

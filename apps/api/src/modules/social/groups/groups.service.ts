@@ -183,11 +183,16 @@ export class GroupsService {
         });
 
         // Notify group owner
+        const requester = await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { fullName: true },
+        });
         this.queue.addNotification(group.ownerId, 'SYSTEM', {
           type: 'GROUP_JOIN_REQUEST',
           groupId,
           groupName: group.name,
           userId,
+          fullName: requester?.fullName,
         });
 
         return { requested: true };

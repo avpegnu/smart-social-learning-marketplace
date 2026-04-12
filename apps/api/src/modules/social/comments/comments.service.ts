@@ -98,11 +98,12 @@ export class CommentsService {
         include: {
           author: { select: AUTHOR_SELECT },
           replies: {
+            where: { deletedAt: null },
             take: 3,
             include: { author: { select: AUTHOR_SELECT } },
             orderBy: { createdAt: 'asc' },
           },
-          _count: { select: { replies: true } },
+          _count: { select: { replies: { where: { deletedAt: null } } } },
         },
         orderBy: { createdAt: 'desc' },
         skip: query.skip,
@@ -117,13 +118,13 @@ export class CommentsService {
   async getReplies(commentId: string, query: PaginationDto) {
     const [replies, total] = await Promise.all([
       this.prisma.comment.findMany({
-        where: { parentId: commentId },
+        where: { parentId: commentId, deletedAt: null },
         include: { author: { select: AUTHOR_SELECT } },
         orderBy: { createdAt: 'asc' },
         skip: query.skip,
         take: query.limit,
       }),
-      this.prisma.comment.count({ where: { parentId: commentId } }),
+      this.prisma.comment.count({ where: { parentId: commentId, deletedAt: null } }),
     ]);
     return createPaginatedResult(replies, total, query.page, query.limit);
   }

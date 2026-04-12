@@ -1,5 +1,6 @@
 import { Injectable, Inject, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import { EmbeddingsService } from '@/modules/ai-tutor/embeddings/embeddings.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -13,6 +14,7 @@ export class AdminCoursesService {
 
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(QueueService) private readonly queue: QueueService,
     @Inject(EmbeddingsService) private readonly embeddingsService: EmbeddingsService,
   ) {}
 
@@ -167,6 +169,12 @@ export class AdminCoursesService {
         return updated;
       });
 
+      // Notify instructor
+      this.queue.addNotification(course.instructorId, 'COURSE_APPROVED', {
+        courseId,
+        courseTitle: course.title,
+      });
+
       // Index course content for AI Tutor (fire-and-forget)
       this.embeddingsService.indexCourseContent(courseId).catch((err: Error) => {
         this.logger.warn(`Failed to index course ${courseId} for AI Tutor: ${err.message}`);
@@ -175,9 +183,17 @@ export class AdminCoursesService {
       return result;
     }
 
-    return this.prisma.course.update({
+    const rejected = await this.prisma.course.update({
       where: { id: courseId },
       data: { status: 'REJECTED' },
     });
+
+    this.queue.addNotification(course.instructorId, 'COURSE_REJECTED', {
+      courseId,
+      courseTitle: course.title,
+      feedback: dto.feedback,
+    });
+
+    return rejected;
   }
 }

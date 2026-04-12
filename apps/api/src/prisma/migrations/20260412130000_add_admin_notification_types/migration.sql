@@ -1,0 +1,6 @@
+-- Add admin-facing notification types to NotificationType enum
+
+ALTER TYPE "NotificationType" ADD VALUE IF NOT EXISTS 'COURSE_PENDING_REVIEW';
+ALTER TYPE "NotificationType" ADD VALUE IF NOT EXISTS 'WITHDRAWAL_PENDING';
+ALTER TYPE "NotificationType" ADD VALUE IF NOT EXISTS 'NEW_REPORT';
+ALTER TYPE "NotificationType" ADD VALUE IF NOT EXISTS 'NEW_APPLICATION';

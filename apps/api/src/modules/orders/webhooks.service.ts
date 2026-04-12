@@ -2,6 +2,7 @@ import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import { EARNING_HOLD_DAYS } from '@/common/constants/app.constant';
 import type { SepayWebhookDto } from './dto/sepay-webhook.dto';
 
@@ -10,6 +11,7 @@ export class WebhooksService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(ConfigService) private readonly config: ConfigService,
+    @Inject(QueueService) private readonly queue: QueueService,
   ) {}
 
   async handleSepayWebhook(authorization: string, payload: SepayWebhookDto) {
@@ -158,6 +160,24 @@ export class WebhooksService {
         }
       }
     });
+
+    // Notify buyer: order completed
+    this.queue.addNotification(userId, 'ORDER_COMPLETED', { orderId });
+
+    // Notify instructors: new enrollment
+    const courseIds = [...new Set(items.filter((i) => i.courseId).map((i) => i.courseId!))];
+    if (courseIds.length > 0) {
+      const courses = await this.prisma.course.findMany({
+        where: { id: { in: courseIds } },
+        select: { id: true, title: true, instructorId: true },
+      });
+      for (const course of courses) {
+        this.queue.addNotification(course.instructorId, 'COURSE_ENROLLED', {
+          courseId: course.id,
+          courseTitle: course.title,
+        });
+      }
+    }
   }
 
   private async getCommissionRate(
