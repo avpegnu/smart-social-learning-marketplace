@@ -219,44 +219,54 @@ export class CronService {
   // 8. Cleanup old feed items (weekly Sunday 4 AM)
   @Cron('0 4 * * 0')
   async cleanupOldFeedItems() {
-    const result: number = await this.prisma.$executeRaw`
-      DELETE FROM feed_items
-      WHERE id IN (
-        SELECT id FROM (
-          SELECT id, ROW_NUMBER() OVER (
-            PARTITION BY user_id ORDER BY created_at DESC
-          ) as rn FROM feed_items
-        ) ranked WHERE rn > 1000
-      )
-    `;
-    if (result > 0) {
-      this.logger.log(`Cleaned up ${result} old feed items`);
+    try {
+      const result: number = await this.prisma.$executeRaw`
+        DELETE FROM feed_items
+        WHERE id IN (
+          SELECT id FROM (
+            SELECT id, ROW_NUMBER() OVER (
+              PARTITION BY user_id ORDER BY created_at DESC
+            ) as rn FROM feed_items
+          ) ranked WHERE rn > 1000
+        )
+      `;
+      if (result > 0) {
+        this.logger.log(`Cleaned up ${result} old feed items`);
+      }
+    } catch (err) {
+      this.logger.error(`Feed cleanup failed: ${(err as Error).message}`);
     }
   }
 
   // 9. Reconcile denormalized counters (weekly Sunday 5 AM)
   @Cron('0 5 * * 0')
   async reconcileCounters() {
-    await this.prisma.$executeRaw`
-      UPDATE posts SET
-        like_count = (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id),
-        comment_count = (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id AND comments.deleted_at IS NULL)
-      WHERE deleted_at IS NULL
-    `;
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.$executeRaw`
+          UPDATE posts SET
+            like_count = (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id),
+            comment_count = (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id)
+          WHERE deleted_at IS NULL
+        `;
 
-    await this.prisma.$executeRaw`
-      UPDATE users SET
-        follower_count = (SELECT COUNT(*) FROM follows WHERE follows.following_id = users.id),
-        following_count = (SELECT COUNT(*) FROM follows WHERE follows.follower_id = users.id)
-      WHERE deleted_at IS NULL
-    `;
+        await tx.$executeRaw`
+          UPDATE users SET
+            follower_count = (SELECT COUNT(*) FROM follows WHERE follows.following_id = users.id),
+            following_count = (SELECT COUNT(*) FROM follows WHERE follows.follower_id = users.id)
+          WHERE deleted_at IS NULL
+        `;
 
-    await this.prisma.$executeRaw`
-      UPDATE tags SET
-        course_count = (SELECT COUNT(*) FROM course_tags WHERE course_tags.tag_id = tags.id)
-    `;
+        await tx.$executeRaw`
+          UPDATE tags SET
+            course_count = (SELECT COUNT(*) FROM course_tags WHERE course_tags.tag_id = tags.id)
+        `;
+      });
 
-    this.logger.log('Counter reconciliation completed');
+      this.logger.log('Counter reconciliation completed');
+    } catch (err) {
+      this.logger.error(`Counter reconciliation failed: ${(err as Error).message}`);
+    }
   }
 
   // 10. Index published courses for AI Tutor (daily 5 AM)
