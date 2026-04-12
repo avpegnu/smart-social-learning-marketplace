@@ -6,7 +6,7 @@ import * as bcrypt from 'bcryptjs';
 import { AuthService } from './auth.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { RedisService } from '@/redis/redis.service';
-import { MailService } from '@/mail/mail.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 
 // ─── Mocks ───────────────────────────────────────────────
 const MOCK_UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
@@ -47,9 +47,12 @@ const mockRedis = {
   get: jest.fn(),
 };
 
-const mockMail = {
-  sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
-  sendResetPasswordEmail: jest.fn().mockResolvedValue(undefined),
+const mockQueue = {
+  addVerificationEmail: jest.fn().mockResolvedValue(undefined),
+  addResetPasswordEmail: jest.fn().mockResolvedValue(undefined),
+  addOrderReceiptEmail: jest.fn().mockResolvedValue(undefined),
+  addNotification: jest.fn().mockResolvedValue(undefined),
+  addFeedFanout: jest.fn().mockResolvedValue(undefined),
 };
 
 // ─── Test data ───────────────────────────────────────────
@@ -78,7 +81,7 @@ describe('AuthService', () => {
         { provide: JwtService, useValue: mockJwt },
         { provide: ConfigService, useValue: mockConfig },
         { provide: RedisService, useValue: mockRedis },
-        { provide: MailService, useValue: mockMail },
+        { provide: QueueService, useValue: mockQueue },
       ],
     }).compile();
 
@@ -128,7 +131,7 @@ describe('AuthService', () => {
 
       await service.register(registerDto);
 
-      expect(mockMail.sendVerificationEmail).toHaveBeenCalledWith(registerDto.email, MOCK_UUID);
+      expect(mockQueue.addVerificationEmail).toHaveBeenCalledWith(registerDto.email, MOCK_UUID);
     });
 
     it('should throw ConflictException if email already exists', async () => {
@@ -136,7 +139,7 @@ describe('AuthService', () => {
 
       await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
       expect(mockPrisma.user.create).not.toHaveBeenCalled();
-      expect(mockMail.sendVerificationEmail).not.toHaveBeenCalled();
+      expect(mockQueue.addVerificationEmail).not.toHaveBeenCalled();
     });
 
     it('should include error code EMAIL_ALREADY_EXISTS', async () => {
@@ -460,7 +463,7 @@ describe('AuthService', () => {
           }),
         }),
       );
-      expect(mockMail.sendVerificationEmail).toHaveBeenCalledWith(
+      expect(mockQueue.addVerificationEmail).toHaveBeenCalledWith(
         'test@test.com',
         expect.any(String),
       );
@@ -473,7 +476,7 @@ describe('AuthService', () => {
 
       expect(result.message).toBe('VERIFICATION_EMAIL_SENT');
       expect(mockPrisma.user.update).not.toHaveBeenCalled();
-      expect(mockMail.sendVerificationEmail).not.toHaveBeenCalled();
+      expect(mockQueue.addVerificationEmail).not.toHaveBeenCalled();
     });
 
     it('should return success if user already verified (anti-enumeration)', async () => {
@@ -505,7 +508,7 @@ describe('AuthService', () => {
           resetTokenExpiresAt: expect.any(Date),
         }),
       });
-      expect(mockMail.sendResetPasswordEmail).toHaveBeenCalledWith('test@example.com', MOCK_UUID);
+      expect(mockQueue.addResetPasswordEmail).toHaveBeenCalledWith('test@example.com', MOCK_UUID);
     });
 
     it('should return success even if user does not exist (prevent email enumeration)', async () => {
@@ -515,7 +518,7 @@ describe('AuthService', () => {
 
       expect(result).toEqual({ message: 'RESET_EMAIL_SENT' });
       expect(mockPrisma.user.update).not.toHaveBeenCalled();
-      expect(mockMail.sendResetPasswordEmail).not.toHaveBeenCalled();
+      expect(mockQueue.addResetPasswordEmail).not.toHaveBeenCalled();
     });
 
     it('should set resetTokenExpiresAt to ~1 hour in the future', async () => {

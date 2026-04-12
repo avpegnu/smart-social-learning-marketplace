@@ -1,6 +1,7 @@
 import { Injectable, Inject, NotFoundException, ForbiddenException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreatePostDto } from '../dto/create-post.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -14,7 +15,10 @@ const AUTHOR_SELECT = {
 
 @Injectable()
 export class PostsService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(QueueService) private readonly queue: QueueService,
+  ) {}
 
   async create(authorId: string, dto: CreatePostDto) {
     const post = await this.prisma.post.create({
@@ -34,7 +38,7 @@ export class PostsService {
       include: { images: true, author: { select: AUTHOR_SELECT } },
     });
 
-    await this.fanoutToFollowers(authorId, post.id, dto.groupId);
+    await this.queue.addFeedFanout(post.id, authorId, dto.groupId);
     return post;
   }
 
@@ -127,40 +131,8 @@ export class PostsService {
       return shared;
     });
 
-    await this.fanoutToFollowers(userId, post.id);
+    await this.queue.addFeedFanout(post.id, userId);
     return post;
-  }
-
-  private async fanoutToFollowers(authorId: string, postId: string, groupId?: string) {
-    if (groupId) {
-      const members = await this.prisma.groupMember.findMany({
-        where: { groupId },
-        select: { userId: true },
-      });
-      if (members.length > 0) {
-        await this.prisma.feedItem.createMany({
-          data: members.map((m) => ({ userId: m.userId, postId })),
-          skipDuplicates: true,
-        });
-      }
-      return;
-    }
-
-    const followers = await this.prisma.follow.findMany({
-      where: { followingId: authorId },
-      select: { followerId: true },
-    });
-
-    const feedData = followers.map((f) => ({
-      userId: f.followerId,
-      postId,
-    }));
-    feedData.push({ userId: authorId, postId });
-
-    await this.prisma.feedItem.createMany({
-      data: feedData,
-      skipDuplicates: true,
-    });
   }
 }
 

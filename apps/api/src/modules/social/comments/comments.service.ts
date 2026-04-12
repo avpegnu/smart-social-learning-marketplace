@@ -6,7 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { NotificationsService } from '@/modules/notifications/notifications.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -17,7 +17,7 @@ import { AUTHOR_SELECT } from '../posts/posts.service';
 export class CommentsService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
-    @Inject(NotificationsService) private readonly notifications: NotificationsService,
+    @Inject(QueueService) private readonly queue: QueueService,
   ) {}
 
   async create(authorId: string, postId: string, dto: CreateCommentDto) {
@@ -58,14 +58,12 @@ export class CommentsService {
       });
 
       if (post.authorId !== authorId) {
-        this.notifications
-          .create(post.authorId, 'POST_COMMENT', {
-            postId,
-            commentId: comment.id,
-            userId: authorId,
-            fullName: commenter?.fullName,
-          })
-          .catch(() => {});
+        await this.queue.addNotification(post.authorId, 'POST_COMMENT', {
+          postId,
+          commentId: comment.id,
+          userId: authorId,
+          fullName: commenter?.fullName,
+        });
       }
 
       // If this is a reply, also notify the parent comment author
@@ -79,15 +77,13 @@ export class CommentsService {
           parentComment.authorId !== authorId &&
           parentComment.authorId !== post.authorId
         ) {
-          this.notifications
-            .create(parentComment.authorId, 'POST_COMMENT', {
-              postId,
-              commentId: comment.id,
-              userId: authorId,
-              fullName: commenter?.fullName,
-              isReply: true,
-            })
-            .catch(() => {});
+          await this.queue.addNotification(parentComment.authorId, 'POST_COMMENT', {
+            postId,
+            commentId: comment.id,
+            userId: authorId,
+            fullName: commenter?.fullName,
+            isReply: true,
+          });
         }
       }
 

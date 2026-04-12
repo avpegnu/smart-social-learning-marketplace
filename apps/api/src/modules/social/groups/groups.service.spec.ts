@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { NotificationsService } from '@/modules/notifications/notifications.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 
 const mockPrisma = {
   group: {
@@ -26,7 +26,10 @@ const mockPrisma = {
   $transaction: jest.fn(),
 };
 
-const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
+const mockQueue = {
+  addNotification: jest.fn().mockResolvedValue(undefined),
+  addFeedFanout: jest.fn().mockResolvedValue(undefined),
+};
 
 describe('GroupsService', () => {
   let service: GroupsService;
@@ -36,7 +39,7 @@ describe('GroupsService', () => {
       providers: [
         GroupsService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: NotificationsService, useValue: mockNotifications },
+        { provide: QueueService, useValue: mockQueue },
       ],
     }).compile();
 

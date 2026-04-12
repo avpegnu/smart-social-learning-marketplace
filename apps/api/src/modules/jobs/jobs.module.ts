@@ -8,6 +8,7 @@ import { EmailProcessor } from './processors/email.processor';
 import { NotificationProcessor } from './processors/notification.processor';
 import { FeedProcessor } from './processors/feed.processor';
 import { CronService } from './cron/cron.service';
+import { QueueService } from './queue.service';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { CronService } from './cron/cron.service';
     RecommendationsModule,
     AiTutorModule,
   ],
-  providers: [EmailProcessor, NotificationProcessor, FeedProcessor, CronService],
+  providers: [EmailProcessor, NotificationProcessor, FeedProcessor, CronService, QueueService],
+  exports: [QueueService],
 })
 export class JobsModule {}

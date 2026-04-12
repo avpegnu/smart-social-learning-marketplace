@@ -6,7 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { NotificationsService } from '@/modules/notifications/notifications.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { Prisma } from '@prisma/client';
 import { GroupRole } from '@prisma/client';
@@ -23,7 +23,7 @@ import { AUTHOR_SELECT } from '../posts/posts.service';
 export class GroupsService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
-    @Inject(NotificationsService) private readonly notifications: NotificationsService,
+    @Inject(QueueService) private readonly queue: QueueService,
   ) {}
 
   async create(ownerId: string, dto: CreateGroupDto) {
@@ -183,14 +183,12 @@ export class GroupsService {
         });
 
         // Notify group owner
-        this.notifications
-          .create(group.ownerId, 'SYSTEM', {
-            type: 'GROUP_JOIN_REQUEST',
-            groupId,
-            groupName: group.name,
-            userId,
-          })
-          .catch(() => {});
+        await this.queue.addNotification(group.ownerId, 'SYSTEM', {
+          type: 'GROUP_JOIN_REQUEST',
+          groupId,
+          groupName: group.name,
+          userId,
+        });
 
         return { requested: true };
       }
@@ -383,12 +381,10 @@ export class GroupsService {
     ]);
 
     // Notify the requester
-    this.notifications
-      .create(request.userId, 'SYSTEM', {
-        type: 'GROUP_JOIN_APPROVED',
-        groupId,
-      })
-      .catch(() => {});
+    await this.queue.addNotification(request.userId, 'SYSTEM', {
+      type: 'GROUP_JOIN_APPROVED',
+      groupId,
+    });
 
     return { approved: true };
   }

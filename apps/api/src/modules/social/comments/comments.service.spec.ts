@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { NotificationsService } from '@/modules/notifications/notifications.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 
 const mockPrisma = {
   post: { findUnique: jest.fn(), update: jest.fn() },
@@ -17,7 +17,10 @@ const mockPrisma = {
   $transaction: jest.fn(),
 };
 
-const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
+const mockQueue = {
+  addNotification: jest.fn().mockResolvedValue(undefined),
+  addFeedFanout: jest.fn().mockResolvedValue(undefined),
+};
 
 describe('CommentsService', () => {
   let service: CommentsService;
@@ -27,7 +30,7 @@ describe('CommentsService', () => {
       providers: [
         CommentsService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: NotificationsService, useValue: mockNotifications },
+        { provide: QueueService, useValue: mockQueue },
       ],
     }).compile();
 

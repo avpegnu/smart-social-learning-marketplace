@@ -12,7 +12,7 @@ import * as crypto from 'crypto';
 import type { StringValue } from 'ms';
 import { PrismaService } from '@/prisma/prisma.service';
 import { RedisService } from '@/redis/redis.service';
-import { MailService } from '@/mail/mail.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import type { JwtPayload } from '@/common/interfaces/jwt-payload.interface';
 import {
   BCRYPT_ROUNDS,
@@ -42,7 +42,7 @@ export class AuthService {
     @Inject(JwtService) private readonly jwt: JwtService,
     @Inject(ConfigService) private readonly config: ConfigService,
     @Inject(RedisService) private readonly redis: RedisService,
-    @Inject(MailService) private readonly mail: MailService,
+    @Inject(QueueService) private readonly queue: QueueService,
   ) {}
 
   // ==================== REGISTER ====================
@@ -71,7 +71,7 @@ export class AuthService {
       },
     });
 
-    await this.mail.sendVerificationEmail(dto.email, verificationToken);
+    await this.queue.addVerificationEmail(dto.email, verificationToken);
 
     return { message: 'REGISTER_SUCCESS' };
   }
@@ -212,7 +212,7 @@ export class AuthService {
       data: { verificationToken, verificationExpiresAt },
     });
 
-    await this.mail.sendVerificationEmail(email, verificationToken);
+    await this.queue.addVerificationEmail(email, verificationToken);
 
     return { message: 'VERIFICATION_EMAIL_SENT' };
   }
@@ -231,7 +231,7 @@ export class AuthService {
       data: { resetToken, resetTokenExpiresAt },
     });
 
-    await this.mail.sendResetPasswordEmail(email, resetToken);
+    await this.queue.addResetPasswordEmail(email, resetToken);
 
     return { message: 'RESET_EMAIL_SENT' };
   }

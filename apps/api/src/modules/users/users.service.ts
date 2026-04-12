@@ -8,7 +8,7 @@ import {
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '@/prisma/prisma.service';
-import { NotificationsService } from '@/modules/notifications/notifications.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
 import type { UpdateProfileDto } from './dto/update-profile.dto';
@@ -24,7 +24,7 @@ const PUBLIC_USER_SELECT = {
 export class UsersService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
-    @Inject(NotificationsService) private readonly notifications: NotificationsService,
+    @Inject(QueueService) private readonly queue: QueueService,
   ) {}
 
   // ==================== SEARCH ====================
@@ -183,9 +183,10 @@ export class UsersService {
       where: { id: followerId },
       select: { fullName: true },
     });
-    this.notifications
-      .create(followingId, 'FOLLOW', { userId: followerId, fullName: follower?.fullName })
-      .catch(() => {});
+    await this.queue.addNotification(followingId, 'FOLLOW', {
+      userId: followerId,
+      fullName: follower?.fullName,
+    });
 
     return { message: 'FOLLOWED' };
   }

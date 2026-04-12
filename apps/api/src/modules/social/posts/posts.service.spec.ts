@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 
 const mockPrisma = {
   post: {
@@ -22,7 +23,14 @@ describe('PostsService', () => {
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [PostsService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        PostsService,
+        { provide: PrismaService, useValue: mockPrisma },
+        {
+          provide: QueueService,
+          useValue: { addFeedFanout: jest.fn().mockResolvedValue(undefined) },
+        },
+      ],
     }).compile();
 
     service = module.get(PostsService);

@@ -3,7 +3,7 @@ import { BadRequestException, ConflictException, NotFoundException } from '@nest
 import { Prisma } from '@prisma/client';
 import { UsersService } from './users.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { NotificationsService } from '@/modules/notifications/notifications.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 
 const mockPrisma = {
   user: {
@@ -20,7 +20,10 @@ const mockPrisma = {
   $transaction: jest.fn(),
 };
 
-const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
+const mockQueue = {
+  addNotification: jest.fn().mockResolvedValue(undefined),
+  addFeedFanout: jest.fn().mockResolvedValue(undefined),
+};
 
 const MOCK_USER = {
   id: 'user-1',
@@ -57,7 +60,7 @@ describe('UsersService', () => {
       providers: [
         UsersService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: NotificationsService, useValue: mockNotifications },
+        { provide: QueueService, useValue: mockQueue },
       ],
     }).compile();
 

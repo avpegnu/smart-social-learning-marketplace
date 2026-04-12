@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
-import { NotificationsService } from '@/modules/notifications/notifications.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreateAnswerDto } from '../dto/create-answer.dto';
 
@@ -21,7 +21,7 @@ const AUTHOR_SELECT = {
 export class AnswersService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
-    @Inject(NotificationsService) private readonly notifications: NotificationsService,
+    @Inject(QueueService) private readonly queue: QueueService,
   ) {}
 
   async create(authorId: string, questionId: string, dto: CreateAnswerDto) {
@@ -56,14 +56,12 @@ export class AnswersService {
           where: { id: authorId },
           select: { fullName: true },
         });
-        this.notifications
-          .create(question.authorId, 'QUESTION_ANSWERED', {
-            questionId,
-            answerId: answer.id,
-            userId: authorId,
-            fullName: answerer?.fullName,
-          })
-          .catch(() => {});
+        await this.queue.addNotification(question.authorId, 'QUESTION_ANSWERED', {
+          questionId,
+          answerId: answer.id,
+          userId: authorId,
+          fullName: answerer?.fullName,
+        });
       }
 
       return answer;
