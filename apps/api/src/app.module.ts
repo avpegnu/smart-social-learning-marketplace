@@ -34,6 +34,7 @@ import { QuestionBanksModule } from './modules/question-banks/question-banks.mod
 import { AdminModule } from './modules/admin/admin.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { JobsModule } from './modules/jobs/jobs.module';
+import { BullBoardModule } from './modules/bull-board/bull-board.module';
 
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -76,10 +77,19 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
             host: parsed.hostname,
             port: parseInt(parsed.port || '6379', 10),
             ...(parsed.password && { password: parsed.password }),
+            maxRetriesPerRequest: null,
+            enableReadyCheck: false,
+          },
+          defaultJobOptions: {
+            removeOnComplete: { age: 86400, count: 200 },
+            removeOnFail: { age: 604800, count: 500 },
           },
         };
       },
     }),
+
+    // Bull dashboard (must be after BullModule.forRootAsync)
+    BullBoardModule,
 
     // Feature modules
     AuthModule,

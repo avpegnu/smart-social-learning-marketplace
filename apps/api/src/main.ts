@@ -10,6 +10,27 @@ async function bootstrap() {
   // Cookie parser (for httpOnly refresh token)
   app.use(cookieParser());
 
+  // Basic auth for Bull Dashboard
+  const bullUser = process.env.BULL_BOARD_USER || 'admin';
+  const bullPass = process.env.BULL_BOARD_PASS || 'admin';
+  app.use('/api/admin/queues', (req: unknown, res: unknown, next: () => void) => {
+    const request = req as { headers: Record<string, string | undefined> };
+    const response = res as {
+      setHeader: (k: string, v: string) => void;
+      status: (code: number) => { send: (body: string) => void };
+    };
+    const auth = request.headers.authorization;
+    if (auth?.startsWith('Basic ')) {
+      const [u, p] = Buffer.from(auth.slice(6), 'base64').toString().split(':');
+      if (u === bullUser && p === bullPass) {
+        next();
+        return;
+      }
+    }
+    response.setHeader('WWW-Authenticate', 'Basic realm="Bull Dashboard"');
+    response.status(401).send('Authentication required');
+  });
+
   // Global prefix
   app.setGlobalPrefix('api');
 
