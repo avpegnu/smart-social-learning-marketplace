@@ -20,7 +20,7 @@ export default function AiIndexingPage() {
   const indexCourseMutation = useIndexCourse();
   const bulkIndexMutation = useBulkIndexCourses();
 
-  const items: IndexStatusItem[] = (data as IndexStatusItem[]) ?? [];
+  const items: IndexStatusItem[] = (data as { data?: IndexStatusItem[] })?.data ?? [];
 
   const indexedCount = useMemo(() => items.filter((i) => i.chunkCount > 0).length, [items]);
   const unindexedCount = useMemo(() => items.filter((i) => i.chunkCount === 0).length, [items]);
