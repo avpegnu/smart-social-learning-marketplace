@@ -38,7 +38,7 @@ export class PostsService {
       include: { images: true, author: { select: AUTHOR_SELECT } },
     });
 
-    await this.queue.addFeedFanout(post.id, authorId, dto.groupId);
+    this.queue.addFeedFanout(post.id, authorId, dto.groupId);
     return post;
   }
 
@@ -131,7 +131,7 @@ export class PostsService {
       return shared;
     });
 
-    await this.queue.addFeedFanout(post.id, userId);
+    this.queue.addFeedFanout(post.id, userId);
     return post;
   }
 }

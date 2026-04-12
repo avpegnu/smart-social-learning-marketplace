@@ -49,7 +49,7 @@ export class InteractionsService {
         where: { id: userId },
         select: { fullName: true },
       });
-      await this.queue.addNotification(post.authorId, 'POST_LIKE', {
+      this.queue.addNotification(post.authorId, 'POST_LIKE', {
         postId,
         userId,
         fullName: liker?.fullName,

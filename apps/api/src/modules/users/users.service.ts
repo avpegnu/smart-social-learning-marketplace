@@ -183,7 +183,7 @@ export class UsersService {
       where: { id: followerId },
       select: { fullName: true },
     });
-    await this.queue.addNotification(followingId, 'FOLLOW', {
+    this.queue.addNotification(followingId, 'FOLLOW', {
       userId: followerId,
       fullName: follower?.fullName,
     });

@@ -71,7 +71,7 @@ export class AuthService {
       },
     });
 
-    await this.queue.addVerificationEmail(dto.email, verificationToken);
+    this.queue.addVerificationEmail(dto.email, verificationToken);
 
     return { message: 'REGISTER_SUCCESS' };
   }
@@ -212,7 +212,7 @@ export class AuthService {
       data: { verificationToken, verificationExpiresAt },
     });
 
-    await this.queue.addVerificationEmail(email, verificationToken);
+    this.queue.addVerificationEmail(email, verificationToken);
 
     return { message: 'VERIFICATION_EMAIL_SENT' };
   }
@@ -231,7 +231,7 @@ export class AuthService {
       data: { resetToken, resetTokenExpiresAt },
     });
 
-    await this.queue.addResetPasswordEmail(email, resetToken);
+    this.queue.addResetPasswordEmail(email, resetToken);
 
     return { message: 'RESET_EMAIL_SENT' };
   }

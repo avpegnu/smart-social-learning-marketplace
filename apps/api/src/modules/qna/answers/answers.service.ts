@@ -56,7 +56,7 @@ export class AnswersService {
           where: { id: authorId },
           select: { fullName: true },
         });
-        await this.queue.addNotification(question.authorId, 'QUESTION_ANSWERED', {
+        this.queue.addNotification(question.authorId, 'QUESTION_ANSWERED', {
           questionId,
           answerId: answer.id,
           userId: authorId,

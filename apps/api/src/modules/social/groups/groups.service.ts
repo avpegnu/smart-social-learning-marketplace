@@ -183,7 +183,7 @@ export class GroupsService {
         });
 
         // Notify group owner
-        await this.queue.addNotification(group.ownerId, 'SYSTEM', {
+        this.queue.addNotification(group.ownerId, 'SYSTEM', {
           type: 'GROUP_JOIN_REQUEST',
           groupId,
           groupName: group.name,
@@ -381,7 +381,7 @@ export class GroupsService {
     ]);
 
     // Notify the requester
-    await this.queue.addNotification(request.userId, 'SYSTEM', {
+    this.queue.addNotification(request.userId, 'SYSTEM', {
       type: 'GROUP_JOIN_APPROVED',
       groupId,
     });

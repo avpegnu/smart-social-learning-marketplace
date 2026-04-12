@@ -1,32 +1,40 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import type { Queue } from 'bullmq';
 
 @Injectable()
 export class QueueService {
+  private readonly logger = new Logger(QueueService.name);
+
   constructor(
     @InjectQueue('email') private readonly emailQueue: Queue,
     @InjectQueue('notification') private readonly notificationQueue: Queue,
     @InjectQueue('feed') private readonly feedQueue: Queue,
   ) {}
 
-  async addVerificationEmail(to: string, token: string) {
-    await this.emailQueue.add('verification', { to, token });
+  private enqueue(queue: Queue, name: string, data: Record<string, unknown>) {
+    queue.add(name, data).catch((err: Error) => {
+      this.logger.warn(`Failed to enqueue ${queue.name}/${name}: ${err.message}`);
+    });
   }
 
-  async addResetPasswordEmail(to: string, token: string) {
-    await this.emailQueue.add('reset-password', { to, token });
+  addVerificationEmail(to: string, token: string) {
+    this.enqueue(this.emailQueue, 'verification', { to, token });
   }
 
-  async addOrderReceiptEmail(to: string, orderId: string, amount: number) {
-    await this.emailQueue.add('order-receipt', { to, orderId, amount });
+  addResetPasswordEmail(to: string, token: string) {
+    this.enqueue(this.emailQueue, 'reset-password', { to, token });
   }
 
-  async addNotification(userId: string, type: string, data: Record<string, unknown>) {
-    await this.notificationQueue.add('create', { userId, type, data });
+  addOrderReceiptEmail(to: string, orderId: string, amount: number) {
+    this.enqueue(this.emailQueue, 'order-receipt', { to, orderId, amount });
   }
 
-  async addFeedFanout(postId: string, authorId: string, groupId?: string) {
-    await this.feedQueue.add('fanout', { postId, authorId, groupId });
+  addNotification(userId: string, type: string, data: Record<string, unknown>) {
+    this.enqueue(this.notificationQueue, 'create', { userId, type, data });
+  }
+
+  addFeedFanout(postId: string, authorId: string, groupId?: string) {
+    this.enqueue(this.feedQueue, 'fanout', { postId, authorId, groupId });
   }
 }

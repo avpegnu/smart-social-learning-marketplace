@@ -58,7 +58,7 @@ export class CommentsService {
       });
 
       if (post.authorId !== authorId) {
-        await this.queue.addNotification(post.authorId, 'POST_COMMENT', {
+        this.queue.addNotification(post.authorId, 'POST_COMMENT', {
           postId,
           commentId: comment.id,
           userId: authorId,
@@ -77,7 +77,7 @@ export class CommentsService {
           parentComment.authorId !== authorId &&
           parentComment.authorId !== post.authorId
         ) {
-          await this.queue.addNotification(parentComment.authorId, 'POST_COMMENT', {
+          this.queue.addNotification(parentComment.authorId, 'POST_COMMENT', {
             postId,
             commentId: comment.id,
             userId: authorId,
