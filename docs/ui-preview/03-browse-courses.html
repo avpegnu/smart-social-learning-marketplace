@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browse Courses — Smart Social Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #1e293b; --primary-fg: #f1f5f9;
+    --accent: #16a34a; --bg: #ffffff; --fg: #0f172a;
+    --card: #ffffff; --muted: #f1f5f9; --muted-fg: #64748b;
+    --border: #e2e8f0; --info: #3b82f6;
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+    --radius: 0.5rem; --radius-lg: 0.75rem;
+  }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
+
+  /* Navbar */
+  .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+  .nav-left { display: flex; align-items: center; gap: 2rem; }
+  .logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
+  .logo-icon { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
+  .nav-links { display: flex; gap: 1.5rem; font-size: 0.875rem; font-weight: 500; color: var(--muted-fg); }
+  .nav-links a:hover { color: var(--fg); }
+  .nav-links a.active { color: var(--fg); font-weight: 600; }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: var(--muted-fg); font-size: 1.1rem; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.875rem; font-weight: 600; }
+
+  .container { max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
+
+  /* Search bar */
+  .search-section { background: var(--muted); padding: 1.5rem 0; }
+  .search-bar { display: flex; align-items: center; background: var(--card); border: 2px solid var(--border); border-radius: var(--radius-lg); padding: 0.75rem 1rem; gap: 0.75rem; max-width: 700px; margin: 0 auto; transition: border 0.15s; }
+  .search-bar:focus-within { border-color: var(--primary); }
+  .search-bar input { border: none; background: none; outline: none; font-size: 1rem; width: 100%; font-family: inherit; }
+  .search-bar .search-icon { color: var(--muted-fg); font-size: 1.25rem; }
+  .search-bar .clear-btn { background: none; border: none; color: var(--muted-fg); cursor: pointer; font-size: 1.1rem; }
+
+  /* Main content */
+  .browse-layout { display: flex; gap: 2rem; padding: 2rem 0; }
+
+  /* Sidebar filters */
+  .filter-sidebar { width: 260px; flex-shrink: 0; }
+  .filter-section { margin-bottom: 1.5rem; }
+  .filter-title { font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-fg); margin-bottom: 0.75rem; }
+  .filter-option { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0; font-size: 0.875rem; cursor: pointer; }
+  .filter-option input[type="checkbox"], .filter-option input[type="radio"] { accent-color: var(--primary); width: 16px; height: 16px; }
+  .filter-option .count { margin-left: auto; color: var(--muted-fg); font-size: 0.75rem; }
+  .filter-stars { color: #f59e0b; }
+  .clear-filters { font-size: 0.8rem; color: var(--info); cursor: pointer; border: none; background: none; font-family: inherit; margin-top: 0.5rem; }
+  .clear-filters:hover { text-decoration: underline; }
+
+  /* Results */
+  .results-area { flex: 1; }
+  .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .results-count { font-size: 0.875rem; color: var(--muted-fg); }
+  .results-count strong { color: var(--fg); }
+  .sort-select { padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.8rem; font-family: inherit; background: var(--card); cursor: pointer; }
+
+  /* Active filters chips */
+  .active-filters { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .filter-chip { display: flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.75rem; background: var(--primary); color: white; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+  .filter-chip .remove { cursor: pointer; opacity: 0.7; }
+  .filter-chip .remove:hover { opacity: 1; }
+
+  /* Course Grid */
+  .course-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .course-card { background: var(--card); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-card); transition: all 0.2s; cursor: pointer; border: 1px solid var(--border); }
+  .course-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+  .course-thumb { aspect-ratio: 16/9; position: relative; overflow: hidden; }
+  .course-thumb-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.95rem; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .t1 { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+  .t2 { background: linear-gradient(135deg, #0ea5e9, #06b6d4); }
+  .t3 { background: linear-gradient(135deg, #f59e0b, #eab308); }
+  .t4 { background: linear-gradient(135deg, #ef4444, #f97316); }
+  .t5 { background: linear-gradient(135deg, #10b981, #14b8a6); }
+  .t6 { background: linear-gradient(135deg, #8b5cf6, #a855f7); }
+  .t7 { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+  .t8 { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
+  .t9 { background: linear-gradient(135deg, #84cc16, #22c55e); }
+  .course-badge { position: absolute; top: 0.5rem; left: 0.5rem; background: #f59e0b; color: #fff; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.4rem; border-radius: 4px; text-transform: uppercase; }
+  .course-badge.new { background: var(--accent); }
+  .course-wishlist { position: absolute; top: 0.5rem; right: 0.5rem; width: 32px; height: 32px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; font-size: 0.9rem; }
+  .course-info { padding: 0.875rem; }
+  .course-title { font-size: 0.875rem; font-weight: 600; line-height: 1.4; margin-bottom: 0.25rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .course-instructor { font-size: 0.75rem; color: var(--muted-fg); margin-bottom: 0.375rem; }
+  .course-meta { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.375rem; }
+  .course-rating { display: flex; align-items: center; gap: 0.2rem; font-size: 0.75rem; font-weight: 600; color: #f59e0b; }
+  .course-rating .count { color: var(--muted-fg); font-weight: 400; }
+  .course-stats { font-size: 0.7rem; color: var(--muted-fg); }
+  .course-price { display: flex; align-items: center; gap: 0.5rem; }
+  .price-current { font-size: 1rem; font-weight: 700; }
+  .price-original { font-size: 0.8rem; color: var(--muted-fg); text-decoration: line-through; }
+  .price-free { font-size: 1rem; font-weight: 700; color: var(--accent); }
+  .level-badge { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 600; }
+  .level-beginner { background: #dcfce7; color: #166534; }
+  .level-intermediate { background: #fef3c7; color: #92400e; }
+  .level-advanced { background: #fee2e2; color: #991b1b; }
+
+  /* Pagination */
+  .pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem; padding-bottom: 2rem; }
+  .page-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.875rem; cursor: pointer; background: var(--card); font-family: inherit; transition: all 0.15s; }
+  .page-btn:hover { background: var(--muted); }
+  .page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .page-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="nav-left">
+    <div class="logo"><div class="logo-icon">S</div> SSML</div>
+    <div class="nav-links">
+      <a href="#" class="active">Khám phá</a>
+      <a href="#">Học tập của tôi</a>
+      <a href="#">Cộng đồng</a>
+    </div>
+  </div>
+  <div class="nav-right">
+    <button class="nav-icon">🛒</button>
+    <button class="nav-icon">🔔</button>
+    <div class="avatar">VT</div>
+  </div>
+</nav>
+
+<!-- Search -->
+<section class="search-section">
+  <div class="container">
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Tìm kiếm khóa học..." value="react">
+      <button class="clear-btn">✕</button>
+    </div>
+  </div>
+</section>
+
+<!-- Browse Content -->
+<div class="container">
+  <div class="browse-layout">
+    <!-- Sidebar -->
+    <aside class="filter-sidebar">
+      <div class="filter-section">
+        <div class="filter-title">Danh mục</div>
+        <label class="filter-option"><input type="checkbox" checked> Web Development <span class="count">45</span></label>
+        <label class="filter-option"><input type="checkbox"> Mobile <span class="count">23</span></label>
+        <label class="filter-option"><input type="checkbox"> AI / Machine Learning <span class="count">18</span></label>
+        <label class="filter-option"><input type="checkbox"> Data Science <span class="count">15</span></label>
+        <label class="filter-option"><input type="checkbox"> Design <span class="count">12</span></label>
+        <label class="filter-option"><input type="checkbox"> DevOps & Cloud <span class="count">9</span></label>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-title">Trình độ</div>
+        <label class="filter-option"><input type="checkbox" checked> Cơ bản <span class="count">52</span></label>
+        <label class="filter-option"><input type="checkbox"> Trung cấp <span class="count">38</span></label>
+        <label class="filter-option"><input type="checkbox"> Nâng cao <span class="count">22</span></label>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-title">Giá</div>
+        <label class="filter-option"><input type="radio" name="price" checked> Tất cả</label>
+        <label class="filter-option"><input type="radio" name="price"> Miễn phí <span class="count">18</span></label>
+        <label class="filter-option"><input type="radio" name="price"> Có phí <span class="count">94</span></label>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-title">Đánh giá</div>
+        <label class="filter-option"><input type="radio" name="rating"> <span class="filter-stars">★★★★★</span> 4.5+ <span class="count">34</span></label>
+        <label class="filter-option"><input type="radio" name="rating" checked> <span class="filter-stars">★★★★☆</span> 4.0+ <span class="count">67</span></label>
+        <label class="filter-option"><input type="radio" name="rating"> <span class="filter-stars">★★★☆☆</span> 3.0+ <span class="count">89</span></label>
+        <label class="filter-option"><input type="radio" name="rating"> Tất cả</label>
+      </div>
+
+      <button class="clear-filters">🗑 Xóa tất cả bộ lọc</button>
+    </aside>
+
+    <!-- Results -->
+    <div class="results-area">
+      <div class="results-header">
+        <span class="results-count"><strong>128</strong> khóa học được tìm thấy cho "<strong>react</strong>"</span>
+        <select class="sort-select">
+          <option>Phổ biến nhất</option>
+          <option>Mới nhất</option>
+          <option>Đánh giá cao nhất</option>
+          <option>Giá: Thấp → Cao</option>
+          <option>Giá: Cao → Thấp</option>
+        </select>
+      </div>
+
+      <div class="active-filters">
+        <div class="filter-chip">Web Development <span class="remove">✕</span></div>
+        <div class="filter-chip">Cơ bản <span class="remove">✕</span></div>
+        <div class="filter-chip">4.0+ ★ <span class="remove">✕</span></div>
+      </div>
+
+      <div class="course-grid">
+        <div class="course-card">
+          <div class="course-thumb t1">
+            <div class="course-thumb-text">React & Next.js</div>
+            <span class="course-badge">Bestseller</span>
+            <button class="course-wishlist">♡</button>
+          </div>
+          <div class="course-info">
+            <div class="course-title">Lập trình React & Next.js từ cơ bản đến nâng cao</div>
+            <div class="course-instructor">Nguyễn Văn A</div>
+            <div class="course-meta">
+              <span class="course-rating">⭐ 4.8 <span class="count">(1,234)</span></span>
+              <span class="course-stats">· 24h · 156 bài</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="course-price"><span class="price-current">499,000₫</span><span class="price-original">999,000₫</span></div>
+              <span class="level-badge level-beginner">Cơ bản</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-thumb t2">
+            <div class="course-thumb-text">React Hooks</div>
+            <button class="course-wishlist">♡</button>
+          </div>
+          <div class="course-info">
+            <div class="course-title">React Hooks & Context API — State Management đơn giản</div>
+            <div class="course-instructor">Trần Văn B</div>
+            <div class="course-meta">
+              <span class="course-rating">⭐ 4.6 <span class="count">(567)</span></span>
+              <span class="course-stats">· 12h · 89 bài</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="course-price"><span class="price-current">299,000₫</span></div>
+              <span class="level-badge level-beginner">Cơ bản</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-thumb t5">
+            <div class="course-thumb-text">React Testing</div>
+            <span class="course-badge new">Mới</span>
+            <button class="course-wishlist">♡</button>
+          </div>
+          <div class="course-info">
+            <div class="course-title">Testing React Apps — Jest, RTL & Cypress</div>
+            <div class="course-instructor">Lê Thị C</div>
+            <div class="course-meta">
+              <span class="course-rating">⭐ 4.7 <span class="count">(234)</span></span>
+              <span class="course-stats">· 16h · 112 bài</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="course-price"><span class="price-current">349,000₫</span></div>
+              <span class="level-badge level-intermediate">Trung cấp</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-thumb t4">
+            <div class="course-thumb-text">React Native</div>
+            <button class="course-wishlist">❤️</button>
+          </div>
+          <div class="course-info">
+            <div class="course-title">React Native — Xây dựng ứng dụng mobile thực tế</div>
+            <div class="course-instructor">Phạm Văn D</div>
+            <div class="course-meta">
+              <span class="course-rating">⭐ 4.5 <span class="count">(789)</span></span>
+              <span class="course-stats">· 30h · 200 bài</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="course-price"><span class="price-current">599,000₫</span><span class="price-original">1,200,000₫</span></div>
+              <span class="level-badge level-intermediate">Trung cấp</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-thumb t6">
+            <div class="course-thumb-text">React + TypeScript</div>
+            <button class="course-wishlist">♡</button>
+          </div>
+          <div class="course-info">
+            <div class="course-title">React + TypeScript — Type-safe Frontend Development</div>
+            <div class="course-instructor">Hoàng Minh E</div>
+            <div class="course-meta">
+              <span class="course-rating">⭐ 4.9 <span class="count">(456)</span></span>
+              <span class="course-stats">· 18h · 134 bài</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="course-price"><span class="price-current">449,000₫</span></div>
+              <span class="level-badge level-beginner">Cơ bản</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-thumb t9">
+            <div class="course-thumb-text">React Patterns</div>
+            <button class="course-wishlist">♡</button>
+          </div>
+          <div class="course-info">
+            <div class="course-title">React Design Patterns & Performance Optimization</div>
+            <div class="course-instructor">Vũ Đức F</div>
+            <div class="course-meta">
+              <span class="course-rating">⭐ 4.8 <span class="count">(321)</span></span>
+              <span class="course-stats">· 14h · 98 bài</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="course-price"><span class="price-free">Miễn phí</span></div>
+              <span class="level-badge level-advanced">Nâng cao</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination">
+        <button class="page-btn disabled">←</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">4</button>
+        <button class="page-btn">5</button>
+        <button class="page-btn">...</button>
+        <button class="page-btn">11</button>
+        <button class="page-btn">→</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Course Detail — Smart Social Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #1e293b; --primary-fg: #f1f5f9;
+    --accent: #16a34a; --accent-fg: #fff;
+    --bg: #ffffff; --fg: #0f172a;
+    --card: #ffffff; --card-fg: #0f172a;
+    --muted: #f1f5f9; --muted-fg: #64748b;
+    --border: #e2e8f0; --input: #e2e8f0;
+    --success: #16a34a; --warning: #f59e0b; --destructive: #ef4444; --info: #3b82f6;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
+    --radius: 0.5rem; --radius-lg: 0.75rem;
+  }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
+  a { color: inherit; text-decoration: none; }
+
+  /* Navbar */
+  .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+  .nav-left { display: flex; align-items: center; gap: 2rem; }
+  .logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
+  .logo-icon { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
+  .nav-links { display: flex; gap: 1.5rem; font-size: 0.875rem; font-weight: 500; color: var(--muted-fg); }
+  .nav-links a:hover { color: var(--fg); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: var(--muted-fg); font-size: 1.1rem; position: relative; }
+  .nav-icon:hover { background: var(--muted); }
+  .badge-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: var(--destructive); border-radius: 50%; border: 2px solid white; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.875rem; font-weight: 600; cursor: pointer; }
+
+  .container { max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
+
+  /* Course Header */
+  .course-header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #334155 100%); color: white; padding: 2rem 0 3rem; }
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #94a3b8; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: #94a3b8; }
+  .breadcrumb a:hover { color: white; text-decoration: underline; }
+  .breadcrumb .sep { color: #475569; }
+  .breadcrumb .current { color: #e2e8f0; }
+  .header-grid { display: flex; gap: 2.5rem; align-items: flex-start; }
+  .header-video { width: 480px; flex-shrink: 0; aspect-ratio: 16/9; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; overflow: hidden; }
+  .header-video::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.25); }
+  .play-btn { width: 64px; height: 64px; background: rgba(255,255,255,0.95); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  .play-btn::after { content: ''; width: 0; height: 0; border-style: solid; border-width: 12px 0 12px 22px; border-color: transparent transparent transparent #1e293b; margin-left: 4px; }
+  .header-video:hover .play-btn { transform: scale(1.08); }
+  .header-video .preview-label { position: absolute; bottom: 12px; left: 12px; background: rgba(0,0,0,0.7); color: white; font-size: 0.7rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 4px; z-index: 1; }
+  .header-info { flex: 1; }
+  .header-info h1 { font-size: 1.75rem; font-weight: 800; line-height: 1.3; margin-bottom: 0.75rem; }
+  .header-desc { font-size: 1rem; color: #cbd5e1; margin-bottom: 1.25rem; line-height: 1.6; }
+  .header-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-bottom: 1rem; font-size: 0.875rem; }
+  .meta-rating { display: flex; align-items: center; gap: 0.375rem; }
+  .meta-rating .score { color: var(--warning); font-weight: 700; font-size: 1rem; }
+  .stars { color: var(--warning); letter-spacing: 1px; font-size: 0.85rem; }
+  .meta-rating .count { color: #94a3b8; }
+  .meta-students { color: #cbd5e1; }
+  .meta-divider { color: #475569; }
+  .header-instructor { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: #94a3b8; margin-bottom: 0.75rem; }
+  .header-instructor a { color: #60a5fa; }
+  .header-instructor a:hover { text-decoration: underline; }
+  .header-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.75rem; }
+  .header-tag { display: flex; align-items: center; gap: 0.375rem; color: #94a3b8; background: rgba(255,255,255,0.08); padding: 0.3rem 0.75rem; border-radius: 6px; }
+  .header-tag .tag-icon { font-size: 0.85rem; }
+
+  /* Main Content */
+  .detail-layout { display: flex; gap: 2rem; padding: 2rem 0 4rem; align-items: flex-start; }
+  .detail-main { flex: 1; min-width: 0; }
+  .detail-sidebar { width: 340px; flex-shrink: 0; position: sticky; top: 80px; }
+
+  /* Tab Nav */
+  .tab-nav { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 2rem; }
+  .tab-btn { padding: 0.875rem 1.5rem; font-size: 0.9rem; font-weight: 600; color: var(--muted-fg); background: none; border: none; cursor: pointer; font-family: inherit; position: relative; transition: color 0.15s; }
+  .tab-btn:hover { color: var(--fg); }
+  .tab-btn.active { color: var(--fg); }
+  .tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: var(--primary); }
+
+  /* Section Blocks */
+  .content-section { margin-bottom: 3rem; }
+  .content-section-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; }
+  .section-divider { display: flex; align-items: center; gap: 0.75rem; margin: 2.5rem 0 1.5rem; }
+  .section-divider .divider-line { flex: 1; height: 1px; background: var(--border); }
+  .section-divider .divider-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-fg); }
+
+  /* What you'll learn */
+  .learn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; padding: 1.5rem; background: var(--muted); border-radius: var(--radius-lg); border: 1px solid var(--border); }
+  .learn-item { display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.875rem; }
+  .learn-check { color: var(--accent); font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  /* Description */
+  .desc-text { font-size: 0.925rem; color: #334155; line-height: 1.8; }
+  .desc-text p { margin-bottom: 1rem; }
+  .desc-text ul { margin: 0.75rem 0 1rem 1.5rem; }
+  .desc-text ul li { margin-bottom: 0.375rem; }
+
+  /* Prerequisites */
+  .prereq-list { list-style: none; padding: 0; }
+  .prereq-list li { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; font-size: 0.9rem; color: #334155; }
+  .prereq-list li::before { content: ''; display: none; }
+  .prereq-icon { color: var(--info); font-size: 1rem; flex-shrink: 0; }
+
+  /* Instructor */
+  .instructor-card { display: flex; gap: 1.5rem; padding: 1.5rem; background: var(--muted); border-radius: var(--radius-lg); border: 1px solid var(--border); }
+  .instructor-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9, #06b6d4); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.75rem; font-weight: 700; flex-shrink: 0; }
+  .instructor-info h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .instructor-info .instructor-title { font-size: 0.85rem; color: var(--muted-fg); margin-bottom: 0.75rem; }
+  .instructor-stats { display: flex; gap: 1.5rem; margin-bottom: 0.75rem; }
+  .instructor-stat { display: flex; align-items: center; gap: 0.375rem; font-size: 0.8rem; color: var(--muted-fg); }
+  .instructor-stat .stat-icon { font-size: 0.9rem; }
+  .instructor-bio { font-size: 0.85rem; color: #475569; line-height: 1.7; }
+
+  /* Curriculum Accordion */
+  .curriculum-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .curriculum-summary { font-size: 0.85rem; color: var(--muted-fg); }
+  .accordion-section { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 0.5rem; overflow: hidden; }
+  .accordion-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; background: var(--muted); border: none; cursor: pointer; font-family: inherit; text-align: left; }
+  .accordion-toggle:hover { background: #e8ecf1; }
+  .accordion-toggle-left { display: flex; align-items: center; gap: 0.75rem; }
+  .accordion-arrow { font-size: 0.75rem; color: var(--muted-fg); transition: transform 0.2s; }
+  .accordion-arrow.open { transform: rotate(90deg); }
+  .accordion-title { font-size: 0.9rem; font-weight: 600; }
+  .accordion-meta { font-size: 0.8rem; color: var(--muted-fg); }
+  .accordion-body { border-top: 1px solid var(--border); }
+  .lesson-item { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.25rem; font-size: 0.85rem; border-bottom: 1px solid #f1f5f9; }
+  .lesson-item:last-child { border-bottom: none; }
+  .lesson-left { display: flex; align-items: center; gap: 0.75rem; }
+  .lesson-icon { color: var(--muted-fg); font-size: 1rem; }
+  .lesson-title { color: #334155; }
+  .lesson-title.preview { color: var(--info); }
+  .lesson-right { display: flex; align-items: center; gap: 0.75rem; }
+  .lesson-badge { font-size: 0.7rem; color: var(--info); font-weight: 500; }
+  .lesson-duration { font-size: 0.8rem; color: var(--muted-fg); }
+
+  /* Reviews */
+  .review-header { display: flex; gap: 2.5rem; align-items: flex-start; margin-bottom: 2rem; }
+  .review-summary { text-align: center; flex-shrink: 0; width: 140px; }
+  .review-big-score { font-size: 3.5rem; font-weight: 800; color: var(--fg); line-height: 1; }
+  .review-big-stars { color: var(--warning); font-size: 1.1rem; margin: 0.375rem 0; letter-spacing: 2px; }
+  .review-total { font-size: 0.8rem; color: var(--muted-fg); }
+  .review-bars { flex: 1; }
+  .review-bar-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.375rem; font-size: 0.85rem; }
+  .review-bar-label { width: 50px; color: var(--muted-fg); display: flex; align-items: center; gap: 0.25rem; }
+  .review-bar-track { flex: 1; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+  .review-bar-fill { height: 100%; background: var(--warning); border-radius: 4px; }
+  .review-bar-pct { width: 36px; text-align: right; color: var(--muted-fg); font-size: 0.8rem; }
+
+  .review-card { padding: 1.25rem; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 1rem; }
+  .review-card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .review-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; font-weight: 600; flex-shrink: 0; }
+  .review-user-info { flex: 1; }
+  .review-user-name { font-size: 0.9rem; font-weight: 600; }
+  .review-user-date { font-size: 0.75rem; color: var(--muted-fg); }
+  .review-stars-small { color: var(--warning); font-size: 0.8rem; letter-spacing: 1px; }
+  .review-text { font-size: 0.875rem; color: #475569; line-height: 1.7; }
+  .review-helpful { display: flex; align-items: center; gap: 1rem; margin-top: 0.75rem; font-size: 0.8rem; color: var(--muted-fg); }
+  .review-helpful button { background: none; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.25rem 0.75rem; font-size: 0.75rem; font-family: inherit; cursor: pointer; color: var(--muted-fg); display: flex; align-items: center; gap: 0.375rem; }
+  .review-helpful button:hover { border-color: var(--primary); color: var(--fg); }
+
+  /* Related Courses */
+  .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .related-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: all 0.2s; }
+  .related-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+  .related-thumb { aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.8rem; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .t1 { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+  .t2 { background: linear-gradient(135deg, #0ea5e9, #06b6d4); }
+  .t3 { background: linear-gradient(135deg, #f59e0b, #eab308); }
+  .related-body { padding: 0.875rem; }
+  .related-body h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.375rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .related-body .related-meta { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--muted-fg); margin-bottom: 0.375rem; }
+  .related-body .related-price { font-size: 0.9rem; font-weight: 700; color: var(--fg); }
+
+  /* Sidebar Purchase Card */
+  .purchase-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); overflow: hidden; }
+  .purchase-price-row { padding: 1.5rem; border-bottom: 1px solid var(--border); }
+  .purchase-price { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 0.375rem; }
+  .purchase-current { font-size: 2rem; font-weight: 800; color: var(--fg); }
+  .purchase-original { font-size: 1rem; color: var(--muted-fg); text-decoration: line-through; }
+  .purchase-discount { background: var(--destructive); color: white; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; }
+  .purchase-timer { font-size: 0.8rem; color: var(--destructive); font-weight: 500; margin-top: 0.25rem; }
+  .purchase-actions { padding: 0 1.5rem 1.25rem; }
+  .btn-full { width: 100%; padding: 0.875rem; border-radius: var(--radius); font-weight: 700; font-size: 0.95rem; cursor: pointer; border: none; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.15s; margin-bottom: 0.625rem; }
+  .btn-cart { background: var(--primary); color: white; }
+  .btn-cart:hover { background: #334155; }
+  .btn-buy { background: var(--accent); color: white; }
+  .btn-buy:hover { opacity: 0.9; }
+  .purchase-row-btns { display: flex; gap: 0.625rem; margin-bottom: 0.25rem; }
+  .btn-secondary { flex: 1; padding: 0.625rem; border-radius: var(--radius); font-weight: 500; font-size: 0.85rem; cursor: pointer; border: 1px solid var(--border); font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 0.375rem; background: var(--card); color: var(--fg); transition: all 0.15s; }
+  .btn-secondary:hover { background: var(--muted); }
+
+  .purchase-includes { padding: 0 1.5rem 1.5rem; }
+  .purchase-includes-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem; }
+  .include-item { display: flex; align-items: center; gap: 0.625rem; font-size: 0.825rem; color: #475569; padding: 0.375rem 0; }
+  .include-icon { color: var(--muted-fg); font-size: 0.95rem; width: 20px; text-align: center; }
+
+  .purchase-chapters { padding: 0 1.5rem 1.5rem; border-top: 1px solid var(--border); margin-top: 0; }
+  .purchase-chapters-title { font-size: 0.85rem; font-weight: 700; margin: 1.25rem 0 0.75rem; }
+  .chapter-buy-item { display: flex; align-items: center; justify-content: space-between; padding: 0.625rem 0.875rem; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 0.5rem; font-size: 0.825rem; }
+  .chapter-buy-left { display: flex; align-items: center; gap: 0.5rem; }
+  .chapter-buy-name { font-weight: 500; }
+  .chapter-buy-lessons { color: var(--muted-fg); font-size: 0.75rem; }
+  .chapter-buy-price { font-weight: 700; color: var(--accent); }
+
+  /* Footer */
+  .footer { background: var(--primary); color: #94a3b8; padding: 2rem; text-align: center; font-size: 0.8rem; margin-top: 2rem; }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="nav-left">
+    <a href="#" class="logo">
+      <div class="logo-icon">S</div>
+      SSML
+    </a>
+    <div class="nav-links">
+      <a href="#">Trang chủ</a>
+      <a href="#">Khám phá</a>
+      <a href="#">Lộ trình</a>
+      <a href="#">Cộng đồng</a>
+    </div>
+  </div>
+  <div class="nav-right">
+    <button class="nav-icon" title="Giỏ hàng">🛒<span class="badge-dot"></span></button>
+    <button class="nav-icon" title="Thông báo">🔔<span class="badge-dot"></span></button>
+    <div class="avatar">NA</div>
+  </div>
+</nav>
+
+<!-- Course Header -->
+<section class="course-header">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="#">Trang chủ</a>
+      <span class="sep">/</span>
+      <a href="#">Web Development</a>
+      <span class="sep">/</span>
+      <a href="#">React</a>
+      <span class="sep">/</span>
+      <span class="current">Lập trình React & Next.js</span>
+    </div>
+    <div class="header-grid">
+      <div class="header-video">
+        <div class="play-btn"></div>
+        <span class="preview-label">Xem trước miễn phí</span>
+      </div>
+      <div class="header-info">
+        <h1>Lập trình React & Next.js từ cơ bản đến nâng cao</h1>
+        <p class="header-desc">Khóa học toàn diện giúp bạn nắm vững React 19, Next.js 15, TypeScript, Server Components, và triển khai ứng dụng thực tế từ A-Z.</p>
+        <div class="header-meta">
+          <div class="meta-rating">
+            <span class="score">4.8</span>
+            <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+            <span class="count">(1,234 đánh giá)</span>
+          </div>
+          <span class="meta-divider">|</span>
+          <span class="meta-students">1,234 học viên</span>
+        </div>
+        <div class="header-instructor">
+          Giảng viên: <a href="#">Nguyễn Văn A</a>
+        </div>
+        <div class="header-tags">
+          <span class="header-tag"><span class="tag-icon">📅</span> Cập nhật 01/2026</span>
+          <span class="header-tag"><span class="tag-icon">🌐</span> Tiếng Việt</span>
+          <span class="header-tag"><span class="tag-icon">📊</span> Trung cấp</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Main Content -->
+<div class="container">
+  <div class="detail-layout">
+
+    <!-- Left: Main content -->
+    <div class="detail-main">
+
+      <!-- Tab Navigation -->
+      <div class="tab-nav">
+        <button class="tab-btn active">Tổng quan</button>
+        <button class="tab-btn">Nội dung</button>
+        <button class="tab-btn">Đánh giá</button>
+        <button class="tab-btn">Hỏi đáp</button>
+      </div>
+
+      <!-- TỔNG QUAN TAB -->
+      <!-- Bạn sẽ học được gì -->
+      <div class="content-section">
+        <h2 class="content-section-title">Bạn sẽ học được gì</h2>
+        <div class="learn-grid">
+          <div class="learn-item">
+            <span class="learn-check">&#10003;</span>
+            <span>Hiểu sâu về React 19 và các hooks mới nhất: useState, useEffect, useTransition, use()</span>
+          </div>
+          <div class="learn-item">
+            <span class="learn-check">&#10003;</span>
+            <span>Xây dựng ứng dụng full-stack với Next.js 15, App Router và Server Components</span>
+          </div>
+          <div class="learn-item">
+            <span class="learn-check">&#10003;</span>
+            <span>Quản lý state phức tạp với Zustand, React Query và Context API hiệu quả</span>
+          </div>
+          <div class="learn-item">
+            <span class="learn-check">&#10003;</span>
+            <span>Triển khai authentication, authorization và bảo mật ứng dụng chuyên nghiệp</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mô tả chi tiết -->
+      <div class="content-section">
+        <h2 class="content-section-title">Mô tả chi tiết</h2>
+        <div class="desc-text">
+          <p>Chào mừng bạn đến với khóa học <strong>React & Next.js từ cơ bản đến nâng cao</strong> — khóa học được thiết kế dành cho những ai muốn trở thành lập trình viên front-end chuyên nghiệp với hệ sinh thái React hiện đại.</p>
+          <p>Khóa học bao gồm hơn <strong>24 giờ video bài giảng</strong>, kèm theo các dự án thực tế giúp bạn áp dụng ngay kiến thức đã học. Bạn sẽ được hướng dẫn chi tiết từ những khái niệm cơ bản như JSX, components, props cho đến các chủ đề nâng cao như:</p>
+          <ul>
+            <li>Server Components và Client Components trong Next.js 15</li>
+            <li>Data fetching với React Query và Server Actions</li>
+            <li>Tối ưu hiệu suất với React.memo, useMemo, useCallback</li>
+            <li>Testing với Vitest và React Testing Library</li>
+            <li>Triển khai CI/CD và deploy lên Vercel</li>
+          </ul>
+          <p>Mỗi phần học đều có bài tập thực hành và quiz để đảm bảo bạn nắm vững kiến thức. Cuối khóa, bạn sẽ hoàn thành một dự án e-commerce hoàn chỉnh với đầy đủ tính năng.</p>
+        </div>
+      </div>
+
+      <!-- Yêu cầu tiên quyết -->
+      <div class="content-section">
+        <h2 class="content-section-title">Yêu cầu tiên quyết</h2>
+        <ul class="prereq-list">
+          <li><span class="prereq-icon">&#8226;</span> Kiến thức cơ bản về HTML, CSS và JavaScript (ES6+)</li>
+          <li><span class="prereq-icon">&#8226;</span> Hiểu biết cơ bản về Git và command line</li>
+          <li><span class="prereq-icon">&#8226;</span> Máy tính cài đặt Node.js phiên bản 18 trở lên</li>
+          <li><span class="prereq-icon">&#8226;</span> Không yêu cầu kinh nghiệm React trước đó</li>
+        </ul>
+      </div>
+
+      <!-- Giảng viên -->
+      <div class="content-section">
+        <h2 class="content-section-title">Giảng viên</h2>
+        <div class="instructor-card">
+          <div class="instructor-avatar">NA</div>
+          <div class="instructor-info">
+            <h3>Nguyễn Văn A</h3>
+            <p class="instructor-title">Senior Software Engineer & Technical Instructor</p>
+            <div class="instructor-stats">
+              <span class="instructor-stat"><span class="stat-icon">&#9733;</span> 4.9 đánh giá</span>
+              <span class="instructor-stat"><span class="stat-icon">&#128100;</span> 8,542 học viên</span>
+              <span class="instructor-stat"><span class="stat-icon">&#9654;</span> 12 khóa học</span>
+              <span class="instructor-stat"><span class="stat-icon">&#128172;</span> 1,845 đánh giá</span>
+            </div>
+            <p class="instructor-bio">Với hơn 10 năm kinh nghiệm trong lĩnh vực phát triển web, anh Nguyễn Văn A hiện đang là Senior Software Engineer tại một công ty công nghệ hàng đầu Việt Nam. Anh đã đào tạo hơn 8,000 học viên qua các khóa học trực tuyến và workshop, chuyên về React, Node.js và kiến trúc microservices.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION DIVIDER: NỘI DUNG -->
+      <div class="section-divider">
+        <span class="divider-line"></span>
+        <span class="divider-label">Nội dung khóa học</span>
+        <span class="divider-line"></span>
+      </div>
+
+      <!-- Curriculum / Nội dung -->
+      <div class="content-section">
+        <div class="curriculum-header">
+          <h2 class="content-section-title" style="margin-bottom:0">Nội dung khóa học</h2>
+          <span class="curriculum-summary">12 phần &bull; 86 bài học &bull; 24h 30m tổng thời lượng</span>
+        </div>
+
+        <!-- Section 1 -->
+        <div class="accordion-section">
+          <button class="accordion-toggle">
+            <div class="accordion-toggle-left">
+              <span class="accordion-arrow open">&#9654;</span>
+              <span class="accordion-title">Phần 1: Giới thiệu React & Thiết lập môi trường</span>
+            </div>
+            <span class="accordion-meta">3 bài học &bull; 45 phút</span>
+          </button>
+          <div class="accordion-body">
+            <div class="lesson-item">
+              <div class="lesson-left">
+                <span class="lesson-icon">&#9654;</span>
+                <span class="lesson-title preview">Giới thiệu khóa học và lộ trình</span>
+              </div>
+              <div class="lesson-right">
+                <span class="lesson-badge">Xem trước</span>
+                <span class="lesson-duration">12:30</span>
+              </div>
+            </div>
+            <div class="lesson-item">
+              <div class="lesson-left">
+                <span class="lesson-icon">&#9654;</span>
+                <span class="lesson-title">Cài đặt Node.js, VS Code và các extensions cần thiết</span>
+              </div>
+              <div class="lesson-right">
+                <span class="lesson-duration">18:45</span>
+              </div>
+            </div>
+            <div class="lesson-item">
+              <div class="lesson-left">
+                <span class="lesson-icon">&#9654;</span>
+                <span class="lesson-title">Tạo project React đầu tiên với Vite</span>
+              </div>
+              <div class="lesson-right">
+                <span class="lesson-duration">14:20</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="accordion-section">
+          <button class="accordion-toggle">
+            <div class="accordion-toggle-left">
+              <span class="accordion-arrow open">&#9654;</span>
+              <span class="accordion-title">Phần 2: React Components & JSX</span>
+            </div>
+            <span class="accordion-meta">5 bài học &bull; 1h 20 phút</span>
+          </button>
+          <div class="accordion-body">
+            <div class="lesson-item">
+              <div class="lesson-left">
+                <span class="lesson-icon">&#9654;</span>
+                <span class="lesson-title preview">JSX là gì? Cú pháp và quy tắc</span>
+              </div>
+              <div class="lesson-right">
+                <span class="lesson-badge">Xem trước</span>
+                <span class="lesson-duration">15:10</span>
+              </div>
+            </div>
+            <div class="lesson-item">
+              <div class="lesson-left">
+                <span class="lesson-icon">&#9654;</span>
+                <span class="lesson-title">Functional Components và Props</span>
+              </div>
+              <div class="lesson-right">
+                <span class="lesson-duration">20:30</span>
+              </div>
+            </div>
+            <div class="lesson-item">
+              <div class="lesson-left">
+                <span class="lesson-icon">&#9654;</span>
+                <span class="lesson-title">Component composition và children pattern</span>
+              </div>
+              <div class="lesson-right">
+                <span class="lesson-duration">16:45</span>
+              </div>
+            </div>
+            <div class="lesson-item">
+              <div class="lesson-left">
+                <span class="lesson-icon">&#9654;</span>
+                <span class="lesson-title">Conditional rendering và Lists</span>
+              </div>
+              <div class="lesson-right">
+                <span class="lesson-duration">14:00</span>
+              </div>
+            </div>
+            <div class="lesson-item">
+              <div class="lesson-left">
+                <span class="lesson-icon">&#128221;</span>
+                <span class="lesson-title">Quiz: Components & JSX</span>
+              </div>
+              <div class="lesson-right">
+                <span class="lesson-duration">8 câu hỏi</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3 (collapsed) -->
+        <div class="accordion-section">
+          <button class="accordion-toggle">
+            <div class="accordion-toggle-left">
+              <span class="accordion-arrow">&#9654;</span>
+              <span class="accordion-title">Phần 3: State Management & Hooks</span>
+            </div>
+            <span class="accordion-meta">8 bài học &bull; 2h 15 phút</span>
+          </button>
+        </div>
+
+        <!-- Section 4 (collapsed) -->
+        <div class="accordion-section">
+          <button class="accordion-toggle">
+            <div class="accordion-toggle-left">
+              <span class="accordion-arrow">&#9654;</span>
+              <span class="accordion-title">Phần 4: Routing với React Router & Next.js</span>
+            </div>
+            <span class="accordion-meta">6 bài học &bull; 1h 45 phút</span>
+          </button>
+        </div>
+
+        <!-- Section 5 (collapsed) -->
+        <div class="accordion-section">
+          <button class="accordion-toggle">
+            <div class="accordion-toggle-left">
+              <span class="accordion-arrow">&#9654;</span>
+              <span class="accordion-title">Phần 5: Server Components & Data Fetching</span>
+            </div>
+            <span class="accordion-meta">7 bài học &bull; 2h 30 phút</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION DIVIDER: ĐÁNH GIÁ -->
+      <div class="section-divider">
+        <span class="divider-line"></span>
+        <span class="divider-label">Đánh giá</span>
+        <span class="divider-line"></span>
+      </div>
+
+      <!-- Đánh giá -->
+      <div class="content-section">
+        <h2 class="content-section-title">Đánh giá từ học viên</h2>
+        <div class="review-header">
+          <div class="review-summary">
+            <div class="review-big-score">4.8</div>
+            <div class="review-big-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="review-total">1,234 đánh giá</div>
+          </div>
+          <div class="review-bars">
+            <div class="review-bar-row">
+              <span class="review-bar-label">5 &#9733;</span>
+              <div class="review-bar-track"><div class="review-bar-fill" style="width:78%"></div></div>
+              <span class="review-bar-pct">78%</span>
+            </div>
+            <div class="review-bar-row">
+              <span class="review-bar-label">4 &#9733;</span>
+              <div class="review-bar-track"><div class="review-bar-fill" style="width:14%"></div></div>
+              <span class="review-bar-pct">14%</span>
+            </div>
+            <div class="review-bar-row">
+              <span class="review-bar-label">3 &#9733;</span>
+              <div class="review-bar-track"><div class="review-bar-fill" style="width:5%"></div></div>
+              <span class="review-bar-pct">5%</span>
+            </div>
+            <div class="review-bar-row">
+              <span class="review-bar-label">2 &#9733;</span>
+              <div class="review-bar-track"><div class="review-bar-fill" style="width:2%"></div></div>
+              <span class="review-bar-pct">2%</span>
+            </div>
+            <div class="review-bar-row">
+              <span class="review-bar-label">1 &#9733;</span>
+              <div class="review-bar-track"><div class="review-bar-fill" style="width:1%"></div></div>
+              <span class="review-bar-pct">1%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review 1 -->
+        <div class="review-card">
+          <div class="review-card-header">
+            <div class="review-avatar" style="background: linear-gradient(135deg, #10b981, #14b8a6);">TH</div>
+            <div class="review-user-info">
+              <div class="review-user-name">Trần Hương</div>
+              <div class="review-user-date">2 tuần trước</div>
+            </div>
+            <div class="review-stars-small">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          </div>
+          <p class="review-text">Khóa học cực kỳ chất lượng! Anh giảng viên giải thích rất dễ hiểu, từ cơ bản đến nâng cao đều rất mạch lạc. Phần Server Components và Next.js 15 là phần mình thích nhất vì rất thực tế. Đã áp dụng được ngay vào dự án công ty. Highly recommend!</p>
+          <div class="review-helpful">
+            <button>&#128077; Hữu ích (24)</button>
+            <button>&#128172; Trả lời</button>
+          </div>
+        </div>
+
+        <!-- Review 2 -->
+        <div class="review-card">
+          <div class="review-card-header">
+            <div class="review-avatar" style="background: linear-gradient(135deg, #f59e0b, #eab308);">LM</div>
+            <div class="review-user-info">
+              <div class="review-user-name">Lê Minh</div>
+              <div class="review-user-date">1 tháng trước</div>
+            </div>
+            <div class="review-stars-small">&#9733;&#9733;&#9733;&#9733;&#9734;</div>
+          </div>
+          <p class="review-text">Nội dung khóa học rất đầy đủ và cập nhật. Mình đặc biệt thích phần React Query và state management. Chỉ trừ một điểm nhỏ là phần TypeScript hơi đi nhanh, mong anh có thể bổ sung thêm. Nhưng nhìn chung là rất đáng tiền.</p>
+          <div class="review-helpful">
+            <button>&#128077; Hữu ích (18)</button>
+            <button>&#128172; Trả lời</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION DIVIDER: KHÓA HỌC LIÊN QUAN -->
+      <div class="section-divider">
+        <span class="divider-line"></span>
+        <span class="divider-label">Khóa học liên quan</span>
+        <span class="divider-line"></span>
+      </div>
+
+      <!-- Khóa học liên quan -->
+      <div class="content-section">
+        <h2 class="content-section-title">Khóa học liên quan</h2>
+        <div class="related-grid">
+          <div class="related-card">
+            <div class="related-thumb t1">TypeScript Mastery</div>
+            <div class="related-body">
+              <h4>TypeScript từ zero đến hero cho developer</h4>
+              <div class="related-meta">
+                <span class="stars" style="font-size:0.7rem;">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                <span>4.7 (856)</span>
+              </div>
+              <span class="related-price">399,000₫</span>
+            </div>
+          </div>
+          <div class="related-card">
+            <div class="related-thumb t2">Node.js Backend</div>
+            <div class="related-body">
+              <h4>Xây dựng REST API với Node.js, Express & MongoDB</h4>
+              <div class="related-meta">
+                <span class="stars" style="font-size:0.7rem;">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                <span>4.9 (1,102)</span>
+              </div>
+              <span class="related-price">549,000₫</span>
+            </div>
+          </div>
+          <div class="related-card">
+            <div class="related-thumb t3">Tailwind CSS</div>
+            <div class="related-body">
+              <h4>Tailwind CSS thực chiến: Từ layout đến design system</h4>
+              <div class="related-meta">
+                <span class="stars" style="font-size:0.7rem;">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
+                <span>4.5 (634)</span>
+              </div>
+              <span class="related-price">299,000₫</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: Sidebar -->
+    <div class="detail-sidebar">
+      <div class="purchase-card">
+        <!-- Price -->
+        <div class="purchase-price-row">
+          <div class="purchase-price">
+            <span class="purchase-current">499,000₫</span>
+            <span class="purchase-original">799,000₫</span>
+            <span class="purchase-discount">-37%</span>
+          </div>
+          <div class="purchase-timer">&#9200; Ưu đãi kết thúc trong 2 ngày!</div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="purchase-actions" style="padding-top:1.25rem;">
+          <button class="btn-full btn-cart">&#128722; Thêm vào giỏ hàng</button>
+          <button class="btn-full btn-buy">&#9889; Mua ngay</button>
+          <div class="purchase-row-btns">
+            <button class="btn-secondary">&#9825; Yêu thích</button>
+            <button class="btn-secondary">&#8599; Chia sẻ</button>
+          </div>
+        </div>
+
+        <!-- Includes -->
+        <div class="purchase-includes">
+          <div class="purchase-includes-title">Khóa học bao gồm</div>
+          <div class="include-item"><span class="include-icon">&#9654;</span> 24 giờ video bài giảng</div>
+          <div class="include-item"><span class="include-icon">&#128196;</span> 15 bài viết hướng dẫn</div>
+          <div class="include-item"><span class="include-icon">&#128221;</span> 8 bài quiz kiểm tra</div>
+          <div class="include-item"><span class="include-icon">&#128230;</span> 20 tài nguyên tải về</div>
+          <div class="include-item"><span class="include-icon">&#127942;</span> Chứng chỉ hoàn thành</div>
+          <div class="include-item"><span class="include-icon">&#9854;</span> Truy cập trọn đời</div>
+        </div>
+
+        <!-- Buy by chapter -->
+        <div class="purchase-chapters">
+          <div class="purchase-chapters-title">Mua theo chương</div>
+          <div class="chapter-buy-item">
+            <div class="chapter-buy-left">
+              <span class="chapter-buy-name">Chương 1: Cơ bản React</span>
+              <span class="chapter-buy-lessons">12 bài</span>
+            </div>
+            <span class="chapter-buy-price">149,000₫</span>
+          </div>
+          <div class="chapter-buy-item">
+            <div class="chapter-buy-left">
+              <span class="chapter-buy-name">Chương 2: Next.js 15</span>
+              <span class="chapter-buy-lessons">18 bài</span>
+            </div>
+            <span class="chapter-buy-price">199,000₫</span>
+          </div>
+          <div class="chapter-buy-item">
+            <div class="chapter-buy-left">
+              <span class="chapter-buy-name">Chương 3: Dự án thực tế</span>
+              <span class="chapter-buy-lessons">10 bài</span>
+            </div>
+            <span class="chapter-buy-price">179,000₫</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  &copy; 2026 Smart Social Learning Marketplace. All rights reserved.
+</footer>
+
+</body>
+</html>
