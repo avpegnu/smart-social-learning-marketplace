@@ -86,7 +86,7 @@ export function LessonDetailDialog({ lesson, onClose }: LessonDetailDialogProps)
           <div className="space-y-3">
             {textContent ? (
               <div
-                className="prose prose-sm dark:prose-invert border-border bg-card max-w-none rounded-md border p-4"
+                className="prose prose-sm dark:prose-invert prose-p:text-foreground prose-li:text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-code:text-foreground border-border bg-card max-w-none rounded-md border p-4"
                 dangerouslySetInnerHTML={{ __html: textContent }}
               />
             ) : (

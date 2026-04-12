@@ -27,7 +27,7 @@ export function TextViewer({ lessonId, textContent, isCompleted }: TextViewerPro
 
       {/* Content */}
       <div
-        className="prose prose-sm dark:prose-invert max-w-none"
+        className="prose prose-sm dark:prose-invert prose-p:text-foreground prose-li:text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-code:text-foreground max-w-none"
         dangerouslySetInnerHTML={{ __html: textContent }}
       />
 
