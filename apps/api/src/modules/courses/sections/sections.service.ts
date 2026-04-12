@@ -42,7 +42,7 @@ export class SectionsService {
     await this.courseManagement.verifyOwnership(courseId, instructorId);
     await this.verifySectionBelongsToCourse(sectionId, courseId);
 
-    await this.prisma.section.delete({ where: { id: sectionId } });
+    await this.prisma.section.update({ where: { id: sectionId }, data: { deletedAt: new Date() } });
 
     // Recalculate course counters after cascade delete
     await this.recalculateCourseCounters(courseId);

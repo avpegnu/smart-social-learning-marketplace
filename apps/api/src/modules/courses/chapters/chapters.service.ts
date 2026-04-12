@@ -51,7 +51,7 @@ export class ChaptersService {
     await this.courseManagement.verifyOwnership(courseId, instructorId);
     await this.verifyChapterBelongsToCourse(chapterId, courseId);
 
-    await this.prisma.chapter.delete({ where: { id: chapterId } });
+    await this.prisma.chapter.update({ where: { id: chapterId }, data: { deletedAt: new Date() } });
 
     // Recalculate course counters after cascade delete
     await this.sectionsService.recalculateCourseCounters(courseId);

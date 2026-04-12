@@ -205,7 +205,10 @@ export class QuestionsService {
     if (!question || question.authorId !== userId) {
       throw new ForbiddenException({ code: 'NOT_QUESTION_OWNER' });
     }
-    return this.prisma.question.delete({ where: { id: questionId } });
+    return this.prisma.question.update({
+      where: { id: questionId },
+      data: { deletedAt: new Date() },
+    });
   }
 
   async markBestAnswer(questionId: string, answerId: string, userId: string) {

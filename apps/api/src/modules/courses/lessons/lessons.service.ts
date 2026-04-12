@@ -71,7 +71,7 @@ export class LessonsService {
     await this.courseManagement.verifyOwnership(courseId, instructorId);
     const lesson = await this.verifyLessonBelongsToCourse(lessonId, courseId);
 
-    await this.prisma.lesson.delete({ where: { id: lessonId } });
+    await this.prisma.lesson.update({ where: { id: lessonId }, data: { deletedAt: new Date() } });
 
     // Recalculate chapter + course counters
     await this.chaptersService.recalculateChapterCounters(lesson.chapterId);

@@ -132,11 +132,11 @@ export class ReviewsService {
     }
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.review.delete({ where: { id: reviewId } });
+      await tx.review.update({ where: { id: reviewId }, data: { deletedAt: new Date() } });
 
-      // Recalculate avg rating + count
+      // Recalculate avg rating + count (exclude deleted)
       const agg = await tx.review.aggregate({
-        where: { courseId: review.courseId },
+        where: { courseId: review.courseId, deletedAt: null },
         _avg: { rating: true },
         _count: true,
       });

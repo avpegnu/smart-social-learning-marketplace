@@ -83,7 +83,7 @@ export class AnswersService {
         data: { bestAnswerId: null },
       });
 
-      await tx.answer.delete({ where: { id: answerId } });
+      await tx.answer.update({ where: { id: answerId }, data: { deletedAt: new Date() } });
 
       await tx.question.update({
         where: { id: answer.questionId },

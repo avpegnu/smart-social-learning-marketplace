@@ -449,8 +449,9 @@ model Section {
   order    Int    @default(0)
   courseId String @map("course_id")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   course   Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
   chapters Chapter[]
@@ -470,8 +471,9 @@ model Chapter {
   totalDuration Int     @default(0) @map("total_duration")
   sectionId     String  @map("section_id")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   section          Section           @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   lessons          Lesson[]
@@ -496,8 +498,9 @@ model Lesson {
   estimatedDuration Int?       @map("estimated_duration")
   chapterId         String     @map("chapter_id")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   chapter          Chapter            @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   media            Media[]
@@ -817,8 +820,9 @@ model Review {
   rating   Int
   comment  String?
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -1087,8 +1091,9 @@ model Comment {
   postId   String  @map("post_id")
   parentId String? @map("parent_id")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   author  User      @relation(fields: [authorId], references: [id])
   post    Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -1267,8 +1272,9 @@ model Question {
   viewCount   Int @default(0) @map("view_count")
   answerCount Int @default(0) @map("answer_count")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   author     User     @relation(fields: [authorId], references: [id])
   course     Course?  @relation(fields: [courseId], references: [id])
@@ -1293,8 +1299,9 @@ model Answer {
   // Denormalized counter
   voteCount Int @default(0) @map("vote_count")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   author          User      @relation(fields: [authorId], references: [id])
   question        Question  @relation("question_answers", fields: [questionId], references: [id], onDelete: Cascade)

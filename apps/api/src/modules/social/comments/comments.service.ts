@@ -94,7 +94,7 @@ export class CommentsService {
   async getByPost(postId: string, query: PaginationDto) {
     const [comments, total] = await Promise.all([
       this.prisma.comment.findMany({
-        where: { postId, parentId: null },
+        where: { postId, parentId: null, deletedAt: null },
         include: {
           author: { select: AUTHOR_SELECT },
           replies: {
@@ -108,7 +108,7 @@ export class CommentsService {
         skip: query.skip,
         take: query.limit,
       }),
-      this.prisma.comment.count({ where: { postId, parentId: null } }),
+      this.prisma.comment.count({ where: { postId, parentId: null, deletedAt: null } }),
     ]);
 
     return createPaginatedResult(comments, total, query.page, query.limit);
@@ -137,7 +137,7 @@ export class CommentsService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      await tx.comment.delete({ where: { id: commentId } });
+      await tx.comment.update({ where: { id: commentId }, data: { deletedAt: new Date() } });
       await tx.post.update({
         where: { id: postId },
         data: { commentCount: { decrement: 1 } },
