@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
-import { ArrowLeft, MessageSquare, Eye, Trash2, Loader2 } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Eye, Trash2, Loader2, Flag } from 'lucide-react';
 import {
   Button,
   Card,
@@ -23,6 +23,7 @@ import { CodeBlock } from '@/components/qna/code-block';
 import { AnswerCard } from '@/components/qna/answer-card';
 import { AnswerForm } from '@/components/qna/answer-form';
 import { ConfirmDialog } from '@/components/feedback/confirm-dialog';
+import { ReportDialog } from '@/components/feedback/report-dialog';
 
 interface Author {
   id: string;
@@ -69,6 +70,7 @@ export default function QuestionDetailPage() {
 
   const deleteQuestion = useDeleteQuestion();
   const [showDeleteQuestion, setShowDeleteQuestion] = useState(false);
+  const [showReportQuestion, setShowReportQuestion] = useState(false);
 
   if (isLoading) {
     return (
@@ -144,7 +146,7 @@ export default function QuestionDetailPage() {
                   <Eye className="h-3.5 w-3.5" />
                   {question.viewCount} {t('views')}
                 </span>
-                {isQuestionOwner && (
+                {isQuestionOwner ? (
                   <button
                     type="button"
                     onClick={() => setShowDeleteQuestion(true)}
@@ -152,7 +154,16 @@ export default function QuestionDetailPage() {
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
-                )}
+                ) : isAuthenticated ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowReportQuestion(true)}
+                    className="text-muted-foreground hover:text-destructive ml-auto cursor-pointer text-xs"
+                    title={t('reportQuestion')}
+                  >
+                    <Flag className="h-3.5 w-3.5" />
+                  </button>
+                ) : null}
               </div>
             </CardContent>
           </Card>
@@ -210,6 +221,13 @@ export default function QuestionDetailPage() {
             onSuccess: () => router.push('/qna'),
           })
         }
+      />
+
+      <ReportDialog
+        open={showReportQuestion}
+        onOpenChange={setShowReportQuestion}
+        targetType="QUESTION"
+        targetId={question.id}
       />
     </div>
   );

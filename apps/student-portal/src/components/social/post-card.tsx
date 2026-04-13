@@ -2,13 +2,25 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Trash2 } from 'lucide-react';
-import { Avatar, AvatarImage, AvatarFallback, Card, CardContent, Separator } from '@shared/ui';
+import { Trash2, MoreHorizontal, Flag } from 'lucide-react';
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+  Card,
+  CardContent,
+  Separator,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@shared/ui';
 import { useAuthStore, useDeletePost } from '@shared/hooks';
 import { formatRelativeTime } from '@shared/utils';
 import { Link } from '@/i18n/navigation';
 import { CodeBlock } from '@/components/qna/code-block';
 import { ConfirmDialog } from '@/components/feedback/confirm-dialog';
+import { ReportDialog } from '@/components/feedback/report-dialog';
 import { PostActions } from './post-actions';
 import { CommentSection } from './comment-section';
 import { ShareDialog } from './share-dialog';
@@ -74,6 +86,7 @@ export function PostCard({ post }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
 
   const isOwner = user?.id === post.author.id;
   const initials = post.author.fullName
@@ -118,14 +131,28 @@ export function PostCard({ post }: PostCardProps) {
               <p className="text-muted-foreground text-xs">{formatRelativeTime(post.createdAt)}</p>
             </div>
           </div>
-          {isOwner && (
-            <button
-              type="button"
-              onClick={() => setShowDeleteConfirm(true)}
-              className="text-muted-foreground hover:text-destructive cursor-pointer rounded-lg p-1.5 transition-colors"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="text-muted-foreground hover:bg-accent rounded-lg p-1.5 transition-colors">
+                <MoreHorizontal className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {isOwner ? (
+                  <DropdownMenuItem
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {t('deletePost')}
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={() => setShowReportDialog(true)}>
+                    <Flag className="mr-2 h-4 w-4" />
+                    {t('report')}
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
 
@@ -185,6 +212,13 @@ export function PostCard({ post }: PostCardProps) {
           content: post.sharedPost?.content ?? post.content,
           author: post.sharedPost?.author ?? post.author,
         }}
+      />
+
+      <ReportDialog
+        open={showReportDialog}
+        onOpenChange={setShowReportDialog}
+        targetType="POST"
+        targetId={post.id}
       />
     </Card>
   );

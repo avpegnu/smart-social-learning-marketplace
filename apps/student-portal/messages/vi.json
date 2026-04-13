@@ -207,6 +207,7 @@
     "reviewSubmitted": "Đã gửi đánh giá thành công",
     "reviewUpdated": "Đã cập nhật đánh giá",
     "reviewDeleted": "Đã xóa đánh giá",
+    "reportCourse": "Báo cáo khóa học này",
     "ratingRequired": "Vui lòng chọn số sao đánh giá",
     "cancel": "Hủy"
   },
@@ -245,6 +246,7 @@
     "suggestions": "Gợi ý theo dõi",
     "follow": "Theo dõi",
     "createPost": "Tạo bài viết",
+    "postCreated": "Đã đăng bài viết",
     "postPlaceholder": "Chia sẻ kiến thức của bạn...",
     "addImage": "Thêm ảnh",
     "addCode": "Thêm code",
@@ -265,7 +267,8 @@
     "saved": "Đã lưu",
     "reply": "Trả lời",
     "uploading": "Đang tải lên...",
-    "social": "Mạng xã hội"
+    "social": "Mạng xã hội",
+    "report": "Báo cáo"
   },
   "chat": {
     "title": "Tin nhắn",
@@ -609,7 +612,9 @@
     "loginToAnswer": "Đăng nhập để trả lời",
     "notFound": "Không tìm thấy câu hỏi",
     "relatedQuestions": "Câu hỏi liên quan",
-    "noRelated": "Chưa có câu hỏi liên quan"
+    "noRelated": "Chưa có câu hỏi liên quan",
+    "reportQuestion": "Báo cáo câu hỏi",
+    "reportAnswer": "Báo cáo câu trả lời"
   },
   "checkout": {
     "title": "Thanh toán",
@@ -694,6 +699,29 @@
     "addedToCart": "Đã thêm vào giỏ hàng",
     "free": "Miễn phí"
   },
+  "report": {
+    "title": "Báo cáo {type}",
+    "submitted": "Đã gửi báo cáo. Chúng tôi sẽ xem xét sớm.",
+    "selectReason": "Lý do báo cáo?",
+    "additionalDetails": "Chi tiết bổ sung (tùy chọn)",
+    "detailsPlaceholder": "Cung cấp thêm ngữ cảnh về báo cáo này...",
+    "reasons": {
+      "spam": "Spam",
+      "inappropriate": "Nội dung không phù hợp",
+      "harassment": "Quấy rối hoặc bắt nạt",
+      "misinformation": "Thông tin sai lệch",
+      "copyright": "Vi phạm bản quyền",
+      "other": "Khác"
+    },
+    "types": {
+      "POST": "bài viết",
+      "COMMENT": "bình luận",
+      "USER": "người dùng",
+      "COURSE": "khóa học",
+      "QUESTION": "câu hỏi",
+      "ANSWER": "câu trả lời"
+    }
+  },
   "profile": {
     "joined": "Tham gia",
     "followers": "Người theo dõi",
@@ -717,7 +745,8 @@
     "noFollowing": "Chưa theo dõi ai",
     "previous": "Trước",
     "next": "Sau",
-    "instructorBadge": "Giảng viên"
+    "instructorBadge": "Giảng viên",
+    "reportUser": "Báo cáo người dùng"
   },
   "editProfile": {
     "title": "Chỉnh sửa hồ sơ",

@@ -221,6 +221,8 @@ export {
   useMyApplications,
 } from './queries/use-users';
 
+export { useCreateReport } from './queries/use-reports';
+
 export {
   useFeed,
   useBookmarks,
@@ -272,6 +274,8 @@ export { couponService } from './services/coupon.service';
 export type { CreateCouponPayload, UpdateCouponPayload } from './services/coupon.service';
 export { withdrawalService } from './services/withdrawal.service';
 export type { CreateWithdrawalPayload } from './services/withdrawal.service';
+export { reportService } from './services/report.service';
+export type { CreateReportData, ReportTargetType } from './services/report.service';
 export { socialService } from './services/social.service';
 export type { CreatePostData, UpdatePostData, CreateCommentData } from './services/social.service';
 export { groupService } from './services/group.service';

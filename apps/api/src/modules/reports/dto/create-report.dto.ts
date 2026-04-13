@@ -1,7 +1,7 @@
 import { IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateReportDto {
-  @IsIn(['POST', 'COMMENT', 'USER', 'COURSE', 'QUESTION'])
+  @IsIn(['POST', 'COMMENT', 'USER', 'COURSE', 'QUESTION', 'ANSWER'])
   targetType!: string;
 
   @IsString()

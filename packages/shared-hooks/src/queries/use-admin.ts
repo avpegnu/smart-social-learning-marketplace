@@ -327,8 +327,13 @@ export function useReviewReport() {
   const queryClient = useQueryClient();
   const getErrorMessage = useApiError();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { status: string; adminNote?: string } }) =>
-      adminService.reviewReport(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { status: string; adminNote?: string; action?: string };
+    }) => adminService.reviewReport(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'reports'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });

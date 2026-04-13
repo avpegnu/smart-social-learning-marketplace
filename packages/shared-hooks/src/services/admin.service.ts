@@ -79,8 +79,12 @@ export const adminService = {
 
   // Reports
   getReports: (params: Record<string, string>) => apiClient.get('/admin/reports', params),
-  reviewReport: (id: string, data: { status: string; adminNote?: string }) =>
+  reviewReport: (id: string, data: { status: string; adminNote?: string; action?: string }) =>
     apiClient.patch(`/admin/reports/${id}`, data),
+
+  // Moderation
+  deleteContent: (targetType: string, targetId: string) =>
+    apiClient.del(`/admin/moderation/${targetType.toLowerCase()}s/${targetId}`),
 
   // Analytics
   getAnalytics: (params: Record<string, string>) => apiClient.get('/admin/analytics', params),

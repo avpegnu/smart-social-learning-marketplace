@@ -284,7 +284,17 @@
     "reviewReport": "Xem xét báo cáo",
     "actionTaken": "Đã xử lý",
     "adminNote": "Ghi chú",
-    "adminNotePlaceholder": "Thêm ghi chú (tùy chọn)..."
+    "adminNotePlaceholder": "Thêm ghi chú (tùy chọn)...",
+    "answer": "Câu trả lời",
+    "contentDeleted": "Đã xóa",
+    "deleteContent": "Xóa nội dung này",
+    "unpublishCourse": "Gỡ xuất bản khóa học này",
+    "suspendUser": "Tạm ngưng người dùng này",
+    "actionOptions": "Hành động",
+    "viewOriginal": "Xem gốc",
+    "viewDetail": "Xem chi tiết",
+    "reviewedBy": "Người xử lý",
+    "reviewedDate": "Ngày xử lý"
   },
   "adminSettings": {
     "title": "Cài đặt hệ thống",

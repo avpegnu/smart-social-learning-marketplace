@@ -8,4 +8,8 @@ export class ReviewReportDto {
   @IsString()
   @MaxLength(1000)
   adminNote?: string;
+
+  @IsOptional()
+  @IsIn(['DELETE_CONTENT', 'SUSPEND_USER'])
+  action?: string;
 }

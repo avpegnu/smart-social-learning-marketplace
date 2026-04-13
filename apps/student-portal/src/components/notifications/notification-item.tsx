@@ -9,6 +9,7 @@ import {
   UserPlus,
   Trophy,
   Settings,
+  ShieldCheck,
 } from 'lucide-react';
 import { formatRelativeTime } from '@shared/utils';
 import { cn } from '@/lib/utils';
@@ -39,6 +40,7 @@ const NOTIFICATION_ICONS: Record<string, { icon: LucideIcon; color: string; bg: 
   COURSE_PENDING_REVIEW: { icon: BookOpen, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
   NEW_REPORT: { icon: Bell, color: 'text-red-500', bg: 'bg-red-500/10' },
   NEW_APPLICATION: { icon: UserPlus, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+  REPORT_RESOLVED: { icon: ShieldCheck, color: 'text-green-500', bg: 'bg-green-500/10' },
   // System
   SYSTEM: { icon: Settings, color: 'text-gray-500', bg: 'bg-gray-500/10' },
 };
@@ -104,6 +106,10 @@ function getNotificationMessage(notification: NotificationData): string {
       return `New ${d.targetType || 'content'} report: ${d.reason || ''}`;
     case 'NEW_APPLICATION':
       return `${name} applied to become an instructor`;
+    case 'REPORT_RESOLVED':
+      return d.status === 'ACTION_TAKEN'
+        ? 'Your report has been reviewed and action was taken'
+        : 'Your report has been reviewed';
     // System (group join request, etc.)
     case 'SYSTEM': {
       const subType = d.type as string;

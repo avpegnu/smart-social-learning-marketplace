@@ -15,6 +15,7 @@ import {
 } from '@shared/ui';
 import { useAuthStore, useCreatePost } from '@shared/hooks';
 import { uploadToCloudinary } from '@/lib/cloudinary';
+import { toast } from 'sonner';
 
 const CODE_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -122,6 +123,7 @@ export function PostComposer() {
           if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
           }
+          toast.success(t('postCreated'));
         },
       },
     );

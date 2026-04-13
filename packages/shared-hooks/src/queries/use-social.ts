@@ -56,7 +56,10 @@ export function useCreatePost() {
   return useMutation({
     mutationFn: (data: CreatePostData) => socialService.createPost(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['social', 'feed'] });
+      // Delay refetch to allow feed fanout job to complete
+      setTimeout(() => {
+        queryClient.resetQueries({ queryKey: ['social', 'feed'] });
+      }, 500);
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
@@ -82,7 +85,7 @@ export function useDeletePost() {
   return useMutation({
     mutationFn: (id: string) => socialService.deletePost(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['social', 'feed'] });
+      queryClient.resetQueries({ queryKey: ['social', 'feed'] });
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
@@ -120,7 +123,7 @@ export function useSharePost() {
     mutationFn: ({ postId, content }: { postId: string; content?: string }) =>
       socialService.sharePost(postId, content),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['social', 'feed'] });
+      queryClient.resetQueries({ queryKey: ['social', 'feed'] });
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

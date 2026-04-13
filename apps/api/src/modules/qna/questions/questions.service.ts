@@ -51,6 +51,7 @@ export class QuestionsService {
 
   async findAll(query: QueryQuestionsDto) {
     const where: Prisma.QuestionWhereInput = {
+      deletedAt: null,
       ...(query.courseId && { courseId: query.courseId }),
       ...(query.instructorId && {
         course: { instructorId: query.instructorId },
@@ -103,12 +104,13 @@ export class QuestionsService {
 
   async findById(questionId: string, viewerId?: string) {
     const question = await this.prisma.question.findUnique({
-      where: { id: questionId },
+      where: { id: questionId, deletedAt: null },
       include: {
         author: { select: AUTHOR_SELECT },
         course: { select: { id: true, title: true } },
         tag: { select: { id: true, name: true } },
         answers: {
+          where: { deletedAt: null },
           include: {
             author: { select: AUTHOR_SELECT },
             votes: viewerId ? { where: { userId: viewerId }, select: { value: true } } : false,
@@ -163,6 +165,7 @@ export class QuestionsService {
     const searchTerms = title.split(' ').slice(0, 3).join(' ');
     return this.prisma.question.findMany({
       where: {
+        deletedAt: null,
         title: { contains: searchTerms, mode: 'insensitive' },
       },
       select: {

@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { CheckCircle2, Trash2 } from 'lucide-react';
+import { CheckCircle2, Trash2, Flag } from 'lucide-react';
 import { Card, CardContent, Badge, Avatar, AvatarFallback, AvatarImage } from '@shared/ui';
-import { useVoteAnswer, useDeleteAnswer, useMarkBestAnswer } from '@shared/hooks';
+import { useVoteAnswer, useDeleteAnswer, useMarkBestAnswer, useAuthStore } from '@shared/hooks';
 import { formatRelativeTime } from '@shared/utils';
 import { VoteButtons } from './vote-buttons';
 import { CodeBlock } from './code-block';
 import { ConfirmDialog } from '@/components/feedback/confirm-dialog';
+import { ReportDialog } from '@/components/feedback/report-dialog';
 import { cn } from '@/lib/utils';
 
 interface Author {
@@ -43,9 +44,11 @@ export function AnswerCard({
   isOwner,
 }: AnswerCardProps) {
   const t = useTranslations('questionDetail');
+  const user = useAuthStore((s) => s.user);
   const [localVote, setLocalVote] = useState<number | null>(answer.userVote ?? null);
   const [localVoteCount, setLocalVoteCount] = useState(answer.voteCount);
   const [showDelete, setShowDelete] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   const voteAnswer = useVoteAnswer();
   const deleteAnswer = useDeleteAnswer();
@@ -116,7 +119,7 @@ export function AnswerCard({
                       <span>{t('markBest')}</span>
                     </button>
                   )}
-                  {isOwner && (
+                  {isOwner ? (
                     <button
                       type="button"
                       onClick={() => setShowDelete(true)}
@@ -124,7 +127,16 @@ export function AnswerCard({
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
-                  )}
+                  ) : user ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowReport(true)}
+                      className="text-muted-foreground hover:text-destructive cursor-pointer"
+                      title={t('reportAnswer')}
+                    >
+                      <Flag className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -139,6 +151,13 @@ export function AnswerCard({
         description={t('confirmDelete')}
         variant="destructive"
         onConfirm={() => deleteAnswer.mutate({ answerId: answer.id, questionId })}
+      />
+
+      <ReportDialog
+        open={showReport}
+        onOpenChange={setShowReport}
+        targetType="ANSWER"
+        targetId={answer.id}
       />
     </>
   );

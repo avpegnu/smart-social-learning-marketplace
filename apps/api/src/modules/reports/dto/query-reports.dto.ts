@@ -1,4 +1,4 @@
-import { IsIn, IsOptional } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
 import { PaginationDto } from '@/common/dto/pagination.dto';
 
 export class QueryReportsDto extends PaginationDto {
@@ -7,6 +7,6 @@ export class QueryReportsDto extends PaginationDto {
   status?: string;
 
   @IsOptional()
-  @IsIn(['POST', 'COMMENT', 'USER', 'COURSE', 'QUESTION'])
+  @IsString()
   targetType?: string;
 }

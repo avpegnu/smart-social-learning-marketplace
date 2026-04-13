@@ -1,12 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Flag } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@shared/ui';
 import { useAuthStore } from '@shared/hooks';
 import { formatRelativeTime } from '@shared/utils';
 import { Link } from '@/i18n/navigation';
 import { ConfirmDialog } from '@/components/feedback/confirm-dialog';
+import { ReportDialog } from '@/components/feedback/report-dialog';
 import { useState } from 'react';
 
 interface CommentAuthor {
@@ -44,6 +45,7 @@ export function CommentItem({
   const t = useTranslations('social');
   const user = useAuthStore((s) => s.user);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
 
   const isOwner = user?.id === comment.author.id;
   const initials = comment.author.fullName
@@ -96,6 +98,16 @@ export function CommentItem({
                 <Trash2 className="h-3 w-3" />
               </button>
             )}
+            {!isOwner && user && (
+              <button
+                type="button"
+                onClick={() => setShowReportDialog(true)}
+                className="text-muted-foreground hover:text-destructive cursor-pointer text-[11px]"
+                title={t('report')}
+              >
+                <Flag className="h-3 w-3" />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -123,6 +135,13 @@ export function CommentItem({
           onDelete(comment.id);
           setShowDeleteConfirm(false);
         }}
+      />
+
+      <ReportDialog
+        open={showReportDialog}
+        onOpenChange={setShowReportDialog}
+        targetType="COMMENT"
+        targetId={comment.id}
       />
     </div>
   );

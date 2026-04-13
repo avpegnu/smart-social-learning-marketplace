@@ -5,7 +5,7 @@ export const PREFERENCE_TYPE_MAP: Record<string, string[]> = {
   newFollowers: ['FOLLOW'],
   orderUpdates: ['ORDER_COMPLETED', 'ORDER_EXPIRED'],
   reviewResponses: ['QUESTION_ANSWERED', 'ANSWER_VOTED'],
-  systemAnnouncements: ['SYSTEM'],
+  systemAnnouncements: ['SYSTEM', 'REPORT_RESOLVED'],
 
   // Instructor preferences
   newEnrollment: ['COURSE_ENROLLED'],

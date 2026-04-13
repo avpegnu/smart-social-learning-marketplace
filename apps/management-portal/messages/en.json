@@ -284,7 +284,17 @@
     "reviewReport": "Review Report",
     "actionTaken": "Action Taken",
     "adminNote": "Admin Note",
-    "adminNotePlaceholder": "Add a note (optional)..."
+    "adminNotePlaceholder": "Add a note (optional)...",
+    "answer": "Answer",
+    "contentDeleted": "Deleted",
+    "deleteContent": "Delete this content",
+    "unpublishCourse": "Unpublish this course",
+    "suspendUser": "Suspend this user",
+    "actionOptions": "Action",
+    "viewOriginal": "View original",
+    "viewDetail": "View detail",
+    "reviewedBy": "Reviewed by",
+    "reviewedDate": "Reviewed date"
   },
   "adminSettings": {
     "title": "System Settings",

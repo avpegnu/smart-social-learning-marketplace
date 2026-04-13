@@ -11,8 +11,21 @@ import {
   Loader2,
   GraduationCap,
   MessageCircle,
+  MoreHorizontal,
+  Flag,
 } from 'lucide-react';
-import { Button, Card, CardContent, Avatar, AvatarFallback, AvatarImage } from '@shared/ui';
+import {
+  Button,
+  Card,
+  CardContent,
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@shared/ui';
 import { Link, useRouter } from '@/i18n/navigation';
 import {
   useUserProfile,
@@ -25,6 +38,7 @@ import {
   useGetOrCreateConversation,
 } from '@shared/hooks';
 import { formatRelativeTime } from '@shared/utils';
+import { ReportDialog } from '@/components/feedback/report-dialog';
 
 export default function ProfilePage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = use(params);
@@ -60,6 +74,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
   const [activeTab, setActiveTab] = useState(isOwnProfile ? 'certificates' : 'followers');
   const [followersPage, setFollowersPage] = useState(1);
   const [followingPage, setFollowingPage] = useState(1);
+  const [showReportDialog, setShowReportDialog] = useState(false);
 
   const { data: followersRaw } = useUserFollowers(userId, { page: followersPage, limit: 10 });
   const followersData = followersRaw as
@@ -250,6 +265,17 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
                   >
                     <MessageCircle className="h-4 w-4" />
                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="border-input bg-background hover:bg-accent inline-flex h-9 w-9 items-center justify-center rounded-md border">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setShowReportDialog(true)}>
+                        <Flag className="mr-2 h-4 w-4" />
+                        {t('reportUser')}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               ) : null}
             </div>
@@ -400,6 +426,13 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
             </div>
           ))}
       </div>
+
+      <ReportDialog
+        open={showReportDialog}
+        onOpenChange={setShowReportDialog}
+        targetType="USER"
+        targetId={userId}
+      />
     </div>
   );
 }

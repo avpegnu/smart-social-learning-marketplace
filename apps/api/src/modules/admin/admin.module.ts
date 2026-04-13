@@ -13,6 +13,8 @@ import { AdminContentService } from './content/admin-content.service';
 import { AdminContentController } from './content/admin-content.controller';
 import { AdminAnalyticsService } from './analytics/admin-analytics.service';
 import { AdminAnalyticsController } from './analytics/admin-analytics.controller';
+import { AdminModerationService } from './moderation/admin-moderation.service';
+import { AdminModerationController } from './moderation/admin-moderation.controller';
 
 @Module({
   imports: [AiTutorModule, JobsModule],
@@ -23,6 +25,7 @@ import { AdminAnalyticsController } from './analytics/admin-analytics.controller
     AdminWithdrawalsController,
     AdminContentController,
     AdminAnalyticsController,
+    AdminModerationController,
   ],
   providers: [
     AdminUsersService,
@@ -31,6 +34,8 @@ import { AdminAnalyticsController } from './analytics/admin-analytics.controller
     AdminWithdrawalsService,
     AdminContentService,
     AdminAnalyticsService,
+    AdminModerationService,
   ],
+  exports: [AdminModerationService, AdminUsersService],
 })
 export class AdminModule {}

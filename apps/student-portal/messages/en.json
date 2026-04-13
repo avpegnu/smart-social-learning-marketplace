@@ -207,6 +207,7 @@
     "reviewSubmitted": "Review submitted successfully",
     "reviewUpdated": "Review updated successfully",
     "reviewDeleted": "Review deleted successfully",
+    "reportCourse": "Report this course",
     "ratingRequired": "Please select a rating",
     "cancel": "Cancel"
   },
@@ -245,6 +246,7 @@
     "suggestions": "Follow suggestions",
     "follow": "Follow",
     "createPost": "Create post",
+    "postCreated": "Post created",
     "postPlaceholder": "Share your knowledge...",
     "addImage": "Add image",
     "addCode": "Add code",
@@ -265,7 +267,8 @@
     "saved": "Saved",
     "reply": "Reply",
     "uploading": "Uploading...",
-    "social": "Social"
+    "social": "Social",
+    "report": "Report"
   },
   "chat": {
     "title": "Messages",
@@ -609,7 +612,9 @@
     "loginToAnswer": "Log in to answer",
     "notFound": "Question not found",
     "relatedQuestions": "Related questions",
-    "noRelated": "No related questions yet"
+    "noRelated": "No related questions yet",
+    "reportQuestion": "Report question",
+    "reportAnswer": "Report answer"
   },
   "checkout": {
     "title": "Checkout",
@@ -694,6 +699,29 @@
     "addedToCart": "Added to cart",
     "free": "Free"
   },
+  "report": {
+    "title": "Report {type}",
+    "submitted": "Report submitted. We'll review it shortly.",
+    "selectReason": "Why are you reporting this?",
+    "additionalDetails": "Additional details (optional)",
+    "detailsPlaceholder": "Provide more context about this report...",
+    "reasons": {
+      "spam": "Spam",
+      "inappropriate": "Inappropriate content",
+      "harassment": "Harassment or bullying",
+      "misinformation": "Misinformation",
+      "copyright": "Copyright violation",
+      "other": "Other"
+    },
+    "types": {
+      "POST": "post",
+      "COMMENT": "comment",
+      "USER": "user",
+      "COURSE": "course",
+      "QUESTION": "question",
+      "ANSWER": "answer"
+    }
+  },
   "profile": {
     "joined": "Joined",
     "followers": "Followers",
@@ -717,7 +745,8 @@
     "noFollowing": "Not following anyone yet",
     "previous": "Previous",
     "next": "Next",
-    "instructorBadge": "Instructor"
+    "instructorBadge": "Instructor",
+    "reportUser": "Report user"
   },
   "editProfile": {
     "title": "Edit Profile",

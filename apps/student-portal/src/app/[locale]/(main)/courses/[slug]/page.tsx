@@ -1,9 +1,9 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
-import { BookOpen, CheckCircle2, ChevronRight, ShoppingCart } from 'lucide-react';
+import { BookOpen, CheckCircle2, ChevronRight, ShoppingCart, Flag } from 'lucide-react';
 import {
   Button,
   Card,
@@ -36,6 +36,7 @@ import {
   useAddCartItem,
 } from '@shared/hooks';
 import { toast } from 'sonner';
+import { ReportDialog } from '@/components/feedback/report-dialog';
 
 export default function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -60,6 +61,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
   const isInCart = isAuthenticated
     ? serverCartItems.some((item) => item.courseId === course?.id)
     : localCartItems.some((item) => item.courseId === course?.id);
+  const [showReportDialog, setShowReportDialog] = useState(false);
 
   if (isLoading) return <CourseDetailSkeleton />;
 
@@ -262,6 +264,17 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
                     </div>
                   </CardContent>
                 </Card>
+
+                {isAuthenticated && (
+                  <button
+                    type="button"
+                    onClick={() => setShowReportDialog(true)}
+                    className="text-muted-foreground hover:text-destructive mt-4 flex items-center gap-1.5 text-xs transition-colors"
+                  >
+                    <Flag className="h-3 w-3" />
+                    {t('reportCourse')}
+                  </button>
+                )}
               </TabsContent>
 
               {/* Content Tab */}
@@ -312,6 +325,15 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
         limit={4}
         title={t('similarCourses')}
       />
+
+      {course && (
+        <ReportDialog
+          open={showReportDialog}
+          onOpenChange={setShowReportDialog}
+          targetType="COURSE"
+          targetId={course.id}
+        />
+      )}
 
       {/* Mobile sticky bottom bar */}
       <div className="bg-background border-border fixed right-0 bottom-0 left-0 z-30 border-t p-4 lg:hidden">
