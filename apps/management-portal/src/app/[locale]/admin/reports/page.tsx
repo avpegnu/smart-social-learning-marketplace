@@ -20,7 +20,7 @@ import { formatDate } from '@shared/utils';
 import { useAdminReports, useReviewReport } from '@shared/hooks';
 import { toast } from 'sonner';
 
-const STUDENT_PORTAL_URL = process.env.NEXT_PUBLIC_STUDENT_PORTAL_URL || 'http://localhost:3001';
+const STUDENT_PORTAL_URL = process.env.NEXT_PUBLIC_STUDENT_URL || 'http://localhost:3001';
 
 interface TargetPreview {
   text: string;
