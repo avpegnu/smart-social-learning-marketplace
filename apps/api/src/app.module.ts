@@ -7,6 +7,7 @@ import { BullModule } from '@nestjs/bullmq';
 
 import { HealthModule } from './health/health.module';
 import { AppConfigModule } from './config/config.module';
+import { PlatformSettingsModule } from './modules/platform-settings/platform-settings.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { MailModule } from './mail/mail.module';
@@ -50,6 +51,7 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
 
     // Global config
     AppConfigModule,
+    PlatformSettingsModule,
     PrismaModule,
     RedisModule,
     MailModule,

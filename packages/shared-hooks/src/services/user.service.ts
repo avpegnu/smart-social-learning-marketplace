@@ -12,7 +12,7 @@ export interface ChangePasswordPayload {
 }
 
 export interface NotificationPreferences {
-  [key: string]: { inApp: boolean; email: boolean };
+  [key: string]: { inApp: boolean; email?: boolean };
 }
 
 export interface ApplyInstructorPayload {

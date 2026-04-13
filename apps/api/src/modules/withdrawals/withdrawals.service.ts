@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Inject, Injectable } from '@nes
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { QueueService } from '@/modules/jobs/queue.service';
+import { PlatformSettingsService } from '@/modules/platform-settings/platform-settings.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
 import type { CreateWithdrawalDto } from './dto/create-withdrawal.dto';
@@ -11,6 +12,7 @@ export class WithdrawalsService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(QueueService) private readonly queue: QueueService,
+    @Inject(PlatformSettingsService) private readonly platformSettings: PlatformSettingsService,
   ) {}
 
   async requestWithdrawal(instructorId: string, dto: CreateWithdrawalDto) {
@@ -28,6 +30,11 @@ export class WithdrawalsService {
       select: { availableBalance: true },
     });
     const balance = profile?.availableBalance ?? 0;
+
+    const minWithdrawal = this.platformSettings.get<number>('minimum_withdrawal', 50000);
+    if (dto.amount < minWithdrawal) {
+      throw new BadRequestException({ code: 'BELOW_MINIMUM_WITHDRAWAL', minimum: minWithdrawal });
+    }
 
     if (dto.amount > balance) {
       throw new BadRequestException({ code: 'INSUFFICIENT_BALANCE' });

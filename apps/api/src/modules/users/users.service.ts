@@ -8,6 +8,7 @@ import {
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '@/prisma/prisma.service';
+import { RedisService } from '@/redis/redis.service';
 import { QueueService } from '@/modules/jobs/queue.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
@@ -24,6 +25,7 @@ const PUBLIC_USER_SELECT = {
 export class UsersService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(RedisService) private readonly redis: RedisService,
     @Inject(QueueService) private readonly queue: QueueService,
   ) {}
 
@@ -109,13 +111,18 @@ export class UsersService {
 
   async updateNotificationPreferences(
     userId: string,
-    preferences: Record<string, { inApp: boolean; email: boolean }>,
+    preferences: Record<string, { inApp: boolean; email?: boolean }>,
   ) {
-    return this.prisma.user.update({
+    const result = await this.prisma.user.update({
       where: { id: userId },
       data: { notificationPreferences: preferences },
       select: { id: true, notificationPreferences: true },
     });
+
+    // Invalidate cached preferences
+    await this.redis.del(`notif_prefs:${userId}`);
+
+    return result;
   }
 
   async changePassword(userId: string, dto: { currentPassword: string; newPassword: string }) {

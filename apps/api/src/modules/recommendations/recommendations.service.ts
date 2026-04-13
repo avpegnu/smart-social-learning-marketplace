@@ -117,11 +117,10 @@ export class RecommendationsService {
         algorithm: 'COLLABORATIVE',
       },
       orderBy: { score: 'desc' },
-      take: limit,
       include: { similarCourse: { select: COURSE_SELECT } },
     });
 
-    return similarities.map((s) => ({
+    return this.deduplicateByScore(similarities, limit).map((s) => ({
       ...s.similarCourse,
       score: s.score,
       reason: 'Students who enrolled in similar courses also liked this',
@@ -140,7 +139,6 @@ export class RecommendationsService {
         algorithm: 'HYBRID',
       },
       orderBy: { score: 'desc' },
-      take: limit,
       include: { similarCourse: { select: COURSE_SELECT } },
     });
 
@@ -148,11 +146,25 @@ export class RecommendationsService {
       return this.popularity.getPopularCourses(limit);
     }
 
-    return similarities.map((s) => ({
+    return this.deduplicateByScore(similarities, limit).map((s) => ({
       ...s.similarCourse,
       score: s.score,
       reason: 'Recommended for you',
     }));
+  }
+
+  private deduplicateByScore<T extends { similarCourseId: string; score: number }>(
+    items: T[],
+    limit: number,
+  ): T[] {
+    const best = new Map<string, T>();
+    for (const item of items) {
+      const existing = best.get(item.similarCourseId);
+      if (!existing || item.score > existing.score) {
+        best.set(item.similarCourseId, item);
+      }
+    }
+    return [...best.values()].sort((a, b) => b.score - a.score).slice(0, limit);
   }
 
   private async computeHybrid() {

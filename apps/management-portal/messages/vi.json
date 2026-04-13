@@ -431,6 +431,8 @@
     "COUPON_USAGE_EXCEEDED": "Mã giảm giá đã hết lượt sử dụng",
     "COUPON_USER_LIMIT_EXCEEDED": "Bạn đã sử dụng mã giảm giá này",
     "INSUFFICIENT_BALANCE": "Số dư không đủ",
+    "BELOW_MINIMUM_WITHDRAWAL": "Số tiền thấp hơn mức rút tối thiểu",
+    "FREE_COURSES_NOT_ALLOWED": "Nền tảng không cho phép tạo khóa học miễn phí",
     "MIN_WITHDRAWAL_NOT_MET": "Chưa đạt số tiền rút tối thiểu",
     "WITHDRAWAL_NOT_FOUND": "Không tìm thấy yêu cầu rút tiền",
     "WITHDRAWAL_NOT_PENDING": "Yêu cầu rút tiền không còn chờ xử lý",
@@ -573,7 +575,8 @@
     "reviewNote": "Ghi chú admin",
     "availableBalance": "Số dư khả dụng",
     "noWithdrawals": "Chưa có lịch sử rút tiền",
-    "cancel": "Hủy"
+    "cancel": "Hủy",
+    "pendingExists": "Bạn đã có yêu cầu rút tiền đang chờ xử lý"
   },
   "coupons": {
     "title": "Mã giảm giá",
@@ -684,12 +687,10 @@
     "availableBalance": "Số dư khả dụng",
     "pendingBalance": "Đang chờ xử lý",
     "balanceDesc": "Số dư khả dụng có thể được rút về tài khoản ngân hàng. Số dư đang chờ sẽ được cộng vào sau khi đơn hàng hoàn tất.",
-    "notificationsDesc": "Các loại thông báo email bạn đang nhận được",
+    "notificationsDesc": "Quản lý các thông báo bạn nhận được",
     "notif_newEnrollment": "Học viên mới đăng ký khóa học",
-    "notif_newReview": "Đánh giá khóa học mới",
     "notif_courseApproval": "Khóa học được duyệt hoặc từ chối",
     "notif_payoutCompleted": "Yêu cầu rút tiền hoàn tất",
-    "notif_weeklyReport": "Báo cáo doanh thu hàng tuần",
     "enabled": "Bật",
     "disabled": "Tắt"
   },

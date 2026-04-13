@@ -45,13 +45,7 @@ interface DashboardOverview {
   pendingBalance: number;
 }
 
-const NOTIFICATION_TYPES = [
-  'newEnrollment',
-  'newReview',
-  'courseApproval',
-  'payoutCompleted',
-  'weeklyReport',
-] as const;
+const NOTIFICATION_TYPES = ['newEnrollment', 'courseApproval', 'payoutCompleted'] as const;
 
 export default function SettingsPage() {
   const t = useTranslations('settings');
@@ -245,55 +239,44 @@ function NotificationsTab() {
   const { data: meRaw } = useMe();
   const me = (
     meRaw as {
-      data?: { notificationPreferences?: Record<string, { inApp: boolean; email: boolean }> };
+      data?: { notificationPreferences?: Record<string, { inApp: boolean }> };
     }
   )?.data;
   const updatePrefs = useUpdateNotificationPreferences();
 
   const prefs = me?.notificationPreferences ?? {};
 
-  const handleToggle = (key: string, field: 'inApp' | 'email') => {
-    const current = prefs[key] ?? { inApp: true, email: false };
-    const updated = { ...prefs, [key]: { ...current, [field]: !current[field] } };
+  const handleToggle = (key: string) => {
+    const current = prefs[key] ?? { inApp: true };
+    const updated = { ...prefs, [key]: { inApp: !current.inApp } };
     updatePrefs.mutate(updated);
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t('emailNotifications')}</CardTitle>
+        <CardTitle className="text-base">{t('notifications')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-muted-foreground text-sm">{t('notificationsDesc')}</p>
         <div className="space-y-2">
           {NOTIFICATION_TYPES.map((key) => {
-            const pref = prefs[key] ?? { inApp: true, email: false };
+            const pref = prefs[key] ?? { inApp: true };
             return (
               <div
                 key={key}
                 className="border-border flex items-center justify-between rounded-lg border p-3"
               >
                 <span className="text-sm">{t(`notif_${key}`)}</span>
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 text-xs">
-                    <input
-                      type="checkbox"
-                      checked={pref.inApp}
-                      onChange={() => handleToggle(key, 'inApp')}
-                      className="accent-primary h-4 w-4 rounded"
-                    />
-                    In-app
-                  </label>
-                  <label className="flex items-center gap-2 text-xs">
-                    <input
-                      type="checkbox"
-                      checked={pref.email}
-                      onChange={() => handleToggle(key, 'email')}
-                      className="accent-primary h-4 w-4 rounded"
-                    />
-                    Email
-                  </label>
-                </div>
+                <label className="flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={pref.inApp}
+                    onChange={() => handleToggle(key)}
+                    className="accent-primary h-4 w-4 rounded"
+                  />
+                  In-app
+                </label>
               </div>
             );
           })}

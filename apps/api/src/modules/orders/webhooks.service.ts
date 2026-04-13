@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { QueueService } from '@/modules/jobs/queue.service';
+import { PlatformSettingsService } from '@/modules/platform-settings/platform-settings.service';
 import { EARNING_HOLD_DAYS } from '@/common/constants/app.constant';
 import type { SepayWebhookDto } from './dto/sepay-webhook.dto';
 
@@ -12,6 +13,7 @@ export class WebhooksService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(ConfigService) private readonly config: ConfigService,
     @Inject(QueueService) private readonly queue: QueueService,
+    @Inject(PlatformSettingsService) private readonly platformSettings: PlatformSettingsService,
   ) {}
 
   async handleSepayWebhook(authorization: string, payload: SepayWebhookDto) {
@@ -199,6 +201,7 @@ export class WebhooksService {
       orderBy: { minRevenue: 'desc' },
     });
 
-    return tier?.rate ?? 0.3;
+    const defaultRate = this.platformSettings.get<number>('default_commission_rate', 30) / 100;
+    return tier?.rate ?? defaultRate;
   }
 }

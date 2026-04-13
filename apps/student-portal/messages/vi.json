@@ -404,6 +404,8 @@
     "passwordChanged": "Đã đổi mật khẩu thành công",
     "passwordMismatch": "Mật khẩu không khớp",
     "passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự",
+    "notif_socialUpdates": "Hoạt động xã hội",
+    "notif_socialUpdates_desc": "Lượt thích và bình luận trên bài viết của bạn",
     "notif_newFollowers": "Người theo dõi mới",
     "notif_newFollowers_desc": "Khi có người theo dõi bạn",
     "notif_orderUpdates": "Cập nhật đơn hàng",

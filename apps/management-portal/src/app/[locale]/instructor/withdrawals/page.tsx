@@ -29,6 +29,7 @@ import {
   useInstructorWithdrawals,
   useRequestWithdrawal,
   useInstructorDashboard,
+  usePlatformSettings,
 } from '@shared/hooks';
 import { formatPrice, formatDate } from '@shared/utils';
 import { StatusBadge } from '@/components/data-display/status-badge';
@@ -48,8 +49,6 @@ interface Withdrawal {
   createdAt: string;
 }
 
-const MIN_WITHDRAWAL = 5_000;
-
 export default function WithdrawalsPage() {
   const t = useTranslations('withdrawals');
   const [page, setPage] = useState(1);
@@ -61,12 +60,17 @@ export default function WithdrawalsPage() {
 
   const { data, isLoading } = useInstructorWithdrawals({ page, limit: 10 });
   const { data: dashboardData } = useInstructorDashboard();
+  const { data: settingsData } = usePlatformSettings();
   const requestWithdrawal = useRequestWithdrawal();
+
+  const MIN_WITHDRAWAL =
+    (settingsData?.data as { minimumWithdrawal?: number } | undefined)?.minimumWithdrawal ?? 50000;
 
   const withdrawals = (data?.data ?? []) as Withdrawal[];
   const meta = data?.meta;
   const dashboard = dashboardData?.data as { overview: { availableBalance: number } } | undefined;
   const availableBalance = dashboard?.overview?.availableBalance ?? 0;
+  const hasPending = withdrawals.some((w) => w.status === 'PENDING');
 
   const openDialog = () => {
     // Pre-fill bank info from last withdrawal if available
@@ -117,10 +121,13 @@ export default function WithdrawalsPage() {
             {t('availableBalance')}: {formatPrice(availableBalance)}
           </p>
         </div>
-        <Button onClick={openDialog} disabled={availableBalance < MIN_WITHDRAWAL}>
-          <Wallet className="mr-2 h-4 w-4" />
-          {t('requestWithdrawal')}
-        </Button>
+        <div className="flex flex-col items-end gap-1">
+          <Button onClick={openDialog} disabled={hasPending || availableBalance < MIN_WITHDRAWAL}>
+            <Wallet className="mr-2 h-4 w-4" />
+            {t('requestWithdrawal')}
+          </Button>
+          {hasPending && <p className="text-muted-foreground text-xs">{t('pendingExists')}</p>}
+        </div>
       </div>
 
       <Card>

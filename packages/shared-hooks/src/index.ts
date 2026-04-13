@@ -126,6 +126,9 @@ export {
   useAdminAnalytics,
 } from './queries/use-admin';
 
+export { usePlatformSettings } from './queries/use-platform-settings';
+export type { PublicPlatformSettings } from './services/platform-settings.service';
+
 export {
   useServerCart,
   useAddCartItem,

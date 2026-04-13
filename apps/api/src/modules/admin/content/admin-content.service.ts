@@ -1,6 +1,7 @@
 import { Injectable, Inject, ConflictException, BadRequestException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { PlatformSettingsService } from '@/modules/platform-settings/platform-settings.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import { generateSlug } from '@/common/utils/slug.util';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -16,7 +17,10 @@ import { CreatePlacementQuestionDto } from '../dto/create-placement-question.dto
 
 @Injectable()
 export class AdminContentService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(PlatformSettingsService) private readonly platformSettings: PlatformSettingsService,
+  ) {}
 
   // --- Categories ---
 
@@ -128,7 +132,7 @@ export class AdminContentService {
   }
 
   async updateSetting(dto: UpdateSettingDto) {
-    return this.prisma.platformSetting.upsert({
+    const result = await this.prisma.platformSetting.upsert({
       where: { key: dto.key },
       update: { value: dto.value as Prisma.InputJsonValue },
       create: {
@@ -136,6 +140,10 @@ export class AdminContentService {
         value: dto.value as Prisma.InputJsonValue,
       },
     });
+
+    await this.platformSettings.reload();
+
+    return result;
   }
 
   // --- Placement Questions ---

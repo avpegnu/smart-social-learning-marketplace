@@ -8,6 +8,7 @@ import {
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { QueueService } from '@/modules/jobs/queue.service';
+import { PlatformSettingsService } from '@/modules/platform-settings/platform-settings.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import { generateSlug, generateUniqueSlug } from '@/common/utils/slug.util';
 import type { QueryCoursesDto } from '../dto/query-courses.dto';
@@ -20,11 +21,17 @@ export class CourseManagementService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(QueueService) private readonly queue: QueueService,
+    @Inject(PlatformSettingsService) private readonly platformSettings: PlatformSettingsService,
   ) {}
 
   // ==================== CRUD ====================
 
   async create(instructorId: string, dto: CreateCourseDto) {
+    const allowFree = this.platformSettings.get<boolean>('allow_free_courses', true);
+    if (!allowFree && (!dto.price || dto.price <= 0)) {
+      throw new BadRequestException({ code: 'FREE_COURSES_NOT_ALLOWED' });
+    }
+
     const { tags, tagIds, learningOutcomes, prerequisites, ...courseData } = dto;
     const slug = generateUniqueSlug(dto.title);
 
@@ -265,6 +272,22 @@ export class CourseManagementService {
     }
 
     await this.validateCourseCompleteness(courseId);
+
+    const autoApprove = this.platformSettings.get<boolean>('auto_approve_courses', false);
+
+    if (autoApprove) {
+      const updated = await this.prisma.course.update({
+        where: { id: courseId },
+        data: { status: 'PUBLISHED', publishedAt: new Date() },
+      });
+
+      this.queue.addNotification(instructorId, 'COURSE_APPROVED', {
+        courseId,
+        courseTitle: course.title,
+      });
+
+      return updated;
+    }
 
     const updated = await this.prisma.course.update({
       where: { id: courseId },

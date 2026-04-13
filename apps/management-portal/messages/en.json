@@ -431,6 +431,8 @@
     "COUPON_USAGE_EXCEEDED": "Coupon usage limit exceeded",
     "COUPON_USER_LIMIT_EXCEEDED": "You have already used this coupon",
     "INSUFFICIENT_BALANCE": "Insufficient balance",
+    "BELOW_MINIMUM_WITHDRAWAL": "Amount is below the minimum withdrawal limit",
+    "FREE_COURSES_NOT_ALLOWED": "Free courses are not allowed on this platform",
     "MIN_WITHDRAWAL_NOT_MET": "Minimum withdrawal amount not met",
     "WITHDRAWAL_NOT_FOUND": "Withdrawal request not found",
     "WITHDRAWAL_NOT_PENDING": "Withdrawal is no longer pending",
@@ -573,7 +575,8 @@
     "reviewNote": "Admin Note",
     "availableBalance": "Available Balance",
     "noWithdrawals": "No withdrawal history",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "pendingExists": "You already have a pending withdrawal request"
   },
   "coupons": {
     "title": "Coupons",
@@ -684,12 +687,10 @@
     "availableBalance": "Available Balance",
     "pendingBalance": "Pending Balance",
     "balanceDesc": "Available balance can be withdrawn to your bank account. Pending balance will be added once orders are completed.",
-    "notificationsDesc": "The email notifications you currently receive",
+    "notificationsDesc": "Manage the notifications you receive",
     "notif_newEnrollment": "New student enrollment",
-    "notif_newReview": "New course review",
     "notif_courseApproval": "Course approved or rejected",
     "notif_payoutCompleted": "Withdrawal request completed",
-    "notif_weeklyReport": "Weekly revenue report",
     "enabled": "Enabled",
     "disabled": "Disabled"
   },

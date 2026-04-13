@@ -157,7 +157,7 @@ function NotificationsTab() {
   const { data: meRaw } = useMe();
   const me = (
     meRaw as {
-      data?: { notificationPreferences?: Record<string, { inApp: boolean; email: boolean }> };
+      data?: { notificationPreferences?: Record<string, { inApp: boolean }> };
     }
   )?.data;
   const updatePrefs = useUpdateNotificationPreferences();
@@ -165,7 +165,7 @@ function NotificationsTab() {
   const prefs = me?.notificationPreferences ?? {};
 
   const notifTypes = [
-    { key: 'courseUpdates', label: t('notif_courseUpdates'), desc: t('notif_courseUpdates_desc') },
+    { key: 'socialUpdates', label: t('notif_socialUpdates'), desc: t('notif_socialUpdates_desc') },
     { key: 'newFollowers', label: t('notif_newFollowers'), desc: t('notif_newFollowers_desc') },
     { key: 'orderUpdates', label: t('notif_orderUpdates'), desc: t('notif_orderUpdates_desc') },
     {
@@ -176,9 +176,9 @@ function NotificationsTab() {
     { key: 'systemAnnouncements', label: t('notif_system'), desc: t('notif_system_desc') },
   ];
 
-  const handleToggle = (key: string, field: 'inApp' | 'email') => {
-    const current = prefs[key] ?? { inApp: true, email: false };
-    const updated = { ...prefs, [key]: { ...current, [field]: !current[field] } };
+  const handleToggle = (key: string) => {
+    const current = prefs[key] ?? { inApp: true };
+    const updated = { ...prefs, [key]: { inApp: !current.inApp } };
     updatePrefs.mutate(updated);
   };
 
@@ -191,7 +191,7 @@ function NotificationsTab() {
       <CardContent>
         <div className="space-y-4">
           {notifTypes.map((item) => {
-            const pref = prefs[item.key] ?? { inApp: true, email: false };
+            const pref = prefs[item.key] ?? { inApp: true };
             return (
               <div
                 key={item.key}
@@ -201,26 +201,15 @@ function NotificationsTab() {
                   <p className="text-sm font-medium">{item.label}</p>
                   <p className="text-muted-foreground text-xs">{item.desc}</p>
                 </div>
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 text-xs">
-                    <input
-                      type="checkbox"
-                      checked={pref.inApp}
-                      onChange={() => handleToggle(item.key, 'inApp')}
-                      className="accent-primary h-4 w-4 rounded"
-                    />
-                    In-app
-                  </label>
-                  <label className="flex items-center gap-2 text-xs">
-                    <input
-                      type="checkbox"
-                      checked={pref.email}
-                      onChange={() => handleToggle(item.key, 'email')}
-                      className="accent-primary h-4 w-4 rounded"
-                    />
-                    Email
-                  </label>
-                </div>
+                <label className="flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={pref.inApp}
+                    onChange={() => handleToggle(item.key)}
+                    className="accent-primary h-4 w-4 rounded"
+                  />
+                  In-app
+                </label>
               </div>
             );
           })}

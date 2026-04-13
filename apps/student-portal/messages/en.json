@@ -404,6 +404,8 @@
     "passwordChanged": "Password changed successfully",
     "passwordMismatch": "Passwords do not match",
     "passwordMinLength": "Password must be at least 8 characters",
+    "notif_socialUpdates": "Social activity",
+    "notif_socialUpdates_desc": "Likes and comments on your posts",
     "notif_newFollowers": "New followers",
     "notif_newFollowers_desc": "When someone follows you",
     "notif_orderUpdates": "Order updates",
