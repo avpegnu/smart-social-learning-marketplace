@@ -18,6 +18,8 @@ import { CreateReportDto } from './dto/create-report.dto';
 import { QueryReportsDto } from './dto/query-reports.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { ReviewReportDto } from '../admin/dto/review-report.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { UpdateUserStatusDto } from '../admin/dto/update-user-status.dto';
 
 export interface TargetPreview {
   text: string;
@@ -128,9 +130,9 @@ export class ReportsService {
 
     if (dto.action === 'SUSPEND_USER' && report.targetType === 'USER') {
       try {
-        await this.adminUsers.updateUserStatus(report.targetId, { status: 'SUSPENDED' } as {
-          status: string;
-        });
+        await this.adminUsers.updateUserStatus(report.targetId, {
+          status: 'SUSPENDED',
+        } as UpdateUserStatusDto);
       } catch (err) {
         this.logger.warn(`Failed to suspend user ${report.targetId}: ${(err as Error).message}`);
       }
