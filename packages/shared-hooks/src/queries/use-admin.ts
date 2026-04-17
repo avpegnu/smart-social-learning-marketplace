@@ -43,6 +43,17 @@ export function useAdminCourseDetail(courseId: string) {
   });
 }
 
+export function useAdminCourseStudents(
+  courseId: string,
+  params?: { page?: number; limit?: number; search?: string },
+) {
+  return useQuery({
+    queryKey: ['admin', 'courses', courseId, 'students', params],
+    queryFn: () => adminService.getCourseStudents(courseId, params),
+    enabled: !!courseId,
+  });
+}
+
 export function useAdminPendingCourses(params: Record<string, string>) {
   return useQuery({
     queryKey: ['admin', 'courses', 'pending', params],

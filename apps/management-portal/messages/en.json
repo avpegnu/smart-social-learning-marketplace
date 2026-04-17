@@ -385,7 +385,9 @@
     "download": "Download",
     "openInNewTab": "Open in new tab",
     "loading": "Loading...",
-    "close": "Close"
+    "close": "Close",
+    "tabOverview": "Overview",
+    "tabStudents": "Students"
   },
   "apiErrors": {
     "INVALID_CREDENTIALS": "Invalid email or password",
@@ -645,7 +647,8 @@
     "full": "Full Course",
     "partial": "Partial",
     "noStudents": "No students enrolled yet",
-    "totalStudents": "Total Students"
+    "totalStudents": "Total Students",
+    "completionRate": "Completion Rate"
   },
   "qna": {
     "title": "Q&A",

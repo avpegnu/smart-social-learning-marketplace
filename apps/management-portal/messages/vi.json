@@ -385,7 +385,9 @@
     "download": "Tải xuống",
     "openInNewTab": "Mở tab mới",
     "loading": "Đang tải...",
-    "close": "Đóng"
+    "close": "Đóng",
+    "tabOverview": "Tổng quan",
+    "tabStudents": "Học viên"
   },
   "apiErrors": {
     "INVALID_CREDENTIALS": "Email hoặc mật khẩu không đúng",
@@ -645,7 +647,8 @@
     "full": "Toàn bộ",
     "partial": "Từng phần",
     "noStudents": "Chưa có học viên",
-    "totalStudents": "Tổng học viên"
+    "totalStudents": "Tổng học viên",
+    "completionRate": "Tỉ lệ hoàn thành"
   },
   "qna": {
     "title": "Hỏi đáp",

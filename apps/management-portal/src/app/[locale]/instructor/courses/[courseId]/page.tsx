@@ -1,16 +1,27 @@
 'use client';
 
 import { use } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { Pencil, ArrowLeft, Tag } from 'lucide-react';
-import { Button, Badge, Skeleton, Separator } from '@shared/ui';
+import {
+  Badge,
+  Button,
+  Separator,
+  Skeleton,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@shared/ui';
 import { useInstructorCourseDetail } from '@shared/hooks';
 import { formatPrice } from '@shared/utils';
 
 import { CourseInfoCard } from '@/components/courses/detail/course-info-card';
 import { CourseStats } from '@/components/courses/detail/course-stats';
 import { CourseCurriculum } from '@/components/courses/detail/course-curriculum';
+import { CourseStudentsTab } from '@/components/courses/detail/course-students-tab';
 
 const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   DRAFT: 'secondary',
@@ -24,6 +35,8 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
   const t = useTranslations('courseDetail');
   const tc = useTranslations('common');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const defaultTab = searchParams.get('tab') === 'students' ? 'students' : 'overview';
   const { data: courseData, isLoading } = useInstructorCourseDetail(courseId);
 
   if (isLoading) {
@@ -57,7 +70,6 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
   const tags = (course.tags as Array<Record<string, unknown>>) ?? [];
   const status = course.status as string;
 
-  // Count totals
   let totalLessons = 0;
   let totalDuration = 0;
   let totalChapters = 0;
@@ -114,84 +126,100 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
 
       <Separator />
 
-      {/* Basic Info */}
-      <CourseInfoCard course={course} category={category} />
-
-      {/* Learning Outcomes & Prerequisites */}
-      {(learningOutcomes.length > 0 || prerequisites.length > 0) && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {learningOutcomes.length > 0 && (
-            <div className="border-border space-y-2 rounded-lg border p-6">
-              <h3 className="text-sm font-semibold">{t('learningOutcomes')}</h3>
-              <ul className="list-disc space-y-1 pl-5 text-sm">
-                {learningOutcomes.map((o, i) => (
-                  <li key={i}>{o}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {prerequisites.length > 0 && (
-            <div className="border-border space-y-2 rounded-lg border p-6">
-              <h3 className="text-sm font-semibold">{t('prerequisites')}</h3>
-              <ul className="list-disc space-y-1 pl-5 text-sm">
-                {prerequisites.map((p, i) => (
-                  <li key={i}>{p}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tags */}
-      {tags.length > 0 && (
-        <div className="border-border space-y-2 rounded-lg border p-6">
-          <h3 className="text-sm font-semibold">{t('tags')}</h3>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <Badge key={tag.id as string} variant="outline">
-                <Tag className="mr-1 h-3 w-3" />
-                {(tag.tag as Record<string, unknown>)?.name as string}
+      {/* Tabs */}
+      <Tabs defaultValue={defaultTab}>
+        <TabsList>
+          <TabsTrigger value="overview">{t('tabOverview')}</TabsTrigger>
+          <TabsTrigger value="students">
+            {t('tabStudents')}
+            {(course.totalStudents as number) > 0 && (
+              <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs">
+                {course.totalStudents as number}
               </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <Separator />
-
-      {/* Curriculum */}
-      <CourseCurriculum sections={sections} />
-
-      {/* Pricing */}
-      <div className="border-border space-y-3 rounded-lg border p-6">
-        <h2 className="text-lg font-semibold">{t('pricing')}</h2>
-        <div className="flex flex-wrap items-center gap-3 text-sm">
-          <span className="text-muted-foreground">{t('coursePrice')}: </span>
-          <span className="text-lg font-bold">
-            {(course.price as number) === 0
-              ? t('free')
-              : formatPrice((course.price as number) ?? 0)}
-          </span>
-          {(course.originalPrice as number) > 0 &&
-            (course.originalPrice as number) > (course.price as number) && (
-              <>
-                <span className="text-muted-foreground line-through">
-                  {formatPrice(course.originalPrice as number)}
-                </span>
-                <Badge variant="success" className="px-2 py-0.5">
-                  -
-                  {Math.round(
-                    (((course.originalPrice as number) - (course.price as number)) /
-                      (course.originalPrice as number)) *
-                      100,
-                  )}
-                  %
-                </Badge>
-              </>
             )}
-        </div>
-      </div>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="mt-6 space-y-6">
+          <CourseInfoCard course={course} category={category} />
+
+          {(learningOutcomes.length > 0 || prerequisites.length > 0) && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {learningOutcomes.length > 0 && (
+                <div className="border-border space-y-2 rounded-lg border p-6">
+                  <h3 className="text-sm font-semibold">{t('learningOutcomes')}</h3>
+                  <ul className="list-disc space-y-1 pl-5 text-sm">
+                    {learningOutcomes.map((o, i) => (
+                      <li key={i}>{o}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {prerequisites.length > 0 && (
+                <div className="border-border space-y-2 rounded-lg border p-6">
+                  <h3 className="text-sm font-semibold">{t('prerequisites')}</h3>
+                  <ul className="list-disc space-y-1 pl-5 text-sm">
+                    {prerequisites.map((p, i) => (
+                      <li key={i}>{p}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tags.length > 0 && (
+            <div className="border-border space-y-2 rounded-lg border p-6">
+              <h3 className="text-sm font-semibold">{t('tags')}</h3>
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <Badge key={tag.id as string} variant="outline">
+                    <Tag className="mr-1 h-3 w-3" />
+                    {(tag.tag as Record<string, unknown>)?.name as string}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <Separator />
+
+          <CourseCurriculum sections={sections} />
+
+          <div className="border-border space-y-3 rounded-lg border p-6">
+            <h2 className="text-lg font-semibold">{t('pricing')}</h2>
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <span className="text-muted-foreground">{t('coursePrice')}: </span>
+              <span className="text-lg font-bold">
+                {(course.price as number) === 0
+                  ? t('free')
+                  : formatPrice((course.price as number) ?? 0)}
+              </span>
+              {(course.originalPrice as number) > 0 &&
+                (course.originalPrice as number) > (course.price as number) && (
+                  <>
+                    <span className="text-muted-foreground line-through">
+                      {formatPrice(course.originalPrice as number)}
+                    </span>
+                    <Badge variant="success" className="px-2 py-0.5">
+                      -
+                      {Math.round(
+                        (((course.originalPrice as number) - (course.price as number)) /
+                          (course.originalPrice as number)) *
+                          100,
+                      )}
+                      %
+                    </Badge>
+                  </>
+                )}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="students" className="mt-6">
+          <CourseStudentsTab courseId={courseId} mode="instructor" />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

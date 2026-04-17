@@ -124,6 +124,7 @@ export {
   useAdminReports,
   useReviewReport,
   useAdminAnalytics,
+  useAdminCourseStudents,
 } from './queries/use-admin';
 
 export { usePlatformSettings } from './queries/use-platform-settings';

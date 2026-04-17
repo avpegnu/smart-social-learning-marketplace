@@ -18,6 +18,16 @@ export const adminService = {
   // Courses
   getAllCourses: (params: Record<string, string>) => apiClient.get('/admin/courses', params),
   getCourseDetail: (courseId: string) => apiClient.get(`/admin/courses/${courseId}`),
+  getCourseStudents: (
+    courseId: string,
+    params?: { page?: number; limit?: number; search?: string },
+  ) => {
+    const q: Record<string, string> = {};
+    if (params?.page) q.page = String(params.page);
+    if (params?.limit) q.limit = String(params.limit);
+    if (params?.search) q.search = params.search;
+    return apiClient.get(`/admin/courses/${courseId}/students`, q);
+  },
   getPendingCourses: (params: Record<string, string>) =>
     apiClient.get('/admin/courses/pending', params),
   reviewCourse: (courseId: string, data: { approved: boolean; feedback?: string }) =>

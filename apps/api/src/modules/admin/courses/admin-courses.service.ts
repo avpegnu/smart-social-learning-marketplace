@@ -7,6 +7,8 @@ import { createPaginatedResult } from '@/common/utils/pagination.util';
 import { PaginationDto } from '@/common/dto/pagination.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { ReviewCourseDto } from '../dto/review-course.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { QueryCourseStudentsDto } from '../../courses/management/dto/query-course-students.dto';
 
 @Injectable()
 export class AdminCoursesService {
@@ -130,6 +132,33 @@ export class AdminCoursesService {
     ]);
 
     return createPaginatedResult(courses, total, query.page, query.limit);
+  }
+
+  async getCourseStudents(courseId: string, query: QueryCourseStudentsDto) {
+    const course = await this.prisma.course.findUnique({ where: { id: courseId } });
+    if (!course || course.deletedAt) {
+      throw new NotFoundException({ code: 'COURSE_NOT_FOUND' });
+    }
+
+    const where = {
+      courseId,
+      ...(query.search && {
+        user: { fullName: { contains: query.search, mode: 'insensitive' as const } },
+      }),
+    };
+
+    const [enrollments, total] = await Promise.all([
+      this.prisma.enrollment.findMany({
+        where,
+        include: { user: { select: { id: true, fullName: true, email: true, avatarUrl: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip: query.skip,
+        take: query.limit,
+      }),
+      this.prisma.enrollment.count({ where }),
+    ]);
+
+    return createPaginatedResult(enrollments, total, query.page, query.limit);
   }
 
   async reviewCourse(courseId: string, _adminId: string, dto: ReviewCourseDto) {

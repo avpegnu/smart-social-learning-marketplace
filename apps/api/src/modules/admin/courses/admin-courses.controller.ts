@@ -10,6 +10,8 @@ import { AdminCoursesService } from './admin-courses.service';
 import { PaginationDto } from '@/common/dto/pagination.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { ReviewCourseDto } from '../dto/review-course.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { QueryCourseStudentsDto } from '../../courses/management/dto/query-course-students.dto';
 
 @Controller('admin/courses')
 @ApiTags('Admin — Courses')
@@ -38,6 +40,15 @@ export class AdminCoursesController {
   @ApiOperation({ summary: 'Get course detail (admin — no ownership check)' })
   async getDetail(@Param('id', ParseCuidPipe) id: string) {
     return this.service.getCourseDetail(id);
+  }
+
+  @Get(':id/students')
+  @ApiOperation({ summary: 'List enrolled students for a course (admin)' })
+  async getCourseStudents(
+    @Param('id', ParseCuidPipe) id: string,
+    @Query() query: QueryCourseStudentsDto,
+  ) {
+    return this.service.getCourseStudents(id, query);
   }
 
   @Patch(':id/review')
