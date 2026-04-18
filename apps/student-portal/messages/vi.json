@@ -37,6 +37,14 @@
     "notifications": "Thông báo",
     "cart": "Giỏ hàng"
   },
+  "searchDialog": {
+    "placeholder": "Tìm kiếm khóa học, chủ đề, giảng viên...",
+    "popularCourses": "Khóa học phổ biến",
+    "searchResults": "Kết quả tìm kiếm",
+    "noResults": "Không tìm thấy kết quả nào",
+    "free": "Miễn phí",
+    "pressEsc": "Esc để đóng"
+  },
   "home": {
     "heroBadge": "Nền tảng #1 Việt Nam",
     "heroTitle": "Học tập thông minh, kết nối cộng đồng",

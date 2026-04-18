@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter, usePathname } from '@/i18n/navigation';
 import {
@@ -21,10 +21,10 @@ import {
   Bot,
   Users,
 } from 'lucide-react';
+import { SearchDialog } from '@/components/navigation/search-dialog';
 import { NotificationPopover } from '@/components/notifications/notification-popover';
 import {
   Button,
-  Input,
   Avatar,
   AvatarFallback,
   DropdownMenu,
@@ -53,6 +53,18 @@ export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   const hydrated = useAuthHydrated();
   const { user, isAuthenticated } = useAuthStore();
   const localCartCount = useCartStore((s) => s.itemCount());
@@ -103,10 +115,16 @@ export function Navbar() {
 
           {/* Search - Desktop */}
           <div className="mx-4 hidden max-w-md flex-1 md:flex">
-            <div className="relative w-full">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-              <Input placeholder={t('searchPlaceholder')} className="bg-muted/50 pl-9" />
-            </div>
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="border-input bg-muted/50 text-muted-foreground hover:bg-muted flex h-9 w-full items-center gap-2 rounded-md border px-3 text-sm transition-colors"
+            >
+              <Search className="h-4 w-4 shrink-0" />
+              <span className="flex-1 text-left">{t('searchPlaceholder')}</span>
+              <kbd className="bg-background hidden rounded border px-1.5 py-0.5 font-mono text-[10px] lg:inline-block">
+                ⌘K
+              </kbd>
+            </button>
           </div>
 
           {/* Nav links - Desktop */}
@@ -131,11 +149,14 @@ export function Navbar() {
           {/* Right side */}
           <div className="ml-auto flex items-center gap-1 md:ml-4">
             {/* Search icon - Mobile */}
-            <Link href="/courses" className="md:hidden">
-              <Button variant="ghost" size="icon">
-                <Search className="h-5 w-5" />
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setSearchOpen(true)}
+            >
+              <Search className="h-5 w-5" />
+            </Button>
 
             {/* Cart — always visible (guest uses localStorage, auth uses server) */}
             <Link href="/cart">
@@ -326,6 +347,8 @@ export function Navbar() {
           </div>
         </div>
       </header>
+
+      {searchOpen && <SearchDialog onClose={() => setSearchOpen(false)} />}
 
       {/* Mobile sidebar overlay — outside header so z-index works over page content */}
       {mobileOpen && (

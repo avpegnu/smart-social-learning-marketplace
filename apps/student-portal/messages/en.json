@@ -37,6 +37,14 @@
     "notifications": "Notifications",
     "cart": "Cart"
   },
+  "searchDialog": {
+    "placeholder": "Search courses, topics, instructors...",
+    "popularCourses": "Popular courses",
+    "searchResults": "Search results",
+    "noResults": "No results found",
+    "free": "Free",
+    "pressEsc": "Esc to close"
+  },
   "home": {
     "heroBadge": "#1 Platform in Vietnam",
     "heroTitle": "Smart learning, connected community",
