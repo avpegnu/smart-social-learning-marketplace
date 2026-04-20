@@ -19,8 +19,12 @@ export class CronService {
     @Inject(EmbeddingsService) private readonly embeddingsService: EmbeddingsService,
   ) {}
 
-  // 1. Expire pending orders (every 1 min)
-  @Cron('*/1 * * * *')
+  // 1. Expire pending orders (every 20 min)
+  // Sửa từ 1 phút sang 20 phút để giảm compute cost
+  // Lý do: Chạy 1 phút/lần khiến DB thức liên tục, không được suspend, consume ~50% compute budget
+  // (110 CU-hrs/20 ngày). Với 20 phút/lần, DB có thể ngủ giữa lúc, giảm từ ~110 CU xuống ~8-10 CU/tháng.
+  // Delay 20 phút cho order expiration là chấp nhận được.
+  @Cron('*/20 * * * *')
   async expirePendingOrders() {
     const expiredOrders = await this.prisma.order.findMany({
       where: { status: 'PENDING', expiresAt: { lt: new Date() } },
@@ -41,9 +45,12 @@ export class CronService {
     }
   }
 
-  // 2. Sync view counts from Redis to DB (every 5 min)
-  // Uses SCAN instead of KEYS (production-safe)
-  @Cron('*/5 * * * *')
+  // 2. Sync view counts from Redis to DB (every 30 min)
+  // Sửa từ 5 phút sang 30 phút để giảm compute cost
+  // Lý do: Chạy 5 phút/lần khiến DB thức 12 lần/giờ, consume ~30% compute budget.
+  // Với 30 phút/lần, DB có thời gian ngủ dài hơn. Delay trong sync view count là chấp nhận vì analytics không realtime.
+  // Giảm cost: ~65%. Uses SCAN thay vì KEYS (production-safe)
+  @Cron('*/30 * * * *')
   async syncViewCounts() {
     let cursor = '0';
     let synced = 0;
