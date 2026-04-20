@@ -114,7 +114,7 @@ export function Navbar() {
           </Link>
 
           {/* Search - Desktop */}
-          <div className="mx-4 hidden max-w-md flex-1 md:flex">
+          <div className="mx-4 hidden max-w-md flex-1 lg:flex">
             <button
               onClick={() => setSearchOpen(true)}
               className="border-input bg-muted/50 text-muted-foreground hover:bg-muted flex h-9 w-full items-center gap-2 rounded-md border px-3 text-sm transition-colors"
