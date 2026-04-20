@@ -1433,6 +1433,34 @@ async function main() {
   `;
   console.log(`✓ ${createdPosts.length} posts, comments, likes`);
 
+  // Populate FeedItem (cache feed for follows)
+  const follows = await prisma.follow.findMany();
+  const feedItemsToCreate = [];
+
+  for (const follow of follows) {
+    // Get all posts from the followed user
+    const followingPosts = await prisma.post.findMany({
+      where: { authorId: follow.followingId, deletedAt: null },
+      select: { id: true },
+    });
+
+    // Create FeedItem for each post
+    for (const post of followingPosts) {
+      feedItemsToCreate.push({
+        userId: follow.followerId,
+        postId: post.id,
+      });
+    }
+  }
+
+  if (feedItemsToCreate.length > 0) {
+    await prisma.feedItem.createMany({
+      data: feedItemsToCreate,
+      skipDuplicates: true,
+    });
+  }
+  console.log(`✓ ${feedItemsToCreate.length} feed items`);
+
   // ============================================================
   // 10. Q&A (questions + answers)
   // ============================================================
