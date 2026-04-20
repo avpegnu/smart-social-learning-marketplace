@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { useLocale } from 'next-intl';
@@ -228,6 +228,19 @@ function AppearanceTab() {
   const router = useRouter();
   const pathname = usePathname();
 
+  const handleThemeChange = useCallback(
+    (themeValue: string) => {
+      document.documentElement.classList.add('disable-transitions');
+      setTheme(themeValue);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.documentElement.classList.remove('disable-transitions');
+        });
+      });
+    },
+    [setTheme],
+  );
+
   const themes = [
     { key: 'light', label: t('themeLight'), icon: <Sun className="h-5 w-5" /> },
     { key: 'dark', label: t('themeDark'), icon: <Moon className="h-5 w-5" /> },
@@ -250,7 +263,7 @@ function AppearanceTab() {
             {themes.map((t_item) => (
               <button
                 key={t_item.key}
-                onClick={() => setTheme(t_item.key)}
+                onClick={() => handleThemeChange(t_item.key)}
                 className={cn(
                   'flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors',
                   theme === t_item.key
