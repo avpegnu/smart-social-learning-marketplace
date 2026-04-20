@@ -14,7 +14,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "prisma:seed": "ts-node src/prisma/seed.ts"
+    "prisma:seed": "ts-node src/prisma/seed.ts",
+    "prisma:seed:placement": "ts-node src/prisma/seed-placement.ts"
   },
   "dependencies": {
     "@bull-board/api": "^6.21.0",
