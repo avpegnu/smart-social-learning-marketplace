@@ -2,7 +2,7 @@ import { Controller, Get, Inject, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FeedService } from './feed.service';
 import { InteractionsService } from '../interactions/interactions.service';
-import { CurrentUser } from '@/common/decorators';
+import { CurrentUser, Public } from '@/common/decorators';
 import type { JwtPayload } from '@/common/interfaces/jwt-payload.interface';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PaginationDto } from '@/common/dto/pagination.dto';
@@ -16,6 +16,20 @@ export class FeedController {
     @Inject(InteractionsService)
     private readonly interactionsService: InteractionsService,
   ) {}
+
+  @Public()
+  @Get('feed/trending')
+  @ApiOperation({ summary: 'Get top 5 trending posts (last 7 days)' })
+  async getTrending() {
+    return this.feedService.getTrending();
+  }
+
+  @Public()
+  @Get('feed/public')
+  @ApiOperation({ summary: 'Get public feed (all posts, no auth required)' })
+  async getPublicFeed(@CurrentUser() user: JwtPayload | undefined, @Query() query: PaginationDto) {
+    return this.feedService.getPublicFeed(user?.sub, query);
+  }
 
   @Get('feed')
   @ApiOperation({ summary: 'Get personal news feed' })

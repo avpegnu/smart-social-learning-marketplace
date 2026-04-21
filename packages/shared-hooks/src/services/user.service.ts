@@ -23,6 +23,14 @@ export interface ApplyInstructorPayload {
   certificateUrls?: string[];
 }
 
+export interface SuggestedUser {
+  id: string;
+  fullName: string;
+  avatarUrl: string | null;
+  followerCount: number;
+  isFollowing: boolean;
+}
+
 function toQuery(params?: Record<string, unknown>): Record<string, string> {
   const q: Record<string, string> = {};
   if (!params) return q;
@@ -59,6 +67,8 @@ export const userService = {
 
   getFollowing: (userId: string, params?: { page?: number; limit?: number }) =>
     apiClient.get(`/users/${userId}/following`, toQuery(params)),
+
+  getSuggestions: () => apiClient.get<SuggestedUser[]>('/users/suggestions'),
 
   // Instructor applications
   applyInstructor: (data: ApplyInstructorPayload) =>

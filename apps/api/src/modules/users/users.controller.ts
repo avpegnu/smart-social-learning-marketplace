@@ -64,6 +64,13 @@ export class UsersController {
     return this.usersService.changePassword(user.sub, dto);
   }
 
+  @ApiBearerAuth()
+  @Get('suggestions')
+  @ApiOperation({ summary: 'Get suggested users to follow' })
+  async getSuggestions(@CurrentUser() user: JwtPayload) {
+    return this.usersService.getSuggestions(user.sub);
+  }
+
   // ==================== PUBLIC ENDPOINTS ====================
 
   @Public()

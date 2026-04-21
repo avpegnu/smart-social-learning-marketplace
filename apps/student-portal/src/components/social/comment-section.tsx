@@ -46,9 +46,8 @@ export function CommentSection({
     page: 1,
     limit: 50,
   });
-  const allComments = expanded
-    ? ((commentsRaw as { data?: Comment[] } | undefined)?.data ?? [])
-    : previewComments;
+  const serverComments = (commentsRaw as { data?: Comment[] } | undefined)?.data ?? [];
+  const allComments = expanded || commentCount === 0 ? serverComments : previewComments;
 
   const createComment = useCreateComment();
   const deleteComment = useDeleteComment();

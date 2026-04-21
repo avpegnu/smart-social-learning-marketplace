@@ -209,6 +209,7 @@ export {
 
 export {
   useSearchUsers,
+  useSuggestedUsers,
   useMe,
   useUserProfile,
   useUpdateProfile,
@@ -227,6 +228,8 @@ export { useCreateReport } from './queries/use-reports';
 export {
   useFeed,
   useBookmarks,
+  useTrending,
+  usePublicFeed,
   usePost,
   useComments,
   useCreatePost,
@@ -278,7 +281,12 @@ export type { CreateWithdrawalPayload } from './services/withdrawal.service';
 export { reportService } from './services/report.service';
 export type { CreateReportData, ReportTargetType } from './services/report.service';
 export { socialService } from './services/social.service';
-export type { CreatePostData, UpdatePostData, CreateCommentData } from './services/social.service';
+export type {
+  CreatePostData,
+  UpdatePostData,
+  CreateCommentData,
+  TrendingPost,
+} from './services/social.service';
 export { groupService } from './services/group.service';
 export type { CreateGroupData, UpdateGroupData } from './services/group.service';
 export { chatService } from './services/chat.service';
@@ -309,6 +317,7 @@ export type {
   ChangePasswordPayload,
   NotificationPreferences,
   ApplyInstructorPayload,
+  SuggestedUser,
 } from './services/user.service';
 
 // Stores (Layer 3 — Zustand client state)

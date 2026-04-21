@@ -249,6 +249,8 @@
     "photo": "Ảnh",
     "post": "Đăng",
     "loadMore": "Xem thêm",
+    "forYou": "Dành cho bạn",
+    "publicFeed": "Công khai",
     "trending": "Xu hướng",
     "posts": "bài viết",
     "suggestions": "Gợi ý theo dõi",
@@ -541,6 +543,7 @@
   },
   "groups": {
     "title": "Nhóm",
+    "viewAll": "Xem tất cả",
     "createGroup": "Tạo nhóm",
     "searchPlaceholder": "Tìm nhóm...",
     "members": "thành viên",

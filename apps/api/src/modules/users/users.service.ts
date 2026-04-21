@@ -21,6 +21,14 @@ const PUBLIC_USER_SELECT = {
   bio: true,
 } as const;
 
+export interface SuggestedUser {
+  id: string;
+  fullName: string;
+  avatarUrl: string | null;
+  followerCount: number;
+  isFollowing: boolean;
+}
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -43,6 +51,32 @@ export class UsersService {
       take: 20,
       orderBy: { fullName: 'asc' },
     });
+  }
+
+  async getSuggestions(currentUserId: string): Promise<SuggestedUser[]> {
+    const following = await this.prisma.follow.findMany({
+      where: { followerId: currentUserId },
+      select: { followingId: true },
+    });
+    const excluded = [...following.map((f) => f.followingId), currentUserId];
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        id: { notIn: excluded },
+        status: 'ACTIVE',
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        fullName: true,
+        avatarUrl: true,
+        followerCount: true,
+      },
+      orderBy: { followerCount: 'desc' },
+      take: 5,
+    });
+
+    return users.map((u) => ({ ...u, isFollowing: false }));
   }
 
   // ==================== PROFILE ====================

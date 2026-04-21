@@ -249,6 +249,8 @@
     "photo": "Photo",
     "post": "Post",
     "loadMore": "Load more",
+    "forYou": "For You",
+    "publicFeed": "Public",
     "trending": "Trending",
     "posts": "posts",
     "suggestions": "Follow suggestions",
@@ -541,6 +543,7 @@
   },
   "groups": {
     "title": "Groups",
+    "viewAll": "View all",
     "createGroup": "Create group",
     "searchPlaceholder": "Search groups...",
     "members": "members",

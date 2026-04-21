@@ -22,6 +22,15 @@ export function useSearchUsers(query: string) {
   });
 }
 
+export function useSuggestedUsers(enabled = true) {
+  return useQuery({
+    queryKey: ['users', 'suggestions'],
+    queryFn: () => userService.getSuggestions(),
+    staleTime: 5 * 60 * 1000,
+    enabled,
+  });
+}
+
 // ── Profile ──
 
 export function useMe(enabled = true) {
@@ -94,12 +103,16 @@ export function useFollowUser() {
       });
       return { prev };
     },
+    onSuccess: () => {
+      toast.success('Followed successfully!');
+    },
     onError: (error, userId, context) => {
       if (context?.prev) queryClient.setQueryData(['users', userId], context.prev);
       toast.error(getErrorMessage(error));
     },
     onSettled: (_, __, userId) => {
       queryClient.invalidateQueries({ queryKey: ['users', userId] });
+      queryClient.invalidateQueries({ queryKey: ['users', 'suggestions'] });
     },
   });
 }
@@ -127,12 +140,16 @@ export function useUnfollowUser() {
       });
       return { prev };
     },
+    onSuccess: () => {
+      toast.success('Unfollowed successfully!');
+    },
     onError: (error, userId, context) => {
       if (context?.prev) queryClient.setQueryData(['users', userId], context.prev);
       toast.error(getErrorMessage(error));
     },
     onSettled: (_, __, userId) => {
       queryClient.invalidateQueries({ queryKey: ['users', userId] });
+      queryClient.invalidateQueries({ queryKey: ['users', 'suggestions'] });
     },
   });
 }

@@ -29,12 +29,25 @@ export interface CreateCommentData {
   parentId?: string;
 }
 
+export interface TrendingPost {
+  id: string;
+  content: string;
+  likeCount: number;
+  commentCount: number;
+  author: { id: string; fullName: string; avatarUrl: string | null };
+}
+
 export const socialService = {
   // Feed
   getFeed: (params?: { page?: number; limit?: number }) => apiClient.get('/feed', toQuery(params)),
 
   getBookmarks: (params?: { page?: number; limit?: number }) =>
     apiClient.get('/bookmarks', toQuery(params)),
+
+  getTrending: () => apiClient.get<TrendingPost[]>('/feed/trending'),
+
+  getPublicFeed: (params?: { page?: number; limit?: number }) =>
+    apiClient.get('/feed/public', toQuery(params)),
 
   // Posts
   createPost: (data: CreatePostData) => apiClient.post('/posts', data),

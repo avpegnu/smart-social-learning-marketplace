@@ -28,6 +28,28 @@ export function useBookmarks(params?: { page?: number; limit?: number }) {
   });
 }
 
+export function useTrending() {
+  return useQuery({
+    queryKey: ['social', 'trending'],
+    queryFn: () => socialService.getTrending(),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function usePublicFeed() {
+  return useInfiniteQuery({
+    queryKey: ['social', 'public-feed'],
+    queryFn: ({ pageParam = 1 }) =>
+      socialService.getPublicFeed({ page: pageParam as number, limit: 10 }),
+    getNextPageParam: (lastPage: unknown) => {
+      const page = lastPage as { meta?: { page: number; totalPages: number } };
+      if (!page.meta || page.meta.page >= page.meta.totalPages) return undefined;
+      return page.meta.page + 1;
+    },
+    initialPageParam: 1,
+  });
+}
+
 // ── Post Detail ──
 
 export function usePost(id: string) {
@@ -135,11 +157,50 @@ export function useCreateComment() {
   return useMutation({
     mutationFn: ({ postId, data }: { postId: string; data: CreateCommentData }) =>
       socialService.createComment(postId, data),
+    onMutate: async ({ postId, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['social', 'posts', postId, 'comments'] });
+      const prevComments = queryClient.getQueryData(['social', 'posts', postId, 'comments']);
+
+      // Optimistically add comment
+      const tempCommentId = `temp-${Date.now()}`;
+      const optimisticComment = {
+        id: tempCommentId,
+        content: data.content,
+        createdAt: new Date().toISOString(),
+        author: { id: 'current', fullName: 'You', avatarUrl: null },
+        parentId: data.parentId ?? null,
+        replies: [],
+      };
+
+      queryClient.setQueryData(['social', 'posts', postId, 'comments'], (oldData: unknown) => {
+        const d = oldData as { data?: unknown[] } | undefined;
+        if (d?.data && Array.isArray(d.data)) {
+          return {
+            ...d,
+            data: [...d.data, optimisticComment],
+          };
+        }
+        return oldData;
+      });
+
+      return { prevComments };
+    },
     onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: ['social', 'posts', vars.postId, 'comments'] });
+      queryClient.invalidateQueries({
+        queryKey: ['social', 'posts', vars.postId, 'comments'],
+        exact: false,
+      });
       queryClient.invalidateQueries({ queryKey: ['social', 'feed'] });
     },
-    onError: (error) => toast.error(getErrorMessage(error)),
+    onError: (error, vars, context) => {
+      if (context?.prevComments) {
+        queryClient.setQueryData(
+          ['social', 'posts', vars.postId, 'comments'],
+          context.prevComments,
+        );
+      }
+      toast.error(getErrorMessage(error));
+    },
   });
 }
 
@@ -150,7 +211,10 @@ export function useDeleteComment() {
     mutationFn: ({ postId, commentId }: { postId: string; commentId: string }) =>
       socialService.deleteComment(postId, commentId),
     onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: ['social', 'posts', vars.postId, 'comments'] });
+      queryClient.invalidateQueries({
+        queryKey: ['social', 'posts', vars.postId, 'comments'],
+        exact: false,
+      });
       queryClient.invalidateQueries({ queryKey: ['social', 'feed'] });
     },
     onError: (error) => toast.error(getErrorMessage(error)),
