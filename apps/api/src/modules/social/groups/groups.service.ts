@@ -91,7 +91,7 @@ export class GroupsService {
       const enriched = groups.map((g) => ({
         ...g,
         isMember: memberMap.has(g.id),
-        currentUserRole: memberMap.get(g.id) ?? null,
+        userRole: memberMap.get(g.id) ?? null,
         joinRequestStatus: requestMap.get(g.id) ?? null,
       }));
 
@@ -129,7 +129,7 @@ export class GroupsService {
       joinRequestStatus = joinRequest?.status ?? null;
     }
 
-    return { ...group, isMember, currentUserRole, joinRequestStatus };
+    return { ...group, isMember, userRole: currentUserRole, joinRequestStatus };
   }
 
   async update(groupId: string, userId: string, dto: UpdateGroupDto) {
@@ -273,12 +273,32 @@ export class GroupsService {
   async updateMemberRole(groupId: string, userId: string, targetUserId: string, role: GroupRole) {
     await this.verifyGroupRole(groupId, userId, [GroupRole.OWNER, GroupRole.ADMIN]);
 
-    const target = await this.prisma.groupMember.findUnique({
-      where: { groupId_userId: { groupId, userId: targetUserId } },
-    });
+    if (userId === targetUserId) {
+      throw new ForbiddenException({ code: 'CANNOT_CHANGE_OWN_ROLE' });
+    }
+
+    const [requester, target] = await Promise.all([
+      this.prisma.groupMember.findUnique({
+        where: { groupId_userId: { groupId, userId } },
+      }),
+      this.prisma.groupMember.findUnique({
+        where: { groupId_userId: { groupId, userId: targetUserId } },
+      }),
+    ]);
+
     if (!target) throw new NotFoundException({ code: 'MEMBER_NOT_FOUND' });
     if (target.role === 'OWNER') {
       throw new ForbiddenException({ code: 'CANNOT_CHANGE_OWNER_ROLE' });
+    }
+
+    // Admin can only manage members, not admins
+    if (requester?.role === 'ADMIN') {
+      if (role === 'ADMIN') {
+        throw new ForbiddenException({ code: 'INSUFFICIENT_GROUP_ROLE' });
+      }
+      if (target.role === 'ADMIN') {
+        throw new ForbiddenException({ code: 'CANNOT_CHANGE_ADMIN_ROLE' });
+      }
     }
 
     return this.prisma.groupMember.update({
@@ -290,12 +310,27 @@ export class GroupsService {
   async kickMember(groupId: string, userId: string, targetUserId: string) {
     await this.verifyGroupRole(groupId, userId, [GroupRole.OWNER, GroupRole.ADMIN]);
 
-    const target = await this.prisma.groupMember.findUnique({
-      where: { groupId_userId: { groupId, userId: targetUserId } },
-    });
+    if (userId === targetUserId) {
+      throw new ForbiddenException({ code: 'CANNOT_KICK_YOURSELF' });
+    }
+
+    const [requester, target] = await Promise.all([
+      this.prisma.groupMember.findUnique({
+        where: { groupId_userId: { groupId, userId } },
+      }),
+      this.prisma.groupMember.findUnique({
+        where: { groupId_userId: { groupId, userId: targetUserId } },
+      }),
+    ]);
+
     if (!target) throw new NotFoundException({ code: 'MEMBER_NOT_FOUND' });
     if (target.role === 'OWNER') {
       throw new ForbiddenException({ code: 'CANNOT_KICK_OWNER' });
+    }
+
+    // Admin can only kick members, not admins
+    if (requester?.role === 'ADMIN' && target.role === 'ADMIN') {
+      throw new ForbiddenException({ code: 'CANNOT_KICK_ADMIN' });
     }
 
     await this.prisma.$transaction([

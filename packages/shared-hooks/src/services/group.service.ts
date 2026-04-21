@@ -20,6 +20,7 @@ export interface UpdateGroupData {
   name?: string;
   description?: string;
   avatarUrl?: string;
+  privacy?: 'PUBLIC' | 'PRIVATE';
 }
 
 export const groupService = {

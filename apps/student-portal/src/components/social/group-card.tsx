@@ -29,7 +29,8 @@ interface GroupCardProps {
 
 export function GroupCard({ group }: GroupCardProps) {
   const t = useTranslations('groups');
-  const joinGroup = useJoinGroup();
+  const isPrivate = group.privacy === 'PRIVATE';
+  const joinGroup = useJoinGroup(isPrivate);
 
   const initials = group.name
     .split(' ')
@@ -44,8 +45,6 @@ export function GroupCard({ group }: GroupCardProps) {
     .join('')
     .slice(0, 2)
     .toUpperCase();
-
-  const isPrivate = group.privacy === 'PRIVATE';
   const isMember = group.isMember === true;
   const isPending = group.joinRequestStatus === 'PENDING';
 

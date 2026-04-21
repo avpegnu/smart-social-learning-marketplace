@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Lock, Globe, Users, Loader2, Check } from 'lucide-react';
+import { Lock, Globe, Users, Loader2, Check, Settings, BookOpen } from 'lucide-react';
 import { Card, CardContent, Avatar, AvatarImage, AvatarFallback, Button, Badge } from '@shared/ui';
 import { useJoinGroup, useLeaveGroup } from '@shared/hooks';
 import { Link } from '@/i18n/navigation';
@@ -19,6 +19,7 @@ interface GroupDetail {
   privacy: 'PUBLIC' | 'PRIVATE';
   memberCount: number;
   owner: GroupOwner;
+  courseId?: string;
   isMember?: boolean;
   userRole?: 'OWNER' | 'ADMIN' | 'MEMBER' | null;
   joinRequestStatus?: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
@@ -27,17 +28,20 @@ interface GroupDetail {
 
 interface GroupHeaderProps {
   group: GroupDetail;
+  onSettingsClick?: () => void;
 }
 
-export function GroupHeader({ group }: GroupHeaderProps) {
+export function GroupHeader({ group, onSettingsClick }: GroupHeaderProps) {
   const t = useTranslations('groups');
-  const joinGroup = useJoinGroup();
+  const joinGroup = useJoinGroup(group.privacy === 'PRIVATE');
   const leaveGroup = useLeaveGroup();
 
   const isPrivate = group.privacy === 'PRIVATE';
   const isMember = group.isMember === true;
   const isOwner = group.userRole === 'OWNER';
   const isPending = group.joinRequestStatus === 'PENDING';
+  const isCourseGroup = !!group.courseId;
+  const showSettingsButton = isOwner && !isCourseGroup;
 
   const initials = group.name
     .split(' ')
@@ -112,6 +116,12 @@ export function GroupHeader({ group }: GroupHeaderProps) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold sm:text-2xl">{group.name}</h1>
+              {isCourseGroup && (
+                <Badge variant="default" className="gap-1 text-xs">
+                  <BookOpen className="h-3 w-3" />
+                  {t('courseGroup')}
+                </Badge>
+              )}
               <Badge variant="secondary" className="gap-1 text-xs">
                 {isPrivate ? <Lock className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
                 {isPrivate ? t('private') : t('public')}
@@ -144,7 +154,15 @@ export function GroupHeader({ group }: GroupHeaderProps) {
             </div>
           </div>
 
-          <div className="shrink-0">{renderActionButton()}</div>
+          <div className="flex items-center gap-2">
+            {showSettingsButton && (
+              <Button variant="ghost" size="sm" onClick={onSettingsClick} className="gap-1">
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('settings')}</span>
+              </Button>
+            )}
+            <div>{renderActionButton()}</div>
+          </div>
         </div>
       </CardContent>
     </Card>
