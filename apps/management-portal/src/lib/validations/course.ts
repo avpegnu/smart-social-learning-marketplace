@@ -7,7 +7,7 @@ export const courseBasicsSchema = z.object({
   shortDescription: z.string().max(200).optional().or(z.literal('')),
   description: z.string().min(50).optional().or(z.literal('')),
   categoryId: z.string().min(1),
-  level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT']),
+  level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'ALL_LEVELS']),
   language: z.string().min(1),
   thumbnailUrl: z.string().url().optional().or(z.literal('')),
   promoVideoUrl: z.string().url().optional().or(z.literal('')),

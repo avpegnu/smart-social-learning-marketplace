@@ -96,6 +96,7 @@ export enum CourseLevel {
   BEGINNER = 'BEGINNER',
   INTERMEDIATE = 'INTERMEDIATE',
   ADVANCED = 'ADVANCED',
+  ALL_LEVELS = 'ALL_LEVELS',
 }
 
 export enum CourseStatus {

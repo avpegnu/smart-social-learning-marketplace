@@ -180,7 +180,7 @@ export function StepBasics({
                 { value: 'BEGINNER', label: t('beginner') },
                 { value: 'INTERMEDIATE', label: t('intermediate') },
                 { value: 'ADVANCED', label: t('advanced') },
-                { value: 'EXPERT', label: t('expert') },
+                { value: 'ALL_LEVELS', label: t('allLevels') },
               ]}
             />
             {errors.level && <p className="text-destructive text-sm">{errors.level.message}</p>}
