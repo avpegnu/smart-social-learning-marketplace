@@ -230,6 +230,51 @@ export function useDeleteTag() {
   });
 }
 
+export function useAdminCommissionTiers() {
+  return useQuery({
+    queryKey: ['admin', 'commission-tiers'],
+    queryFn: () => adminService.getCommissionTiers(),
+  });
+}
+
+export function useCreateCommissionTier() {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: (data: { minRevenue: number; rate: number }) =>
+      adminService.createCommissionTier(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'commission-tiers'] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useDeleteCommissionTier() {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: (id: string) => adminService.deleteCommissionTier(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'commission-tiers'] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useUpdateCommissionTier() {
+  const queryClient = useQueryClient();
+  const getErrorMessage = useApiError();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { minRevenue: number; rate: number } }) =>
+      adminService.updateCommissionTier(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'commission-tiers'] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
 export function useUpdateSetting() {
   const queryClient = useQueryClient();
   const getErrorMessage = useApiError();

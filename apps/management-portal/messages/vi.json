@@ -327,7 +327,15 @@
     "disabled": "Tắt",
     "save": "Lưu",
     "saving": "Đang lưu...",
-    "settingSaved": "Đã lưu cài đặt"
+    "settingSaved": "Đã lưu cài đặt",
+    "commissionTiers": "Bậc hoa hồng",
+    "commissionTiersDesc": "Ghi đè tỷ lệ mặc định cho giảng viên có doanh thu vượt quá ngưỡng nhất định",
+    "addNewTier": "Thêm bậc mới",
+    "minRevenue": "Doanh thu tối thiểu",
+    "rate": "Tỷ lệ (%)",
+    "noTiersConfigured": "Chưa cấu hình bậc nào",
+    "minRevenueNegative": "Doanh thu tối thiểu không thể âm",
+    "rateInvalid": "Tỷ lệ phải từ 0-100%"
   },
   "adminCourses": {
     "pageTitle": "Quản lý khóa học",

@@ -327,7 +327,15 @@
     "disabled": "Disabled",
     "save": "Save",
     "saving": "Saving...",
-    "settingSaved": "Setting saved"
+    "settingSaved": "Setting saved",
+    "commissionTiers": "Commission Tiers",
+    "commissionTiersDesc": "Instructors with revenue above a threshold get this commission rate instead of the default",
+    "addNewTier": "Add New Tier",
+    "minRevenue": "Min Revenue",
+    "rate": "Rate (%)",
+    "noTiersConfigured": "No tiers configured",
+    "minRevenueNegative": "Min revenue cannot be negative",
+    "rateInvalid": "Rate must be between 0-100%"
   },
   "adminCourses": {
     "pageTitle": "Course Management",

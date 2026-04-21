@@ -106,6 +106,15 @@ export class AdminContentController {
     return this.service.createCommissionTier(dto);
   }
 
+  @Patch('commission-tiers/:id')
+  @ApiOperation({ summary: 'Update commission tier' })
+  async updateCommissionTier(
+    @Param('id', ParseCuidPipe) id: string,
+    @Body() dto: CreateCommissionTierDto,
+  ) {
+    return this.service.updateCommissionTier(id, dto);
+  }
+
   @Delete('commission-tiers/:id')
   @ApiOperation({ summary: 'Delete commission tier' })
   async deleteCommissionTier(@Param('id', ParseCuidPipe) id: string) {

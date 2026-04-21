@@ -121,6 +121,13 @@ export class AdminContentService {
     });
   }
 
+  async updateCommissionTier(id: string, dto: CreateCommissionTierDto) {
+    return this.prisma.commissionTier.update({
+      where: { id },
+      data: { minRevenue: dto.minRevenue, rate: dto.rate },
+    });
+  }
+
   async deleteCommissionTier(id: string) {
     return this.prisma.commissionTier.delete({ where: { id } });
   }

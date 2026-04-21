@@ -56,6 +56,14 @@ export const adminService = {
   updateTag: (id: string, data: { name: string }) => apiClient.patch(`/admin/tags/${id}`, data),
   deleteTag: (id: string) => apiClient.del(`/admin/tags/${id}`),
 
+  // Commission Tiers
+  getCommissionTiers: () => apiClient.get('/admin/commission-tiers'),
+  createCommissionTier: (data: { minRevenue: number; rate: number }) =>
+    apiClient.post('/admin/commission-tiers', data),
+  updateCommissionTier: (id: string, data: { minRevenue: number; rate: number }) =>
+    apiClient.patch(`/admin/commission-tiers/${id}`, data),
+  deleteCommissionTier: (id: string) => apiClient.del(`/admin/commission-tiers/${id}`),
+
   // Placement Questions
   getPlacementQuestions: (params?: Record<string, string>) =>
     apiClient.get('/admin/placement-questions', params),
