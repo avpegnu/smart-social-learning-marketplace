@@ -158,10 +158,17 @@ export function useCreateComment() {
     mutationFn: ({ postId, data }: { postId: string; data: CreateCommentData }) =>
       socialService.createComment(postId, data),
     onMutate: async ({ postId, data }) => {
-      await queryClient.cancelQueries({ queryKey: ['social', 'posts', postId, 'comments'] });
-      const prevComments = queryClient.getQueryData(['social', 'posts', postId, 'comments']);
+      await queryClient.cancelQueries({
+        queryKey: ['social', 'posts', postId, 'comments'],
+        exact: false,
+      });
 
-      // Optimistically add comment
+      const queries = queryClient.getQueriesData({
+        queryKey: ['social', 'posts', postId, 'comments'],
+        exact: false,
+      });
+      const prevComments = queries.length > 0 ? queries[0][1] : null;
+
       const tempCommentId = `temp-${Date.now()}`;
       const optimisticComment = {
         id: tempCommentId,
@@ -172,15 +179,17 @@ export function useCreateComment() {
         replies: [],
       };
 
-      queryClient.setQueryData(['social', 'posts', postId, 'comments'], (oldData: unknown) => {
-        const d = oldData as { data?: unknown[] } | undefined;
-        if (d?.data && Array.isArray(d.data)) {
-          return {
-            ...d,
-            data: [...d.data, optimisticComment],
-          };
-        }
-        return oldData;
+      queries.forEach(([key]) => {
+        queryClient.setQueryData(key, (oldData: unknown) => {
+          const d = oldData as { data?: unknown[] } | undefined;
+          if (d?.data && Array.isArray(d.data)) {
+            return {
+              ...d,
+              data: [...d.data, optimisticComment],
+            };
+          }
+          return oldData;
+        });
       });
 
       return { prevComments };
@@ -194,10 +203,13 @@ export function useCreateComment() {
     },
     onError: (error, vars, context) => {
       if (context?.prevComments) {
-        queryClient.setQueryData(
-          ['social', 'posts', vars.postId, 'comments'],
-          context.prevComments,
-        );
+        const queries = queryClient.getQueriesData({
+          queryKey: ['social', 'posts', vars.postId, 'comments'],
+          exact: false,
+        });
+        queries.forEach(([key]) => {
+          queryClient.setQueryData(key, context.prevComments);
+        });
       }
       toast.error(getErrorMessage(error));
     },
