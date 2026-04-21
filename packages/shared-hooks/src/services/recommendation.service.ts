@@ -14,18 +14,17 @@ export interface RecommendedCourse {
   avgRating: number;
   totalStudents: number;
   totalLessons: number;
+  totalDuration: number;
   price: number;
   originalPrice: number | null;
   level: string;
+  reviewCount: number;
   score: number;
   reason: string;
   instructor: {
     id: string;
     fullName: string;
     avatarUrl: string | null;
-  };
-  _count: {
-    reviews: number;
   };
 }
 

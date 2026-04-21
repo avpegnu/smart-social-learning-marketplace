@@ -24,9 +24,8 @@ const COURSE_SELECT = {
     },
   },
   totalLessons: true,
-  _count: {
-    select: { reviews: true },
-  },
+  totalDuration: true,
+  reviewCount: true,
 } as const;
 
 @Injectable()
