@@ -234,6 +234,28 @@ export class GroupsService {
     return { left: true };
   }
 
+  async addMemberByCourseId(courseId: string, userId: string) {
+    const group = await this.prisma.group.findUnique({
+      where: { courseId },
+    });
+    if (!group) return;
+
+    const existingMember = await this.prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId: group.id, userId } },
+    });
+    if (existingMember) return;
+
+    await this.prisma.$transaction([
+      this.prisma.groupMember.create({
+        data: { groupId: group.id, userId, role: 'MEMBER' },
+      }),
+      this.prisma.group.update({
+        where: { id: group.id },
+        data: { memberCount: { increment: 1 } },
+      }),
+    ]);
+  }
+
   async getMembers(groupId: string, query: PaginationDto) {
     const [members, total] = await Promise.all([
       this.prisma.groupMember.findMany({

@@ -9,6 +9,7 @@ import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { QueueService } from '@/modules/jobs/queue.service';
 import { PlatformSettingsService } from '@/modules/platform-settings/platform-settings.service';
+import { GroupsService } from '@/modules/social/groups/groups.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import { generateSlug, generateUniqueSlug } from '@/common/utils/slug.util';
 import type { QueryCoursesDto } from '../dto/query-courses.dto';
@@ -22,6 +23,7 @@ export class CourseManagementService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(QueueService) private readonly queue: QueueService,
     @Inject(PlatformSettingsService) private readonly platformSettings: PlatformSettingsService,
+    @Inject(GroupsService) private readonly groupsService: GroupsService,
   ) {}
 
   // ==================== CRUD ====================
@@ -42,7 +44,7 @@ export class CourseManagementService {
         ? await this.findOrCreateTags(tags)
         : [];
 
-    return this.prisma.course.create({
+    const course = await this.prisma.course.create({
       data: {
         ...courseData,
         slug,
@@ -62,6 +64,15 @@ export class CourseManagementService {
         courseTags: { include: { tag: true } },
       },
     });
+
+    // Create associated group for the course
+    await this.groupsService.create(instructorId, {
+      name: dto.title,
+      description: `Discussion group for ${dto.title}`,
+      courseId: course.id,
+    });
+
+    return course;
   }
 
   async update(courseId: string, instructorId: string, dto: UpdateCourseDto) {

@@ -4,6 +4,7 @@ import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { QueueService } from '@/modules/jobs/queue.service';
 import { PlatformSettingsService } from '@/modules/platform-settings/platform-settings.service';
+import { GroupsService } from '@/modules/social/groups/groups.service';
 import { EARNING_HOLD_DAYS } from '@/common/constants/app.constant';
 import type { SepayWebhookDto } from './dto/sepay-webhook.dto';
 
@@ -14,6 +15,7 @@ export class WebhooksService {
     @Inject(ConfigService) private readonly config: ConfigService,
     @Inject(QueueService) private readonly queue: QueueService,
     @Inject(PlatformSettingsService) private readonly platformSettings: PlatformSettingsService,
+    @Inject(GroupsService) private readonly groupsService: GroupsService,
   ) {}
 
   async handleSepayWebhook(authorization: string, payload: SepayWebhookDto) {
@@ -166,7 +168,7 @@ export class WebhooksService {
     // Notify buyer: order completed
     this.queue.addNotification(userId, 'ORDER_COMPLETED', { orderId });
 
-    // Notify instructors: new enrollment
+    // Add user to course groups
     const courseIds = [...new Set(items.filter((i) => i.courseId).map((i) => i.courseId!))];
     if (courseIds.length > 0) {
       const courses = await this.prisma.course.findMany({
@@ -174,6 +176,7 @@ export class WebhooksService {
         select: { id: true, title: true, instructorId: true },
       });
       for (const course of courses) {
+        await this.groupsService.addMemberByCourseId(course.id, userId);
         this.queue.addNotification(course.instructorId, 'COURSE_ENROLLED', {
           courseId: course.id,
           courseTitle: course.title,

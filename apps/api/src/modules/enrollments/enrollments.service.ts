@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { QueueService } from '@/modules/jobs/queue.service';
+import { GroupsService } from '@/modules/social/groups/groups.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
 
@@ -15,6 +16,7 @@ export class EnrollmentsService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(QueueService) private readonly queue: QueueService,
+    @Inject(GroupsService) private readonly groupsService: GroupsService,
   ) {}
 
   async checkEnrollment(userId: string, courseId: string) {
@@ -81,8 +83,8 @@ export class EnrollmentsService {
     });
     if (existing) throw new ConflictException({ code: 'ALREADY_ENROLLED' });
 
-    return this.prisma.$transaction(async (tx) => {
-      const enrollment = await tx.enrollment.create({
+    const enrollment = await this.prisma.$transaction(async (tx) => {
+      const result = await tx.enrollment.create({
         data: { userId, courseId, type: 'FULL' },
       });
       await tx.course.update({
@@ -90,13 +92,18 @@ export class EnrollmentsService {
         data: { totalStudents: { increment: 1 } },
       });
 
-      // Notify instructor about new enrollment
-      this.queue.addNotification(course.instructorId, 'COURSE_ENROLLED', {
-        courseId,
-        courseTitle: course.title,
-      });
-
-      return enrollment;
+      return result;
     });
+
+    // Add to course group (after transaction commits)
+    await this.groupsService.addMemberByCourseId(courseId, userId);
+
+    // Notify instructor about new enrollment
+    this.queue.addNotification(course.instructorId, 'COURSE_ENROLLED', {
+      courseId,
+      courseTitle: course.title,
+    });
+
+    return enrollment;
   }
 }
