@@ -278,7 +278,8 @@
     "reply": "Reply",
     "uploading": "Uploading...",
     "social": "Social",
-    "report": "Report"
+    "report": "Report",
+    "postNotFound": "Post not found or has been deleted"
   },
   "chat": {
     "title": "Messages",

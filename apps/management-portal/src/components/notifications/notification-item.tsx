@@ -12,6 +12,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { formatRelativeTime } from '@shared/utils';
+import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
 
@@ -38,6 +39,54 @@ const NOTIFICATION_ICONS: Record<string, { icon: LucideIcon; color: string; bg: 
 };
 
 const DEFAULT_ICON = { icon: Bell, color: 'text-gray-500', bg: 'bg-gray-500/10' };
+
+function getNotificationUrl(notification: NotificationData): string | null {
+  switch (notification.type) {
+    // Instructor course notifications
+    case 'COURSE_ENROLLED':
+    case 'COURSE_APPROVED':
+    case 'COURSE_REJECTED':
+      return '/instructor/courses';
+
+    // Instructor withdrawal notifications
+    case 'WITHDRAWAL_COMPLETED':
+    case 'WITHDRAWAL_REJECTED':
+      return '/instructor/withdrawals';
+
+    // Instructor Q&A notifications
+    case 'QUESTION_ANSWERED':
+    case 'ANSWER_VOTED':
+      return '/instructor/qna';
+
+    // Admin-only course review
+    case 'COURSE_PENDING_REVIEW':
+      return '/admin/approvals/courses';
+
+    // Admin withdrawal review
+    case 'WITHDRAWAL_PENDING':
+      return '/admin/withdrawals';
+
+    // Admin report notifications
+    case 'NEW_REPORT':
+    case 'REPORT_RESOLVED':
+      return '/admin/reports';
+
+    // Admin instructor application
+    case 'NEW_APPLICATION':
+      return '/admin/approvals/instructors';
+
+    // Student/social notifications not relevant to management portal
+    case 'FOLLOW':
+    case 'POST_LIKE':
+    case 'POST_COMMENT':
+    case 'NEW_MESSAGE':
+    case 'ORDER_COMPLETED':
+    case 'ORDER_EXPIRED':
+    case 'SYSTEM':
+    default:
+      return null;
+  }
+}
 
 export interface NotificationData {
   id: string;
@@ -113,16 +162,16 @@ export function NotificationItem({
   const iconConfig = NOTIFICATION_ICONS[notification.type] || DEFAULT_ICON;
   const Icon = iconConfig.icon;
   const message = getNotificationMessage(notification);
+  const url = getNotificationUrl(notification);
 
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'hover:bg-accent flex w-full items-start gap-3 rounded-lg p-3 text-left transition-colors',
-        !notification.isRead && 'bg-accent/50',
-        compact ? 'py-2.5' : 'py-3',
-      )}
-    >
+  const className = cn(
+    'hover:bg-accent flex w-full items-start gap-3 rounded-lg p-3 text-left transition-colors',
+    !notification.isRead && 'bg-accent/50',
+    compact ? 'py-2.5' : 'py-3',
+  );
+
+  const content = (
+    <>
       <div
         className={cn(
           'flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
@@ -138,6 +187,20 @@ export function NotificationItem({
         </p>
       </div>
       {!notification.isRead && <div className="mt-2 h-2 w-2 shrink-0 rounded-full bg-blue-500" />}
+    </>
+  );
+
+  if (url) {
+    return (
+      <Link href={url} onClick={onClick} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button onClick={onClick} className={className}>
+      {content}
     </button>
   );
 }

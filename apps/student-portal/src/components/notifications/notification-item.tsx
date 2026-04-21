@@ -12,6 +12,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { formatRelativeTime } from '@shared/utils';
+import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
 
@@ -46,6 +47,53 @@ const NOTIFICATION_ICONS: Record<string, { icon: LucideIcon; color: string; bg: 
 };
 
 const DEFAULT_ICON = { icon: Bell, color: 'text-gray-500', bg: 'bg-gray-500/10' };
+
+function getNotificationUrl(notification: NotificationData): string | null {
+  const d = notification.data;
+
+  switch (notification.type) {
+    // Social
+    case 'FOLLOW':
+      return d.userId ? `/profile/${d.userId as string}` : null;
+    case 'POST_LIKE':
+    case 'POST_COMMENT':
+      return d.postId ? `/social/posts/${d.postId as string}` : '/social';
+
+    // Q&A
+    case 'QUESTION_ANSWERED':
+    case 'ANSWER_VOTED':
+      return d.questionId ? `/qna/${d.questionId as string}` : '/qna';
+
+    // Orders
+    case 'ORDER_COMPLETED':
+      return d.orderId ? `/orders/${d.orderId as string}` : '/orders';
+    case 'ORDER_EXPIRED':
+      return '/orders';
+
+    // Course (navigate to my-learning as safe fallback)
+    case 'COURSE_ENROLLED':
+    case 'COURSE_APPROVED':
+    case 'COURSE_REJECTED':
+      return '/my-learning';
+
+    // Chat
+    case 'NEW_MESSAGE':
+      return '/chat';
+
+    // Groups (SYSTEM sub-types)
+    case 'SYSTEM': {
+      const subType = d.type as string;
+      if (subType === 'GROUP_JOIN_REQUEST' || subType === 'GROUP_JOIN_APPROVED') {
+        return d.groupId ? `/social/groups/${d.groupId as string}` : '/social/groups';
+      }
+      return null;
+    }
+
+    // Admin-only types — no route in student-portal
+    default:
+      return null;
+  }
+}
 
 export interface NotificationData {
   id: string;
@@ -127,16 +175,16 @@ export function NotificationItem({ notification, compact, onClick }: Notificatio
   const iconConfig = NOTIFICATION_ICONS[notification.type] || DEFAULT_ICON;
   const Icon = iconConfig.icon;
   const message = getNotificationMessage(notification);
+  const url = getNotificationUrl(notification);
 
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'hover:bg-accent flex w-full items-start gap-3 rounded-lg p-3 text-left transition-colors',
-        !notification.isRead && 'bg-accent/50',
-        compact ? 'py-2.5' : 'py-3',
-      )}
-    >
+  const className = cn(
+    'hover:bg-accent flex w-full items-start gap-3 rounded-lg p-3 text-left transition-colors',
+    !notification.isRead && 'bg-accent/50',
+    compact ? 'py-2.5' : 'py-3',
+  );
+
+  const content = (
+    <>
       <div
         className={cn(
           'flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
@@ -152,6 +200,20 @@ export function NotificationItem({ notification, compact, onClick }: Notificatio
         </p>
       </div>
       {!notification.isRead && <div className="mt-2 h-2 w-2 shrink-0 rounded-full bg-blue-500" />}
+    </>
+  );
+
+  if (url) {
+    return (
+      <Link href={url} onClick={onClick} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button onClick={onClick} className={className}>
+      {content}
     </button>
   );
 }

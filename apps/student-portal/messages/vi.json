@@ -278,7 +278,8 @@
     "reply": "Trả lời",
     "uploading": "Đang tải lên...",
     "social": "Mạng xã hội",
-    "report": "Báo cáo"
+    "report": "Báo cáo",
+    "postNotFound": "Bài viết không tồn tại hoặc đã bị xóa"
   },
   "chat": {
     "title": "Tin nhắn",

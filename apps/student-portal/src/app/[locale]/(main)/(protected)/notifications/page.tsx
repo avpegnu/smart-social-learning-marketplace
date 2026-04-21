@@ -55,9 +55,7 @@ export default function NotificationsPage() {
   }, [handleObserver]);
 
   const handleItemClick = (notification: NotificationData) => {
-    if (!notification.isRead) {
-      markRead.mutate(notification.id);
-    }
+    if (!notification.isRead) markRead.mutate(notification.id);
   };
 
   const tabs: { key: FilterTab; label: string }[] = [

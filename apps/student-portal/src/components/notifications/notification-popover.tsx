@@ -45,9 +45,7 @@ export function NotificationPopover() {
   }, [open]);
 
   const handleItemClick = (notification: NotificationData) => {
-    if (!notification.isRead) {
-      markRead.mutate(notification.id);
-    }
+    if (!notification.isRead) markRead.mutate(notification.id);
     setOpen(false);
   };
 
