@@ -12,9 +12,12 @@ const jetbrainsMono = JetBrains_Mono({
   variable: '--font-mono',
 });
 
+// Root layout sits outside the [locale] route segment and cannot read
+// next-intl messages. We keep an English fallback here; per-locale metadata
+// can be added later via generateMetadata() in app/[locale]/layout.tsx.
 export const metadata: Metadata = {
   title: 'Smart Social Learning Marketplace',
-  description: 'Nền tảng học trực tuyến kết hợp mạng xã hội và AI Tutor',
+  description: 'Online learning platform combining social network and AI Tutor',
   icons: { icon: '/favicon.svg' },
 };
 
