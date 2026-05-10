@@ -329,6 +329,8 @@ export { useAuthStore } from './stores/auth-store';
 export { useCartStore } from './stores/cart-store';
 export { useUIStore } from './stores/ui-store';
 export { useSidebarStore } from './stores/sidebar-store';
+export { useChatWindowsStore } from './stores/chat-windows-store';
+export type { ChatWindow } from './stores/chat-windows-store';
 
 // Providers
 export { AuthProvider } from './providers/auth-provider';
