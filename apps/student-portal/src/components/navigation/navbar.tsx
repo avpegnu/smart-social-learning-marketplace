@@ -121,9 +121,6 @@ export function Navbar() {
             >
               <Search className="h-4 w-4 shrink-0" />
               <span className="flex-1 text-left">{t('searchPlaceholder')}</span>
-              <kbd className="bg-background hidden rounded border px-1.5 py-0.5 font-mono text-[10px] lg:inline-block">
-                ⌘K
-              </kbd>
             </button>
           </div>
 
@@ -376,6 +373,7 @@ export function Navbar() {
                     ? [
                         { href: '/my-learning', label: t('myLearning') },
                         { href: '/social', label: t('social') },
+                        { href: '/social/groups', label: t('groups') },
                         { href: '/chat', label: t('chat') },
                         { href: '/qna', label: t('qna') },
                         { href: '/ai-tutor', label: t('aiTutor') },

@@ -2,9 +2,10 @@
 
 import { useRef, useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Loader2, FileText } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@shared/ui';
+import { Loader2, FileText, Users, TrendingUp, UserPlus } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent, Button } from '@shared/ui';
 import { useAuthStore, useFeed, usePublicFeed } from '@shared/hooks';
+import { Link } from '@/i18n/navigation';
 import { PostComposer } from '@/components/social/post-composer';
 import { PostCard } from '@/components/social/post-card';
 import { TrendingSidebar } from '@/components/social/trending-sidebar';
@@ -224,6 +225,30 @@ export default function SocialPage() {
 
         {/* Center feed */}
         <div className="min-w-0">
+          {/* Mobile-only quick links — sidebars hidden on small screens */}
+          <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden">
+            <Link href="/social/groups">
+              <Button variant="outline" size="sm" className="shrink-0 gap-1.5 whitespace-nowrap">
+                <Users className="h-4 w-4" />
+                {t('groups')}
+              </Button>
+            </Link>
+            <a href="#mobile-trending">
+              <Button variant="outline" size="sm" className="shrink-0 gap-1.5 whitespace-nowrap">
+                <TrendingUp className="h-4 w-4" />
+                {t('trending')}
+              </Button>
+            </a>
+            {isAuthenticated && (
+              <a href="#mobile-suggestions">
+                <Button variant="outline" size="sm" className="shrink-0 gap-1.5 whitespace-nowrap">
+                  <UserPlus className="h-4 w-4" />
+                  {t('suggestions')}
+                </Button>
+              </a>
+            )}
+          </div>
+
           {isAuthenticated && (
             <div className="mb-6">
               <PostComposer />
@@ -246,6 +271,18 @@ export default function SocialPage() {
           ) : (
             <PublicFeed />
           )}
+
+          {/* Mobile-only sidebars stacked below feed */}
+          <div className="mt-6 flex flex-col gap-4 lg:hidden">
+            <div id="mobile-trending" className="scroll-mt-20">
+              <TrendingSidebar />
+            </div>
+            {isAuthenticated && (
+              <div id="mobile-suggestions" className="scroll-mt-20">
+                <SuggestionsSidebar />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right sidebar */}
