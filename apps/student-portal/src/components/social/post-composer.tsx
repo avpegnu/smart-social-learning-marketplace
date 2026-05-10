@@ -189,7 +189,7 @@ export function PostComposer() {
               </div>
             )}
 
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -210,7 +210,9 @@ export function PostComposer() {
                 ) : (
                   <ImageIcon className="h-4 w-4" />
                 )}
-                {isUploading ? t('uploading') : t('addImage')}
+                <span className="hidden sm:inline">
+                  {isUploading ? t('uploading') : t('addImage')}
+                </span>
               </Button>
               <Button
                 variant="ghost"
@@ -219,9 +221,9 @@ export function PostComposer() {
                 onClick={() => setShowCode(!showCode)}
               >
                 <Code2 className="h-4 w-4" />
-                {t('addCode')}
+                <span className="hidden sm:inline">{t('addCode')}</span>
               </Button>
-              <div className="ml-auto">
+              <div className="ml-auto shrink-0">
                 <Button
                   size="sm"
                   className="gap-1.5"

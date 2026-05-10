@@ -114,8 +114,8 @@ export function GroupHeader({ group, onSettingsClick }: GroupHeaderProps) {
           </Avatar>
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold sm:text-2xl">{group.name}</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl font-bold wrap-break-word sm:text-2xl">{group.name}</h1>
               {isCourseGroup && (
                 <Badge variant="default" className="gap-1 text-xs">
                   <BookOpen className="h-3 w-3" />
