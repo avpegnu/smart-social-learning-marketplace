@@ -1,3 +1,4 @@
+import { FloatingChatWindows } from '@shared/ui';
 import { Navbar } from '@/components/navigation/navbar';
 import { SocketProvider } from '@/components/providers/socket-provider';
 
@@ -7,6 +8,7 @@ export default function FullscreenLayout({ children }: { children: React.ReactNo
       <SocketProvider />
       <Navbar />
       <main className="flex-1 overflow-hidden">{children}</main>
+      <FloatingChatWindows />
     </div>
   );
 }

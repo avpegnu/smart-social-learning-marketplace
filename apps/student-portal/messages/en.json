@@ -284,6 +284,8 @@
   },
   "chat": {
     "title": "Messages",
+    "popoverTitle": "Chats",
+    "seeAllInMessenger": "See all in Messenger",
     "newGroup": "New group",
     "groupName": "Group name",
     "selectMembers": "Select members",
@@ -302,7 +304,10 @@
     "selectConversation": "Select a conversation to start chatting",
     "send": "Send",
     "startChat": "Start chat",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "you": "You",
+    "minimize": "Minimize",
+    "close": "Close"
   },
   "cart": {
     "title": "Shopping Cart",

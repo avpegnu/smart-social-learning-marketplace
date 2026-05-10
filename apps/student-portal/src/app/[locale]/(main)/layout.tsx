@@ -1,3 +1,4 @@
+import { FloatingChatWindows } from '@shared/ui';
 import { Navbar } from '@/components/navigation/navbar';
 import { Footer } from '@/components/navigation/footer';
 import { MobileNav } from '@/components/navigation/mobile-nav';
@@ -11,6 +12,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <main className="flex-1 pb-16 md:pb-0">{children}</main>
       <Footer />
       <MobileNav />
+      <FloatingChatWindows />
     </div>
   );
 }

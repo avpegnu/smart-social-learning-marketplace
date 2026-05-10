@@ -36,6 +36,8 @@ import {
   useUserFollowers,
   useUserFollowing,
   useGetOrCreateConversation,
+  useChatWindowsStore,
+  useMediaQuery,
 } from '@shared/hooks';
 import { formatRelativeTime } from '@shared/utils';
 import { ReportDialog } from '@/components/feedback/report-dialog';
@@ -44,6 +46,9 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
   const { userId } = use(params);
   const t = useTranslations('profile');
   const currentUser = useAuthStore((s) => s.user);
+  const openChatWindow = useChatWindowsStore((s) => s.openWindow);
+  // Floating chat windows are desktop-only (sm+); mobile falls back to /chat route
+  const isDesktopChat = useMediaQuery('(min-width: 640px)');
 
   const { data: profileRaw, isLoading } = useUserProfile(userId);
   const profile = (
@@ -257,7 +262,12 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
                         {
                           onSuccess: (res) => {
                             const conv = (res as { data?: { id: string } })?.data;
-                            if (conv?.id) router.push(`/chat?id=${conv.id}`);
+                            if (!conv?.id) return;
+                            if (isDesktopChat) {
+                              openChatWindow(conv.id);
+                            } else {
+                              router.push(`/chat?id=${conv.id}`);
+                            }
                           },
                         },
                       )

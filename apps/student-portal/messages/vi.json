@@ -284,6 +284,8 @@
   },
   "chat": {
     "title": "Tin nhắn",
+    "popoverTitle": "Đoạn chat",
+    "seeAllInMessenger": "Xem tất cả trong Messenger",
     "newGroup": "Nhóm mới",
     "groupName": "Tên nhóm",
     "selectMembers": "Chọn thành viên",
@@ -302,7 +304,10 @@
     "selectConversation": "Chọn cuộc trò chuyện để bắt đầu",
     "send": "Gửi",
     "startChat": "Bắt đầu trò chuyện",
-    "cancel": "Hủy"
+    "cancel": "Hủy",
+    "you": "Bạn",
+    "minimize": "Thu nhỏ",
+    "close": "Đóng"
   },
   "cart": {
     "title": "Giỏ hàng",
