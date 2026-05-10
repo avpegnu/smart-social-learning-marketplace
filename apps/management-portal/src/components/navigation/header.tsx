@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import {
   Input,
   AvatarSimple,
+  ChatPopover,
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
@@ -88,6 +89,9 @@ export function Header({ variant = 'instructor' }: HeaderProps) {
             <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <Input placeholder={t('search')} className="w-64 pl-9" />
           </div>
+
+          {/* Chat — popover with floating windows; hidden on mobile */}
+          <ChatPopover className="hidden md:inline-flex" />
 
           {/* Notifications */}
           <NotificationPopover />

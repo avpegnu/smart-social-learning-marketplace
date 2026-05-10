@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useAuthStore, useAuthHydrated, useSidebarStore } from '@shared/hooks';
+import { FloatingChatWindows } from '@shared/ui';
 import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/navigation/sidebar';
 import { Header } from '@/components/navigation/header';
@@ -45,6 +46,7 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
       >
         <div className="mx-auto max-w-7xl overflow-x-auto p-4 md:p-6">{children}</div>
       </main>
+      <FloatingChatWindows />
     </div>
   );
 }

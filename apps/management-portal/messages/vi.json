@@ -1181,5 +1181,20 @@
     "title": "Thông báo",
     "markAllRead": "Đánh dấu đã đọc tất cả",
     "empty": "Chưa có thông báo nào"
+  },
+  "chat": {
+    "popoverTitle": "Đoạn chat",
+    "directMessage": "Nhắn riêng",
+    "searchPlaceholder": "Tìm kiếm...",
+    "messagePlaceholder": "Nhập tin nhắn...",
+    "online": "Trực tuyến",
+    "offline": "Ngoại tuyến",
+    "typing": "đang nhập...",
+    "noConversations": "Chưa có cuộc trò chuyện",
+    "noMessages": "Gửi tin nhắn để bắt đầu",
+    "send": "Gửi",
+    "you": "Bạn",
+    "minimize": "Thu nhỏ",
+    "close": "Đóng"
   }
 }

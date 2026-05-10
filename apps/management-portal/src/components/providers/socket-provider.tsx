@@ -1,8 +1,9 @@
 'use client';
 
-import { useNotificationSocket } from '@shared/hooks';
+import { useChatSocket, useNotificationSocket } from '@shared/hooks';
 
 export function SocketProvider() {
   useNotificationSocket();
+  useChatSocket();
   return null;
 }

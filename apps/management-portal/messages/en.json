@@ -1181,5 +1181,20 @@
     "title": "Notifications",
     "markAllRead": "Mark all as read",
     "empty": "No notifications yet"
+  },
+  "chat": {
+    "popoverTitle": "Chats",
+    "directMessage": "Direct message",
+    "searchPlaceholder": "Search...",
+    "messagePlaceholder": "Type a message...",
+    "online": "Online",
+    "offline": "Offline",
+    "typing": "is typing...",
+    "noConversations": "No conversations yet",
+    "noMessages": "Send a message to start the conversation",
+    "send": "Send",
+    "you": "You",
+    "minimize": "Minimize",
+    "close": "Close"
   }
 }
