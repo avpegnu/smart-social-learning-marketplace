@@ -16,6 +16,7 @@ import {
 import { Button, Badge, Skeleton } from '@shared/ui';
 import { CourseGrid } from '@/components/course/course-grid';
 import { RecommendationSection } from '@/components/course/recommendation-section';
+import { ScrollReveal } from '@/components/scroll-reveal';
 import { useCourses, useCategories } from '@shared/hooks';
 import { cn } from '@/lib/utils';
 
@@ -147,108 +148,118 @@ export default function HomePage() {
       </section>
 
       {/* Popular Courses */}
-      <section className="py-12 sm:py-16">
-        <div className="container mx-auto px-4">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold">{t('featuredTitle')}</h2>
-              <p className="text-muted-foreground mt-1">{t('featuredSubtitle')}</p>
+      <ScrollReveal>
+        <section className="py-12 sm:py-16">
+          <div className="container mx-auto px-4">
+            <div className="mb-8 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">{t('featuredTitle')}</h2>
+                <p className="text-muted-foreground mt-1">{t('featuredSubtitle')}</p>
+              </div>
+              <Link href="/courses?sort=popular">
+                <Button variant="ghost" className="gap-1">
+                  {t('viewAll')}
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
-            <Link href="/courses?sort=popular">
-              <Button variant="ghost" className="gap-1">
-                {t('viewAll')}
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </Link>
+            <CourseGrid
+              courses={popularCourses as never[]}
+              isLoading={popularLoading}
+              skeletonCount={4}
+            />
           </div>
-          <CourseGrid
-            courses={popularCourses as never[]}
-            isLoading={popularLoading}
-            skeletonCount={4}
-          />
-        </div>
-      </section>
+        </section>
+      </ScrollReveal>
 
       {/* New Courses */}
-      <section className="relative overflow-hidden py-12 sm:py-16">
-        <div className="from-primary/4 to-accent-violet/4 absolute inset-0 bg-linear-to-r" />
-        <div className="relative container mx-auto px-4">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold">{t('newCoursesTitle')}</h2>
-              <p className="text-muted-foreground mt-1">{t('newCoursesSubtitle')}</p>
+      <ScrollReveal>
+        <section className="relative overflow-hidden py-12 sm:py-16">
+          <div className="from-primary/4 to-accent-violet/4 absolute inset-0 bg-linear-to-r" />
+          <div className="relative container mx-auto px-4">
+            <div className="mb-8 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">{t('newCoursesTitle')}</h2>
+                <p className="text-muted-foreground mt-1">{t('newCoursesSubtitle')}</p>
+              </div>
+              <Link href="/courses?sort=newest">
+                <Button variant="ghost" className="gap-1">
+                  {t('viewAll')}
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
-            <Link href="/courses?sort=newest">
-              <Button variant="ghost" className="gap-1">
-                {t('viewAll')}
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </Link>
+            <CourseGrid
+              courses={newestCourses as never[]}
+              isLoading={newestLoading}
+              skeletonCount={4}
+            />
           </div>
-          <CourseGrid
-            courses={newestCourses as never[]}
-            isLoading={newestLoading}
-            skeletonCount={4}
-          />
-        </div>
-      </section>
+        </section>
+      </ScrollReveal>
 
       {/* Recommendations — only for logged-in users */}
-      <RecommendationSection
-        context="homepage"
-        limit={4}
-        title={t('recommendedTitle')}
-        subtitle={t('recommendedSubtitle')}
-        requireAuth
-      />
+      <ScrollReveal>
+        <RecommendationSection
+          context="homepage"
+          limit={4}
+          title={t('recommendedTitle')}
+          subtitle={t('recommendedSubtitle')}
+          requireAuth
+        />
+      </ScrollReveal>
 
       {/* Why Us */}
-      <section className="py-12 sm:py-16">
-        <div className="container mx-auto px-4">
-          <div className="mb-12 text-center">
-            <h2 className="text-2xl font-bold sm:text-3xl">{t('whyUs.title')}</h2>
-            <p className="text-muted-foreground mx-auto mt-2 max-w-2xl">{t('whyUs.subtitle')}</p>
-          </div>
-          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-3">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="bg-card border-border hover:shadow-primary/5 rounded-2xl border p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-              >
+      <ScrollReveal>
+        <section className="py-12 sm:py-16">
+          <div className="container mx-auto px-4">
+            <div className="mb-12 text-center">
+              <h2 className="text-2xl font-bold sm:text-3xl">{t('whyUs.title')}</h2>
+              <p className="text-muted-foreground mx-auto mt-2 max-w-2xl">{t('whyUs.subtitle')}</p>
+            </div>
+            <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-3">
+              {features.map((feature, index) => (
                 <div
-                  className={cn(
-                    'mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl',
-                    feature.color,
-                  )}
+                  key={index}
+                  className="bg-card border-border hover:shadow-primary/5 rounded-2xl border p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
                 >
-                  <feature.icon className="h-7 w-7" />
+                  <div
+                    className={cn(
+                      'mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl',
+                      feature.color,
+                    )}
+                  >
+                    <feature.icon className="h-7 w-7" />
+                  </div>
+                  <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
+                  <p className="text-muted-foreground text-sm">{feature.description}</p>
                 </div>
-                <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm">{feature.description}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </ScrollReveal>
 
       {/* Placement Test CTA */}
-      <section className="py-12 sm:py-16">
-        <div className="container mx-auto px-4">
-          <div className="from-primary/10 mx-auto max-w-3xl rounded-2xl border bg-gradient-to-r to-violet-500/10 p-8 text-center sm:p-12">
-            <div className="bg-primary/10 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full">
-              <Target className="text-primary h-7 w-7" />
+      <ScrollReveal>
+        <section className="py-12 sm:py-16">
+          <div className="container mx-auto px-4">
+            <div className="from-primary/10 mx-auto max-w-3xl rounded-2xl border bg-gradient-to-r to-violet-500/10 p-8 text-center sm:p-12">
+              <div className="bg-primary/10 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full">
+                <Target className="text-primary h-7 w-7" />
+              </div>
+              <h2 className="mb-2 text-xl font-bold sm:text-2xl">{tp('ctaTitle')}</h2>
+              <p className="text-muted-foreground mx-auto mb-6 max-w-lg">{tp('ctaDesc')}</p>
+              <Link href="/placement-test">
+                <Button size="lg" className="h-12 gap-2 rounded-full px-8">
+                  {tp('ctaButton')}
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
-            <h2 className="mb-2 text-xl font-bold sm:text-2xl">{tp('ctaTitle')}</h2>
-            <p className="text-muted-foreground mx-auto mb-6 max-w-lg">{tp('ctaDesc')}</p>
-            <Link href="/placement-test">
-              <Button size="lg" className="h-12 gap-2 rounded-full px-8">
-                {tp('ctaButton')}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
           </div>
-        </div>
-      </section>
+        </section>
+      </ScrollReveal>
     </div>
   );
 }
