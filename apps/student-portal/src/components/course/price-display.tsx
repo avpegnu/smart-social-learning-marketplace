@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@shared/utils';
 
@@ -11,7 +13,9 @@ interface PriceDisplayProps {
 }
 
 export function PriceDisplay({ price, originalPrice, size = 'sm', className }: PriceDisplayProps) {
+  const t = useTranslations('course');
   const discount = originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
+  const isFree = price === 0;
 
   const sizeClasses = {
     sm: 'text-base',
@@ -27,10 +31,12 @@ export function PriceDisplay({ price, originalPrice, size = 'sm', className }: P
 
   return (
     <div className={cn('flex flex-wrap items-center gap-2', className)}>
-      <span className={cn('text-foreground font-bold', sizeClasses[size])}>
-        {formatPrice(price)}
+      <span
+        className={cn('font-bold', isFree ? 'text-success' : 'text-foreground', sizeClasses[size])}
+      >
+        {isFree ? t('free') : formatPrice(price)}
       </span>
-      {originalPrice && originalPrice > price && (
+      {!isFree && originalPrice && originalPrice > price && (
         <>
           <span className={cn('text-muted-foreground line-through', originalSizeClasses[size])}>
             {formatPrice(originalPrice)}
