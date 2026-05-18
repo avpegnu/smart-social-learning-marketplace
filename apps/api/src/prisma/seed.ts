@@ -160,6 +160,7 @@ async function main() {
   for (const s of [
     { key: 'min_withdrawal_amount', value: 5000 },
     { key: 'order_expiry_minutes', value: 15 },
+    { key: 'earning_hold_minutes', value: 30 },
     { key: 'refund_period_days', value: 7 },
     { key: 'refund_max_progress', value: 0.1 },
     { key: 'ai_daily_limit', value: 10 },

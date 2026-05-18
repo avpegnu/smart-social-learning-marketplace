@@ -32,7 +32,6 @@ export const CACHE_TTL_LONG = 3600; // 1 hour
 
 // Order
 export const ORDER_EXPIRY_MINUTES = 15;
-export const EARNING_HOLD_DAYS = 7;
 
 // AI
 export const AI_DAILY_LIMIT = 10;

@@ -84,12 +84,14 @@ export class CronService {
     }
   }
 
-  // 3. Release available earnings (every 30 min)
+  // 3. Release earnings whose hold period has elapsed (every 30 min)
   @Cron('*/30 * * * *')
   async releaseAvailableEarnings() {
-    // Find all pending earnings and release immediately
     const pendingEarnings = await this.prisma.earning.findMany({
-      where: { status: 'PENDING' },
+      where: {
+        status: 'PENDING',
+        availableAt: { lte: new Date() },
+      },
       select: { id: true, instructorId: true, netAmount: true },
     });
 

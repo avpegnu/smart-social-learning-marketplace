@@ -5,8 +5,10 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { QueueService } from '@/modules/jobs/queue.service';
 import { PlatformSettingsService } from '@/modules/platform-settings/platform-settings.service';
 import { GroupsService } from '@/modules/social/groups/groups.service';
-import { EARNING_HOLD_DAYS } from '@/common/constants/app.constant';
 import type { SepayWebhookDto } from './dto/sepay-webhook.dto';
+
+// Default hold window when the platform setting is missing
+const DEFAULT_EARNING_HOLD_MINUTES = 30;
 
 @Injectable()
 export class WebhooksService {
@@ -63,6 +65,12 @@ export class WebhooksService {
     }[],
     paymentRef?: string,
   ) {
+    const holdMinutes = this.platformSettings.get<number>(
+      'earning_hold_minutes',
+      DEFAULT_EARNING_HOLD_MINUTES,
+    );
+    const availableAt = new Date(Date.now() + holdMinutes * 60 * 1000);
+
     await this.prisma.$transaction(async (tx) => {
       // 1. Update order status
       await tx.order.update({
@@ -138,7 +146,7 @@ export class WebhooksService {
                 commissionAmount,
                 netAmount,
                 status: 'PENDING',
-                availableAt: new Date(Date.now() + EARNING_HOLD_DAYS * 24 * 60 * 60 * 1000),
+                availableAt,
               },
             });
 
