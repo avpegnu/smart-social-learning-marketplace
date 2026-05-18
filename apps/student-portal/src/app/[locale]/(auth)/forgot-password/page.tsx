@@ -11,6 +11,7 @@ import { forgotPasswordSchema, type ForgotPasswordValues } from '@/lib/validatio
 
 export default function ForgotPasswordPage() {
   const t = useTranslations('forgotPassword');
+  const tv = useTranslations('validation');
 
   const {
     register,
@@ -57,7 +58,9 @@ export default function ForgotPasswordPage() {
               {...register('email')}
             />
           </div>
-          {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
+          {errors.email?.message && (
+            <p className="text-destructive text-sm">{tv(errors.email.message)}</p>
+          )}
         </div>
 
         <Button type="submit" className="w-full" disabled={mutation.isPending}>

@@ -23,6 +23,7 @@ function getPasswordStrength(password: string): number {
 
 export default function ResetPasswordPage() {
   const t = useTranslations('resetPassword');
+  const tv = useTranslations('validation');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
@@ -102,7 +103,9 @@ export default function ResetPasswordPage() {
               <p className="text-muted-foreground text-xs">{strengthLabels[strength]}</p>
             </div>
           )}
-          {errors.password && <p className="text-destructive text-sm">{errors.password.message}</p>}
+          {errors.password?.message && (
+            <p className="text-destructive text-sm">{tv(errors.password.message)}</p>
+          )}
         </div>
 
         {/* Confirm Password */}
@@ -127,8 +130,8 @@ export default function ResetPasswordPage() {
               {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          {errors.confirmPassword && (
-            <p className="text-destructive text-sm">{errors.confirmPassword.message}</p>
+          {errors.confirmPassword?.message && (
+            <p className="text-destructive text-sm">{tv(errors.confirmPassword.message)}</p>
           )}
         </div>
 

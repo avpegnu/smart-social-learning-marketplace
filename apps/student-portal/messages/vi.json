@@ -120,6 +120,16 @@
     "statStudents": "Học viên",
     "statRating": "Đánh giá"
   },
+  "validation": {
+    "fullNameTooShort": "Họ và tên phải có ít nhất 2 ký tự",
+    "fullNameTooLong": "Họ và tên không được vượt quá 100 ký tự",
+    "emailInvalid": "Email không hợp lệ",
+    "passwordRequired": "Vui lòng nhập mật khẩu",
+    "passwordTooShort": "Mật khẩu phải có ít nhất 8 ký tự",
+    "passwordTooLong": "Mật khẩu không được vượt quá 100 ký tự",
+    "passwordWeak": "Mật khẩu phải chứa ít nhất 1 chữ in hoa và 1 chữ số",
+    "passwordsNotMatch": "Mật khẩu xác nhận không khớp"
+  },
   "course": {
     "bestseller": "Bán chạy",
     "new": "Mới",

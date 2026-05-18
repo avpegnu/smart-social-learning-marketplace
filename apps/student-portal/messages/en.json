@@ -120,6 +120,16 @@
     "statStudents": "Students",
     "statRating": "Rating"
   },
+  "validation": {
+    "fullNameTooShort": "Full name must be at least 2 characters",
+    "fullNameTooLong": "Full name must not exceed 100 characters",
+    "emailInvalid": "Invalid email address",
+    "passwordRequired": "Please enter your password",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "passwordTooLong": "Password must not exceed 100 characters",
+    "passwordWeak": "Password must contain at least 1 uppercase letter and 1 number",
+    "passwordsNotMatch": "Passwords do not match"
+  },
   "course": {
     "bestseller": "Bestseller",
     "new": "New",

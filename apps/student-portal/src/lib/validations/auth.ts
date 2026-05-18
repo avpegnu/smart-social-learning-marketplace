@@ -2,31 +2,32 @@ import { z } from 'zod';
 
 const passwordSchema = z
   .string()
-  .min(8)
-  .max(100)
-  .regex(/(?=.*[A-Z])(?=.*\d)/, {
-    message: 'Password must contain at least 1 uppercase letter and 1 number',
-  });
+  .min(8, { message: 'passwordTooShort' })
+  .max(100, { message: 'passwordTooLong' })
+  .regex(/(?=.*[A-Z])(?=.*\d)/, { message: 'passwordWeak' });
 
 export const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
+  email: z.string().email({ message: 'emailInvalid' }),
+  password: z.string().min(1, { message: 'passwordRequired' }),
 });
 
 export const registerSchema = z
   .object({
-    fullName: z.string().min(2).max(100),
-    email: z.string().email(),
+    fullName: z
+      .string()
+      .min(2, { message: 'fullNameTooShort' })
+      .max(100, { message: 'fullNameTooLong' }),
+    email: z.string().email({ message: 'emailInvalid' }),
     password: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ['confirmPassword'],
-    message: 'PASSWORDS_NOT_MATCH',
+    message: 'passwordsNotMatch',
   });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email({ message: 'emailInvalid' }),
 });
 
 export const resetPasswordSchema = z
@@ -36,7 +37,7 @@ export const resetPasswordSchema = z
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ['confirmPassword'],
-    message: 'PASSWORDS_NOT_MATCH',
+    message: 'passwordsNotMatch',
   });
 
 export type LoginValues = z.infer<typeof loginSchema>;
