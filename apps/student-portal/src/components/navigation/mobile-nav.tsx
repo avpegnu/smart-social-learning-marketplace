@@ -2,13 +2,13 @@
 
 import { useTranslations } from 'next-intl';
 import { usePathname, Link } from '@/i18n/navigation';
-import { Home, BookOpen, Search, MessageCircle, User } from 'lucide-react';
+import { Home, BookOpen, Compass, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { key: 'home', href: '/', icon: Home },
   { key: 'learn', href: '/my-learning', icon: BookOpen },
-  { key: 'search', href: '/courses', icon: Search },
+  { key: 'courses', href: '/courses', icon: Compass },
   { key: 'chat', href: '/chat', icon: MessageCircle },
   { key: 'profile', href: '/settings', icon: User },
 ] as const;
