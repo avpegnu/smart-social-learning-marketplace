@@ -44,6 +44,7 @@ const SETTING_GROUPS = [
       { key: 'default_commission_rate', type: 'number' as const, label: 'commissionRate' },
       { key: 'minimum_withdrawal', type: 'number' as const, label: 'minimumWithdrawal' },
       { key: 'minimum_payout', type: 'number' as const, label: 'minimumPayout' },
+      { key: 'earning_hold_minutes', type: 'number' as const, label: 'earningHoldMinutes' },
     ],
   },
   {

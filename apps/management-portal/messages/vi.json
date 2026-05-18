@@ -315,6 +315,8 @@
     "commissionRate": "Tỷ lệ hoa hồng",
     "commissionRateDesc": "Phần trăm doanh thu nền tảng giữ lại từ mỗi giao dịch",
     "minimumWithdrawal": "Số tiền rút tối thiểu",
+    "earningHoldMinutes": "Thời gian giữ tiền (phút)",
+    "earningHoldMinutesDesc": "Số phút giữ thu nhập của giảng viên sau mỗi giao dịch trước khi cho phép rút (cửa sổ refund)",
     "emailSettings": "Cài đặt email",
     "smtpHost": "SMTP Host",
     "smtpPort": "SMTP Port",

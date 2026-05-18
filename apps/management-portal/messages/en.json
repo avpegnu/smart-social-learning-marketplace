@@ -315,6 +315,8 @@
     "commissionRate": "Commission Rate",
     "commissionRateDesc": "Percentage of revenue the platform retains from each transaction",
     "minimumWithdrawal": "Minimum Withdrawal",
+    "earningHoldMinutes": "Earning Hold (minutes)",
+    "earningHoldMinutesDesc": "Minutes to hold instructor earnings after each transaction before allowing withdrawal (refund window)",
     "emailSettings": "Email Settings",
     "smtpHost": "SMTP Host",
     "smtpPort": "SMTP Port",
