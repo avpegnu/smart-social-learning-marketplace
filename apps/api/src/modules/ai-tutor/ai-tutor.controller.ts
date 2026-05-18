@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { AiTutorService } from './ai-tutor.service';
 import { EmbeddingsService } from './embeddings/embeddings.service';
@@ -114,8 +115,9 @@ export class AiTutorController {
 
   @Post('index/:courseId')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.INSTRUCTOR)
-  @ApiOperation({ summary: 'Index course content for AI Tutor (admin/instructor)' })
+  @Roles(Role.ADMIN)
+  @Throttle({ default: { limit: 1, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Index course content for AI Tutor (admin)' })
   async indexCourse(@Param('courseId', ParseCuidPipe) courseId: string) {
     await this.embeddingsService.indexCourseContent(courseId);
     return { message: 'Course indexed successfully' };
