@@ -25,6 +25,7 @@ import { loginSchema, type LoginValues } from '@/lib/validations/auth';
 export default function LoginPage() {
   const t = useTranslations('auth');
   const tc = useTranslations('common');
+  const tv = useTranslations('validation');
   const router = useRouter();
   const searchParams = useSearchParams();
   const loginMutation = useLogin();
@@ -110,7 +111,9 @@ export default function LoginPage() {
                 {t('email')}
               </label>
               <Input id="email" type="email" placeholder="admin@sslm.vn" {...register('email')} />
-              {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
+              {errors.email?.message && (
+                <p className="text-destructive text-sm">{tv(errors.email.message)}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
@@ -122,8 +125,8 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 {...register('password')}
               />
-              {errors.password && (
-                <p className="text-destructive text-sm">{errors.password.message}</p>
+              {errors.password?.message && (
+                <p className="text-destructive text-sm">{tv(errors.password.message)}</p>
               )}
             </div>
             <Button type="submit" className="w-full" disabled={loginMutation.isPending}>

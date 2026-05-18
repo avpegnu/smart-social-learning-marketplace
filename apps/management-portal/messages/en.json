@@ -88,6 +88,10 @@
     "unauthorizedDesc": "You don't have permission to access this page. Please log in with an account that has appropriate permissions.",
     "backToLogin": "Back to Login"
   },
+  "validation": {
+    "emailInvalid": "Invalid email address",
+    "passwordRequired": "Please enter your password"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "courses": "Courses",
