@@ -122,6 +122,8 @@ export class CoursesService {
       where.OR = [
         { title: { contains: query.search, mode: 'insensitive' } },
         { shortDescription: { contains: query.search, mode: 'insensitive' } },
+        { instructor: { fullName: { contains: query.search, mode: 'insensitive' } } },
+        { category: { name: { contains: query.search, mode: 'insensitive' } } },
       ];
     }
 
