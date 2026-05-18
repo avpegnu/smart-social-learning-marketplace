@@ -65,13 +65,7 @@ export class CourseManagementService {
       },
     });
 
-    // Create associated group for the course
-    await this.groupsService.create(instructorId, {
-      name: dto.title,
-      description: `Discussion group for ${dto.title}`,
-      courseId: course.id,
-    });
-
+    // Discussion group is created when the course is published, not at draft time
     return course;
   }
 
@@ -290,6 +284,12 @@ export class CourseManagementService {
       const updated = await this.prisma.course.update({
         where: { id: courseId },
         data: { status: 'PUBLISHED', publishedAt: new Date() },
+      });
+
+      await this.groupsService.ensureForCourse({
+        id: updated.id,
+        title: updated.title,
+        instructorId,
       });
 
       this.queue.addNotification(instructorId, 'COURSE_APPROVED', {

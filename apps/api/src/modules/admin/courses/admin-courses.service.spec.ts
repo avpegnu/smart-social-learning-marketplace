@@ -2,14 +2,12 @@ import { Test } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { AdminCoursesService } from './admin-courses.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 import { EmbeddingsService } from '@/modules/ai-tutor/embeddings/embeddings.service';
+import { GroupsService } from '@/modules/social/groups/groups.service';
 
 describe('AdminCoursesService', () => {
   let service: AdminCoursesService;
-  const tx = {
-    course: { update: jest.fn() },
-    group: { create: jest.fn() },
-  };
   const prisma = {
     course: {
       findMany: jest.fn(),
@@ -17,10 +15,15 @@ describe('AdminCoursesService', () => {
       count: jest.fn(),
       update: jest.fn(),
     },
-    $transaction: jest.fn((fn) => fn(tx)),
+  };
+  const queue = {
+    addNotification: jest.fn(),
   };
   const embeddings = {
     indexCourseContent: jest.fn().mockResolvedValue(undefined),
+  };
+  const groups = {
+    ensureForCourse: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -28,7 +31,9 @@ describe('AdminCoursesService', () => {
       providers: [
         AdminCoursesService,
         { provide: PrismaService, useValue: prisma },
+        { provide: QueueService, useValue: queue },
         { provide: EmbeddingsService, useValue: embeddings },
+        { provide: GroupsService, useValue: groups },
       ],
     }).compile();
     service = module.get(AdminCoursesService);
@@ -44,46 +49,38 @@ describe('AdminCoursesService', () => {
       publishedAt: null,
     };
 
-    it('should approve course and create group', async () => {
+    it('should approve course and ensure group', async () => {
       prisma.course.findUnique.mockResolvedValue(course);
-      tx.course.update.mockResolvedValue({
+      prisma.course.update.mockResolvedValue({
         ...course,
         status: 'PUBLISHED',
-        title: 'React Course',
       });
 
-      await service.reviewCourse('c1', 'admin1', {
-        approved: true,
-      });
+      await service.reviewCourse('c1', 'admin1', { approved: true });
 
-      expect(tx.course.update).toHaveBeenCalledWith(
+      expect(prisma.course.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ status: 'PUBLISHED' }),
         }),
       );
-      expect(tx.group.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            ownerId: 'inst1',
-            privacy: 'PRIVATE',
-          }),
-        }),
-      );
+      expect(groups.ensureForCourse).toHaveBeenCalledWith({
+        id: 'c1',
+        title: 'React Course',
+        instructorId: 'inst1',
+      });
     });
 
-    it('should reject course without group', async () => {
+    it('should reject course without ensuring group', async () => {
       prisma.course.findUnique.mockResolvedValue(course);
       prisma.course.update.mockResolvedValue({
         ...course,
         status: 'REJECTED',
       });
 
-      const result = await service.reviewCourse('c1', 'admin1', {
-        approved: false,
-      });
+      const result = await service.reviewCourse('c1', 'admin1', { approved: false });
 
       expect(result.status).toBe('REJECTED');
-      expect(tx.group.create).not.toHaveBeenCalled();
+      expect(groups.ensureForCourse).not.toHaveBeenCalled();
     });
 
     it('should throw if course not found', async () => {

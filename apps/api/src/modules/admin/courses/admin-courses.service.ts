@@ -2,6 +2,7 @@ import { Injectable, Inject, Logger, NotFoundException, BadRequestException } fr
 import { PrismaService } from '@/prisma/prisma.service';
 import { QueueService } from '@/modules/jobs/queue.service';
 import { EmbeddingsService } from '@/modules/ai-tutor/embeddings/embeddings.service';
+import { GroupsService } from '@/modules/social/groups/groups.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PaginationDto } from '@/common/dto/pagination.dto';
@@ -18,6 +19,7 @@ export class AdminCoursesService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(QueueService) private readonly queue: QueueService,
     @Inject(EmbeddingsService) private readonly embeddingsService: EmbeddingsService,
+    @Inject(GroupsService) private readonly groupsService: GroupsService,
   ) {}
 
   async getAllCourses(query: PaginationDto) {
@@ -175,27 +177,19 @@ export class AdminCoursesService {
     }
 
     if (dto.approved) {
-      const result = await this.prisma.$transaction(async (tx) => {
-        const updated = await tx.course.update({
-          where: { id: courseId },
-          data: {
-            status: 'PUBLISHED',
-            publishedAt: course.publishedAt ?? new Date(),
-          },
-        });
+      const result = await this.prisma.course.update({
+        where: { id: courseId },
+        data: {
+          status: 'PUBLISHED',
+          publishedAt: course.publishedAt ?? new Date(),
+        },
+      });
 
-        // Auto-create private course group
-        await tx.group.create({
-          data: {
-            name: updated.title,
-            description: `Discussion group for ${updated.title}`,
-            courseId: updated.id,
-            ownerId: course.instructorId,
-            privacy: 'PRIVATE',
-          },
-        });
-
-        return updated;
+      // Discussion group is created on publish (idempotent — handles re-approval edge cases)
+      await this.groupsService.ensureForCourse({
+        id: result.id,
+        title: result.title,
+        instructorId: course.instructorId,
       });
 
       // Notify instructor

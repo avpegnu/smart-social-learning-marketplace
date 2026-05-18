@@ -96,6 +96,51 @@ describe('GroupsService', () => {
     });
   });
 
+  describe('ensureForCourse', () => {
+    const course = { id: 'course-1', title: 'React 101', instructorId: 'inst-1' };
+
+    it('should return existing group without creating a new one', async () => {
+      const existing = { id: 'g-existing', courseId: 'course-1' };
+      mockPrisma.group.findUnique.mockResolvedValue(existing);
+
+      const result = await service.ensureForCourse(course);
+
+      expect(result).toBe(existing);
+      expect(mockPrisma.group.create).not.toHaveBeenCalled();
+      expect(mockPrisma.groupMember.create).not.toHaveBeenCalled();
+    });
+
+    it('should create group with instructor as owner when none exists', async () => {
+      mockPrisma.group.findUnique.mockResolvedValue(null);
+      mockPrisma.$transaction.mockImplementation(async (cb: (tx: typeof mockPrisma) => unknown) =>
+        cb(mockPrisma),
+      );
+      mockPrisma.group.create.mockResolvedValue({ id: 'g-new', courseId: 'course-1' });
+      mockPrisma.groupMember.create.mockResolvedValue({});
+
+      await service.ensureForCourse(course);
+
+      expect(mockPrisma.group.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            courseId: 'course-1',
+            ownerId: 'inst-1',
+            privacy: 'PRIVATE',
+          }),
+        }),
+      );
+      expect(mockPrisma.groupMember.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            groupId: 'g-new',
+            userId: 'inst-1',
+            role: 'OWNER',
+          }),
+        }),
+      );
+    });
+  });
+
   describe('join', () => {
     it('should join public group', async () => {
       mockPrisma.group.findUnique.mockResolvedValue({

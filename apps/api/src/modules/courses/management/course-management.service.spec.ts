@@ -2,6 +2,9 @@ import { Test } from '@nestjs/testing';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CourseManagementService } from './course-management.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { QueueService } from '@/modules/jobs/queue.service';
+import { PlatformSettingsService } from '@/modules/platform-settings/platform-settings.service';
+import { GroupsService } from '@/modules/social/groups/groups.service';
 
 const mockPrisma = {
   course: {
@@ -21,6 +24,20 @@ const mockPrisma = {
   $transaction: jest.fn(),
 };
 
+const mockQueue = {
+  addNotification: jest.fn(),
+  addAdminNotification: jest.fn(),
+};
+
+const mockPlatformSettings = {
+  get: jest.fn().mockReturnValue(false),
+};
+
+const mockGroups = {
+  ensureForCourse: jest.fn().mockResolvedValue(undefined),
+  create: jest.fn().mockResolvedValue(undefined),
+};
+
 const MOCK_COURSE = {
   id: 'course-1',
   title: 'React Masterclass',
@@ -37,11 +54,23 @@ describe('CourseManagementService', () => {
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [CourseManagementService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        CourseManagementService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: QueueService, useValue: mockQueue },
+        { provide: PlatformSettingsService, useValue: mockPlatformSettings },
+        { provide: GroupsService, useValue: mockGroups },
+      ],
     }).compile();
 
     service = module.get(CourseManagementService);
     jest.clearAllMocks();
+    // Defaults: allow free courses, manual admin review
+    mockPlatformSettings.get.mockImplementation((key: string, defaultValue?: unknown) => {
+      if (key === 'allow_free_courses') return true;
+      if (key === 'auto_approve_courses') return false;
+      return defaultValue;
+    });
   });
 
   // ==================== create ====================
@@ -87,6 +116,19 @@ describe('CourseManagementService', () => {
           where: { name: 'react' },
         }),
       );
+    });
+
+    it('should NOT create a discussion group at draft time', async () => {
+      mockPrisma.course.create.mockResolvedValue({
+        ...MOCK_COURSE,
+        category: null,
+        courseTags: [],
+      });
+
+      await service.create('instr-1', { title: 'React Masterclass' } as never);
+
+      expect(mockGroups.ensureForCourse).not.toHaveBeenCalled();
+      expect(mockGroups.create).not.toHaveBeenCalled();
     });
   });
 
@@ -236,6 +278,50 @@ describe('CourseManagementService', () => {
       const result = await service.submitForReview('course-1', 'instr-1');
 
       expect(result.status).toBe('PENDING_REVIEW');
+    });
+
+    it('should NOT create a discussion group when admin review is required', async () => {
+      mockPrisma.course.findUnique.mockResolvedValueOnce(MOCK_COURSE).mockResolvedValueOnce({
+        ...MOCK_COURSE,
+        sections: [{ chapters: [{ lessons: [{ id: 'l1', type: 'VIDEO', textContent: null }] }] }],
+      });
+      mockPrisma.course.update.mockResolvedValue({ ...MOCK_COURSE, status: 'PENDING_REVIEW' });
+
+      await service.submitForReview('course-1', 'instr-1');
+
+      expect(mockGroups.ensureForCourse).not.toHaveBeenCalled();
+      expect(mockQueue.addAdminNotification).toHaveBeenCalledWith(
+        'COURSE_PENDING_REVIEW',
+        expect.any(Object),
+      );
+    });
+
+    it('should create a discussion group when auto-approve is on', async () => {
+      mockPlatformSettings.get.mockImplementation((key: string) =>
+        key === 'auto_approve_courses' ? true : false,
+      );
+      mockPrisma.course.findUnique.mockResolvedValueOnce(MOCK_COURSE).mockResolvedValueOnce({
+        ...MOCK_COURSE,
+        sections: [{ chapters: [{ lessons: [{ id: 'l1', type: 'VIDEO', textContent: null }] }] }],
+      });
+      mockPrisma.course.update.mockResolvedValue({
+        ...MOCK_COURSE,
+        status: 'PUBLISHED',
+      });
+
+      const result = await service.submitForReview('course-1', 'instr-1');
+
+      expect(result.status).toBe('PUBLISHED');
+      expect(mockGroups.ensureForCourse).toHaveBeenCalledWith({
+        id: MOCK_COURSE.id,
+        title: MOCK_COURSE.title,
+        instructorId: 'instr-1',
+      });
+      expect(mockQueue.addNotification).toHaveBeenCalledWith(
+        'instr-1',
+        'COURSE_APPROVED',
+        expect.any(Object),
+      );
     });
   });
 

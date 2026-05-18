@@ -26,6 +26,23 @@ export class GroupsService {
     @Inject(QueueService) private readonly queue: QueueService,
   ) {}
 
+  /**
+   * Idempotent helper used by publish flows (auto-approve and admin approve).
+   * Returns the existing group if one already exists for this course.
+   */
+  async ensureForCourse(course: { id: string; title: string; instructorId: string }) {
+    const existing = await this.prisma.group.findUnique({
+      where: { courseId: course.id },
+    });
+    if (existing) return existing;
+
+    return this.create(course.instructorId, {
+      name: course.title,
+      description: `Discussion group for ${course.title}`,
+      courseId: course.id,
+    });
+  }
+
   async create(ownerId: string, dto: CreateGroupDto) {
     if (dto.courseId) {
       const existing = await this.prisma.group.findUnique({
