@@ -88,10 +88,17 @@ export default function CheckoutPage() {
   const handlePlaceOrder = () => {
     createOrder.mutate(coupon?.code, {
       onSuccess: (res) => {
-        const data = res.data as { order: { id: string }; payment: Record<string, unknown> };
-        // Save payment info for payment page
-        sessionStorage.setItem(`sslm-payment-${data.order.id}`, JSON.stringify(data.payment));
+        const data = res.data as {
+          order: { id: string };
+          payment: Record<string, unknown> | null;
+        };
         sessionStorage.removeItem('sslm-coupon');
+        // Free order (fully covered by coupon): no payment needed, the order is
+        // already completed and the student enrolled. The payment page shows the
+        // success state. Otherwise save the QR payment info for that page.
+        if (data.payment) {
+          sessionStorage.setItem(`sslm-payment-${data.order.id}`, JSON.stringify(data.payment));
+        }
         router.push(`/payment/${data.order.id}`);
       },
     });
