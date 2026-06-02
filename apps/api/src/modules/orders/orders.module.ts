@@ -6,11 +6,12 @@ import { OrdersController } from './orders.controller';
 import { WebhooksController } from './webhooks.controller';
 import { OrdersService } from './orders.service';
 import { WebhooksService } from './webhooks.service';
+import { OrderFulfillmentService } from './order-fulfillment.service';
 
 @Module({
   imports: [CouponsModule, JobsModule, SocialModule],
   controllers: [OrdersController, WebhooksController],
-  providers: [OrdersService, WebhooksService],
+  providers: [OrdersService, WebhooksService, OrderFulfillmentService],
   exports: [OrdersService],
 })
 export class OrdersModule {}
