@@ -518,6 +518,7 @@
     "INSUFFICIENT_PROGRESS": "Cần hoàn thành ít nhất 30% khóa học để đánh giá",
     "INVALID_COURSE_IDS": "Danh sách khóa học không hợp lệ",
     "INVALID_DATE_RANGE": "Khoảng thời gian không hợp lệ",
+    "INVALID_DISCOUNT_VALUE": "Giá trị giảm giá không hợp lệ",
     "INVALID_PERCENTAGE_VALUE": "Giá trị phần trăm không hợp lệ",
     "INVALID_PARENT_COMMENT": "Bình luận gốc không hợp lệ",
     "JOIN_REQUEST_PENDING": "Yêu cầu tham gia đang chờ duyệt",

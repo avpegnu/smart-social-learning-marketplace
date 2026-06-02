@@ -24,8 +24,15 @@ export class CouponsService {
     }
 
     // Validate discount value
-    if (dto.type === 'PERCENTAGE' && (dto.value < 1 || dto.value > 100)) {
-      throw new BadRequestException({ code: 'INVALID_PERCENTAGE_VALUE' });
+    if (dto.type === 'PERCENTAGE') {
+      if (dto.value < 1 || dto.value > 100) {
+        throw new BadRequestException({ code: 'INVALID_PERCENTAGE_VALUE' });
+      }
+    } else if (dto.value < 1) {
+      // FIXED_AMOUNT must be a positive amount. A value above a course price is
+      // allowed on purpose — at apply time it is capped to the order total, which
+      // simply makes the course free (handled by the zero-total checkout path).
+      throw new BadRequestException({ code: 'INVALID_DISCOUNT_VALUE' });
     }
 
     // Validate dates

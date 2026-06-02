@@ -518,6 +518,7 @@
     "INSUFFICIENT_PROGRESS": "Complete at least 30% of the course to review",
     "INVALID_COURSE_IDS": "Invalid course IDs",
     "INVALID_DATE_RANGE": "Invalid date range",
+    "INVALID_DISCOUNT_VALUE": "Invalid discount value",
     "INVALID_PERCENTAGE_VALUE": "Invalid percentage value",
     "INVALID_PARENT_COMMENT": "Invalid parent comment",
     "JOIN_REQUEST_PENDING": "Join request is pending approval",
