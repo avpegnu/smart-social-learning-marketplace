@@ -17,12 +17,14 @@ import { Button, Badge, Skeleton } from '@shared/ui';
 import { CourseGrid } from '@/components/course/course-grid';
 import { RecommendationSection } from '@/components/course/recommendation-section';
 import { ScrollReveal } from '@/components/scroll-reveal';
-import { useCourses, useCategories } from '@shared/hooks';
+import { useCourses, useCategories, useAuthStore, useAuthHydrated } from '@shared/hooks';
 import { cn } from '@/lib/utils';
 
 export default function HomePage() {
   const t = useTranslations('home');
   const tp = useTranslations('placementTest');
+  const hydrated = useAuthHydrated();
+  const { isAuthenticated } = useAuthStore();
 
   const popularParams = useMemo(() => ({ sort: 'popular', limit: '4' }), []);
   const newestParams = useMemo(() => ({ sort: 'newest', limit: '4' }), []);
@@ -86,15 +88,17 @@ export default function HomePage() {
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/register">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="h-12 w-full rounded-full px-8 text-base sm:w-auto"
-                >
-                  {t('heroCta2')}
-                </Button>
-              </Link>
+              {hydrated && !isAuthenticated && (
+                <Link href="/register">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="h-12 w-full rounded-full px-8 text-base sm:w-auto"
+                  >
+                    {t('heroCta2')}
+                  </Button>
+                </Link>
+              )}
             </div>
 
             {/* Stats */}
