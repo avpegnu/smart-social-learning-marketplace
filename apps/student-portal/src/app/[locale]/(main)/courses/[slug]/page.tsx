@@ -167,7 +167,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
   const instructorInitial = course.instructor.fullName.split(' ').pop()?.[0] ?? '';
 
   return (
-    <div>
+    <div className="pb-24 lg:pb-0">
       <CourseHero course={course} />
 
       <div className="container mx-auto px-4 py-8">
@@ -335,8 +335,8 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
         />
       )}
 
-      {/* Mobile sticky bottom bar */}
-      <div className="bg-background border-border fixed right-0 bottom-0 left-0 z-30 border-t p-4 lg:hidden">
+      {/* Mobile sticky bottom bar — sits above the mobile nav (z-40, h-16) on phones */}
+      <div className="bg-background border-border fixed right-0 bottom-16 left-0 z-40 border-t p-4 md:bottom-0 lg:hidden">
         <div className="flex items-center gap-4">
           <PriceDisplay
             price={course.price}
