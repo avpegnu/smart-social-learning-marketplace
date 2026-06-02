@@ -5,7 +5,11 @@ import { CouponsService } from '@/modules/coupons/coupons.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import { ORDER_EXPIRY_MINUTES } from '@/common/constants/app.constant';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
+import { OrderFulfillmentService } from './order-fulfillment.service';
 import type { CreateOrderDto } from './dto/create-order.dto';
+
+// Payment reference recorded for orders fully covered by a coupon / free courses
+const FREE_ORDER_PAYMENT_REF = 'FREE';
 
 @Injectable()
 export class OrdersService {
@@ -13,6 +17,7 @@ export class OrdersService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(ConfigService) private readonly config: ConfigService,
     @Inject(CouponsService) private readonly couponsService: CouponsService,
+    @Inject(OrderFulfillmentService) private readonly fulfillment: OrderFulfillmentService,
   ) {}
 
   async createOrder(userId: string, dto: CreateOrderDto) {
@@ -48,7 +53,12 @@ export class OrdersService {
       applicableCourseIds = couponResult.applicableCourseIds;
     }
 
-    const finalAmount = totalAmount - discountAmount;
+    // Clamp to 0 — the discount is already capped to the applicable amount, but
+    // this guards against any future change producing a negative total.
+    const finalAmount = Math.max(0, totalAmount - discountAmount);
+    // When a coupon (or a free course) fully covers the order, there is nothing
+    // to pay — skip the QR flow and complete the order immediately.
+    const isFreeOrder = finalAmount === 0;
     const orderCode = this.generateOrderCode();
 
     // 5. Distribute discount per-item (proportionally among applicable items)
@@ -63,6 +73,8 @@ export class OrdersService {
           totalAmount,
           discountAmount,
           finalAmount,
+          // Always set an expiry: free orders are completed immediately below, but
+          // keeping the window lets the cron reclaim the order if that step fails.
           expiresAt: new Date(Date.now() + ORDER_EXPIRY_MINUTES * 60 * 1000),
           items: {
             create: cartItems.map((item, i) => ({
@@ -95,7 +107,24 @@ export class OrdersService {
       return newOrder;
     });
 
-    // 6. Generate payment info
+    // 7. Free order: complete immediately (enroll + earnings + notifications),
+    // no payment required.
+    if (isFreeOrder) {
+      await this.fulfillment.fulfillOrder(
+        order.id,
+        order.userId,
+        order.items,
+        FREE_ORDER_PAYMENT_REF,
+      );
+      // Order definitely exists — it was just created in the committed transaction.
+      const completedOrder = (await this.prisma.order.findUnique({
+        where: { id: order.id },
+        include: { items: true },
+      }))!;
+      return { order: completedOrder, payment: null };
+    }
+
+    // 8. Paid order: generate SePay payment info
     const payment = this.generatePaymentInfo(order.orderCode, order.finalAmount);
 
     return { order, payment };

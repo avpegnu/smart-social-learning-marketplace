@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OrdersService } from './orders.service';
+import { OrderFulfillmentService } from './order-fulfillment.service';
 import { CouponsService } from '@/modules/coupons/coupons.service';
 import { PrismaService } from '@/prisma/prisma.service';
 
@@ -12,6 +13,8 @@ const mockPrisma = {
   coupon: { update: jest.fn() },
   $transaction: jest.fn(),
 };
+
+const mockFulfillment = { fulfillOrder: jest.fn() };
 
 const mockConfig = {
   get: jest.fn((key: string) => {
@@ -38,6 +41,7 @@ describe('OrdersService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: ConfigService, useValue: mockConfig },
         { provide: CouponsService, useValue: mockCouponsService },
+        { provide: OrderFulfillmentService, useValue: mockFulfillment },
       ],
     }).compile();
 
@@ -82,7 +86,7 @@ describe('OrdersService', () => {
 
       expect(result.order).toBeDefined();
       expect(result.payment).toBeDefined();
-      expect(result.payment.qrUrl).toContain('img.vietqr.io');
+      expect(result.payment?.qrUrl).toContain('img.vietqr.io');
     });
 
     it('should apply coupon discount', async () => {
@@ -116,6 +120,67 @@ describe('OrdersService', () => {
 
       expect(mockCouponsService.validateAndCalculateDiscount).toHaveBeenCalled();
       expect(result.order.finalAmount).toBe(399200);
+    });
+
+    it('should auto-complete a free order (coupon covers the full total) without payment', async () => {
+      const cartItems = [
+        {
+          id: 'ci-1',
+          price: 100000,
+          courseId: 'c1',
+          chapterId: null,
+          course: { title: 'React', status: 'PUBLISHED' },
+          chapter: null,
+        },
+      ];
+      mockPrisma.cartItem.findMany.mockResolvedValue(cartItems);
+      mockCouponsService.validateAndCalculateDiscount.mockResolvedValue({
+        couponId: 'coupon-1',
+        discount: 100000, // fully covers the 100000 total -> finalAmount 0
+        applicableCourseIds: null,
+      });
+
+      const createdOrder = {
+        id: 'order-1',
+        orderCode: 'SSLM-free',
+        userId: 'user-1',
+        finalAmount: 0,
+        items: [
+          {
+            id: 'oi-1',
+            type: 'COURSE',
+            courseId: 'c1',
+            chapterId: null,
+            price: 100000,
+            discount: 100000,
+          },
+        ],
+      };
+      mockPrisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          order: { create: jest.fn().mockResolvedValue(createdOrder) },
+          couponUsage: { create: jest.fn() },
+          coupon: { update: jest.fn() },
+          cartItem: { deleteMany: jest.fn() },
+        }),
+      );
+      mockPrisma.order.findUnique.mockResolvedValue({
+        ...createdOrder,
+        status: 'COMPLETED',
+        paidAt: new Date(),
+      });
+
+      const result = await service.createOrder('user-1', { couponCode: 'FREE100' });
+
+      // Completes the order via the shared fulfillment path, no QR generated.
+      expect(mockFulfillment.fulfillOrder).toHaveBeenCalledWith(
+        'order-1',
+        'user-1',
+        createdOrder.items,
+        'FREE',
+      );
+      expect(result.payment).toBeNull();
+      expect(result.order.status).toBe('COMPLETED');
     });
 
     it('should throw if course no longer available', async () => {

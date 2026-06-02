@@ -73,7 +73,7 @@ export class CartController {
       coupon: { code: dto.code },
       discount,
       subtotal: cart.subtotal,
-      total: cart.subtotal - discount,
+      total: Math.max(0, cart.subtotal - discount),
     };
   }
 }
