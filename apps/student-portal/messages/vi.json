@@ -290,7 +290,8 @@
     "uploading": "Đang tải lên...",
     "social": "Mạng xã hội",
     "report": "Báo cáo",
-    "postNotFound": "Bài viết không tồn tại hoặc đã bị xóa"
+    "postNotFound": "Bài viết không tồn tại hoặc đã bị xóa",
+    "quickLinks": "Liên kết nhanh"
   },
   "chat": {
     "title": "Tin nhắn",

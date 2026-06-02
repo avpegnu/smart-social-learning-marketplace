@@ -290,7 +290,8 @@
     "uploading": "Uploading...",
     "social": "Social",
     "report": "Report",
-    "postNotFound": "Post not found or has been deleted"
+    "postNotFound": "Post not found or has been deleted",
+    "quickLinks": "Quick Links"
   },
   "chat": {
     "title": "Messages",
