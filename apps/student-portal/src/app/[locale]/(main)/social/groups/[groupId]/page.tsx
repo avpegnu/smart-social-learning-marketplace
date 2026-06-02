@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { ArrowLeft, Loader2, Calendar } from 'lucide-react';
 import {
   Button,
@@ -64,6 +64,7 @@ interface JoinRequestsResponse {
 export default function GroupDetailPage({ params }: { params: Promise<{ groupId: string }> }) {
   const { groupId } = use(params);
   const t = useTranslations('groups');
+  const locale = useLocale();
 
   const { data: groupRaw, isLoading } = useGroup(groupId);
   const group = (groupRaw as GroupResponse)?.data;
@@ -152,7 +153,9 @@ export default function GroupDetailPage({ params }: { params: Promise<{ groupId:
               )}
               <div className="flex items-center gap-2 border-t pt-3 text-xs">
                 <Calendar className="text-muted-foreground h-3.5 w-3.5" />
-                <span className="text-muted-foreground">{formatRelativeTime(group.createdAt)}</span>
+                <span className="text-muted-foreground">
+                  {formatRelativeTime(group.createdAt, locale)}
+                </span>
               </div>
             </CardContent>
           </Card>

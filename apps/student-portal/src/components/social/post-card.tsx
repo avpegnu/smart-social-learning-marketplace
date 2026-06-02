@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Trash2, MoreHorizontal, Flag } from 'lucide-react';
 import {
   Avatar,
@@ -80,6 +80,7 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   const t = useTranslations('social');
+  const locale = useLocale();
   const user = useAuthStore((s) => s.user);
   const deletePost = useDeletePost();
 
@@ -128,7 +129,9 @@ export function PostCard({ post }: PostCardProps) {
               {post.sharedPost && (
                 <span className="text-muted-foreground text-sm"> {t('sharedPost')}</span>
               )}
-              <p className="text-muted-foreground text-xs">{formatRelativeTime(post.createdAt)}</p>
+              <p className="text-muted-foreground text-xs">
+                {formatRelativeTime(post.createdAt, locale)}
+              </p>
             </div>
           </div>
           {user && (

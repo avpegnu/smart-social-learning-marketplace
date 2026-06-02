@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { toast } from 'sonner';
 import { MessageCircle, Clock, CheckCircle2 } from 'lucide-react';
 import {
@@ -51,6 +51,7 @@ interface InstructorCourse {
 
 export default function QnAPage() {
   const t = useTranslations('qna');
+  const locale = useLocale();
   const user = useAuthStore((s) => s.user);
   const [courseFilter, setCourseFilter] = useState<string | undefined>(undefined);
   const [statusTab, setStatusTab] = useState<'all' | 'answered' | 'unanswered'>('all');
@@ -122,7 +123,7 @@ export default function QnAPage() {
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    {formatRelativeTime(q.createdAt)}
+                    {formatRelativeTime(q.createdAt, locale)}
                   </span>
                 </div>
               </div>

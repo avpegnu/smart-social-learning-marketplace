@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Star, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { Button, Card, CardContent, Avatar, AvatarFallback, AvatarImage } from '@shared/ui';
 import { ConfirmDialog } from '@/components/feedback/confirm-dialog';
@@ -145,6 +145,7 @@ export function CourseReviews({
   embeddedReviews,
 }: CourseReviewsProps) {
   const t = useTranslations('courseDetail');
+  const locale = useLocale();
   const [reviewPage, setReviewPage] = useState(1);
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
 
@@ -256,7 +257,7 @@ export function CourseReviews({
                           {review.user.fullName}
                         </a>
                         <span className="text-muted-foreground text-xs">
-                          {formatRelativeTime(review.createdAt)}
+                          {formatRelativeTime(review.createdAt, locale)}
                         </span>
                         {isOwn && (
                           <div className="ml-auto flex gap-1">

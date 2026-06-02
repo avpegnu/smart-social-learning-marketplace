@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useLocale } from 'next-intl';
 import { Card, CardContent, Avatar, AvatarImage, AvatarFallback, Separator } from '@shared/ui';
 import { formatRelativeTime } from '@shared/utils';
 import { Link } from '@/i18n/navigation';
@@ -30,6 +31,7 @@ function getInitials(name: string): string {
 export function GroupPostCard({ post }: GroupPostCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const locale = useLocale();
 
   const id = post.id as string;
   const content = post.content as string;
@@ -75,7 +77,9 @@ export function GroupPostCard({ post }: GroupPostCardProps) {
                   >
                     {author.fullName}
                   </Link>
-                  <p className="text-muted-foreground text-xs">{formatRelativeTime(createdAt)}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {formatRelativeTime(createdAt, locale)}
+                  </p>
                 </div>
               </div>
               <p className="mt-3 text-sm whitespace-pre-wrap">{content}</p>

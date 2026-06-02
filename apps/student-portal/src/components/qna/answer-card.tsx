@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { CheckCircle2, Trash2, Flag } from 'lucide-react';
 import { Card, CardContent, Badge, Avatar, AvatarFallback, AvatarImage } from '@shared/ui';
 import { useVoteAnswer, useDeleteAnswer, useMarkBestAnswer, useAuthStore } from '@shared/hooks';
@@ -44,6 +44,7 @@ export function AnswerCard({
   isOwner,
 }: AnswerCardProps) {
   const t = useTranslations('questionDetail');
+  const locale = useLocale();
   const user = useAuthStore((s) => s.user);
   const [localVote, setLocalVote] = useState<number | null>(answer.userVote ?? null);
   const [localVoteCount, setLocalVoteCount] = useState(answer.voteCount);
@@ -107,7 +108,7 @@ export function AnswerCard({
                   </Avatar>
                   <span>{answer.author.fullName}</span>
                 </div>
-                <span>{formatRelativeTime(answer.createdAt)}</span>
+                <span>{formatRelativeTime(answer.createdAt, locale)}</span>
                 <div className="ml-auto flex items-center gap-2">
                   {canMarkBest && !isBestAnswer && (
                     <button

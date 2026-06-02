@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { MessageSquare, Eye, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, Badge, Avatar, AvatarFallback, AvatarImage } from '@shared/ui';
@@ -31,6 +31,7 @@ interface QuestionCardProps {
 
 export function QuestionCard({ question }: QuestionCardProps) {
   const t = useTranslations('qna');
+  const locale = useLocale();
   const resolved = question.hasBestAnswer ?? !!question.bestAnswerId;
 
   return (
@@ -78,7 +79,7 @@ export function QuestionCard({ question }: QuestionCardProps) {
                   </Avatar>
                   <span>{question.author.fullName}</span>
                 </div>
-                <span>{formatRelativeTime(question.createdAt)}</span>
+                <span>{formatRelativeTime(question.createdAt, locale)}</span>
                 <span className="flex items-center gap-1">
                   <MessageSquare className="h-3.5 w-3.5" />
                   {question.answerCount}

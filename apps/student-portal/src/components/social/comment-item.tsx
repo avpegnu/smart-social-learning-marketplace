@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Trash2, Flag } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@shared/ui';
 import { useAuthStore } from '@shared/hooks';
@@ -43,6 +43,7 @@ export function CommentItem({
   isNested = false,
 }: CommentItemProps) {
   const t = useTranslations('social');
+  const locale = useLocale();
   const user = useAuthStore((s) => s.user);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
@@ -78,7 +79,7 @@ export function CommentItem({
           </div>
           <div className="mt-1 flex items-center gap-3 px-1">
             <span className="text-muted-foreground text-[11px]">
-              {formatRelativeTime(comment.createdAt)}
+              {formatRelativeTime(comment.createdAt, locale)}
             </span>
             <button
               type="button"

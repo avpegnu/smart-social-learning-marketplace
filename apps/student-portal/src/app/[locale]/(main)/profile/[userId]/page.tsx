@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   Calendar,
   UserPlus,
@@ -45,6 +45,7 @@ import { ReportDialog } from '@/components/feedback/report-dialog';
 export default function ProfilePage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = use(params);
   const t = useTranslations('profile');
+  const locale = useLocale();
   const currentUser = useAuthStore((s) => s.user);
   const openChatWindow = useChatWindowsStore((s) => s.openWindow);
   // Floating chat windows are desktop-only (sm+); mobile falls back to /chat route
@@ -331,7 +332,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
                     <div>
                       <span className="line-clamp-1 text-sm font-medium">{cert.course.title}</span>
                       <p className="text-muted-foreground text-xs">
-                        {cert.issuedAt ? formatRelativeTime(cert.issuedAt) : ''}
+                        {cert.issuedAt ? formatRelativeTime(cert.issuedAt, locale) : ''}
                       </p>
                     </div>
                   </CardContent>

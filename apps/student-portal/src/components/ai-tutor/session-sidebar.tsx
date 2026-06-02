@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Bot, Plus, Zap, AlertTriangle } from 'lucide-react';
 import { Button, Progress, Select } from '@shared/ui';
 import { formatRelativeTime } from '@shared/utils';
@@ -42,6 +42,7 @@ export function SessionSidebar({
   dailyLimit,
 }: SessionSidebarProps) {
   const t = useTranslations('aiTutor');
+  const locale = useLocale();
   const usagePercent = (usageCount / dailyLimit) * 100;
 
   return (
@@ -107,7 +108,7 @@ export function SessionSidebar({
                 <span>
                   {session._count.messages} {t('messageCount')}
                 </span>
-                <span>{formatRelativeTime(session.updatedAt)}</span>
+                <span>{formatRelativeTime(session.updatedAt, locale)}</span>
               </div>
             </button>
           ))

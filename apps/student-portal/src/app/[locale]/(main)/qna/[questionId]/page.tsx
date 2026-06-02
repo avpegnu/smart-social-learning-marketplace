@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import { ArrowLeft, MessageSquare, Eye, Trash2, Loader2, Flag } from 'lucide-react';
 import {
@@ -58,6 +58,7 @@ interface QuestionData {
 
 export default function QuestionDetailPage() {
   const t = useTranslations('questionDetail');
+  const locale = useLocale();
   const params = useParams();
   const router = useRouter();
   const questionId = params.questionId as string;
@@ -141,7 +142,7 @@ export default function QuestionDetailPage() {
                   </Avatar>
                   <span>{question.author.fullName}</span>
                 </div>
-                <span>{formatRelativeTime(question.createdAt)}</span>
+                <span>{formatRelativeTime(question.createdAt, locale)}</span>
                 <span className="flex items-center gap-1">
                   <Eye className="h-3.5 w-3.5" />
                   {question.viewCount} {t('views')}

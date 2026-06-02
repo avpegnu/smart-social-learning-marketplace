@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Loader2, Inbox, Check, X } from 'lucide-react';
 import { Card, CardContent, Avatar, AvatarImage, AvatarFallback, Button } from '@shared/ui';
 import { useJoinRequests, useApproveRequest, useRejectRequest } from '@shared/hooks';
@@ -33,6 +33,7 @@ interface GroupRequestsTabProps {
 
 export function GroupRequestsTab({ groupId }: GroupRequestsTabProps) {
   const t = useTranslations('groups');
+  const locale = useLocale();
   const [page, setPage] = useState(1);
 
   const { data: requestsRaw, isLoading } = useJoinRequests(groupId, { page, limit: 20 });
@@ -95,7 +96,7 @@ export function GroupRequestsTab({ groupId }: GroupRequestsTabProps) {
                     {request.user.fullName}
                   </Link>
                   <p className="text-muted-foreground text-xs">
-                    {formatRelativeTime(request.createdAt)}
+                    {formatRelativeTime(request.createdAt, locale)}
                   </p>
                 </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import {
   GraduationCap,
@@ -29,6 +29,7 @@ interface ApplicationValues {
 
 export default function BecomeInstructorPage() {
   const t = useTranslations('becomeInstructor');
+  const locale = useLocale();
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
@@ -188,7 +189,7 @@ export default function BecomeInstructorPage() {
                     </div>
                   )}
                   <p className="text-muted-foreground text-xs">
-                    {t('submittedAt')} {formatRelativeTime(latestApp.createdAt)}
+                    {t('submittedAt')} {formatRelativeTime(latestApp.createdAt, locale)}
                   </p>
                 </div>
               </CardContent>
@@ -209,7 +210,7 @@ export default function BecomeInstructorPage() {
                           {t('expertise')}: {latestApp.expertise.join(', ')}
                         </p>
                         <p>
-                          {t('submittedAt')} {formatRelativeTime(latestApp.createdAt)}
+                          {t('submittedAt')} {formatRelativeTime(latestApp.createdAt, locale)}
                         </p>
                       </div>
                     </div>

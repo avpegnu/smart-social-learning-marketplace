@@ -11,6 +11,7 @@ import {
   Settings,
   ShieldCheck,
 } from 'lucide-react';
+import { useLocale } from 'next-intl';
 import { formatRelativeTime } from '@shared/utils';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
@@ -172,6 +173,7 @@ function getNotificationMessage(notification: NotificationData): string {
 }
 
 export function NotificationItem({ notification, compact, onClick }: NotificationItemProps) {
+  const locale = useLocale();
   const iconConfig = NOTIFICATION_ICONS[notification.type] || DEFAULT_ICON;
   const Icon = iconConfig.icon;
   const message = getNotificationMessage(notification);
@@ -196,7 +198,7 @@ export function NotificationItem({ notification, compact, onClick }: Notificatio
       <div className="min-w-0 flex-1">
         <p className={cn('text-sm', !notification.isRead && 'font-medium')}>{message}</p>
         <p className="text-muted-foreground mt-0.5 text-xs">
-          {formatRelativeTime(notification.createdAt)}
+          {formatRelativeTime(notification.createdAt, locale)}
         </p>
       </div>
       {!notification.isRead && <div className="mt-2 h-2 w-2 shrink-0 rounded-full bg-blue-500" />}
