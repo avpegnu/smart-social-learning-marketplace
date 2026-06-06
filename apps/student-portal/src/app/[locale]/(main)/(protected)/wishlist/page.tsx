@@ -5,16 +5,8 @@ import { Link } from '@/i18n/navigation';
 import { Heart, Trash2, ShoppingCart, BookOpen } from 'lucide-react';
 import { Button, Card, CardContent, Skeleton } from '@shared/ui';
 import { EmptyState } from '@/components/feedback/empty-state';
-import {
-  useWishlist,
-  useRemoveFromWishlist,
-  useAddCartItem,
-  useCartStore,
-  useAuthStore,
-} from '@shared/hooks';
+import { useWishlist, useRemoveFromWishlist, useAddCartItem, useCartStore } from '@shared/hooks';
 import { formatPrice } from '@shared/utils';
-import { useRouter } from '@/i18n/navigation';
-import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 interface WishlistItem {
@@ -34,8 +26,6 @@ interface WishlistItem {
 
 export default function WishlistPage() {
   const t = useTranslations('wishlist');
-  const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
   const addToCart = useCartStore((s) => s.addItem);
 
   const { data, isLoading } = useWishlist();
@@ -43,12 +33,6 @@ export default function WishlistPage() {
   const addCartItem = useAddCartItem();
 
   const items = (data?.data as WishlistItem[]) ?? [];
-
-  useEffect(() => {
-    if (!isAuthenticated) router.push('/login');
-  }, [isAuthenticated, router]);
-
-  if (!isAuthenticated) return null;
 
   if (isLoading) {
     return (
