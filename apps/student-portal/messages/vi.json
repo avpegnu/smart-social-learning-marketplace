@@ -476,6 +476,12 @@
     "messageCount": "tin nhắn",
     "thinking": "Đang suy nghĩ...",
     "disclaimer": "AI có thể mắc lỗi. Hãy kiểm tra thông tin quan trọng.",
+    "launcherLabel": "Hỏi AI Tutor",
+    "back": "Quay lại",
+    "close": "Đóng",
+    "widgetWelcome": "Hỏi mình bất cứ điều gì về khóa học này nhé!",
+    "enrollPrompt": "Đăng ký khóa học này để hỏi AI Tutor về các bài học.",
+    "enrollCta": "Xem khóa học",
     "errors": {
       "AI_DAILY_LIMIT_REACHED": "Đã hết lượt hỏi hôm nay (10/ngày)",
       "ENROLLMENT_REQUIRED": "Bạn chưa đăng ký khóa học này",

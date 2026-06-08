@@ -12,7 +12,7 @@ import { QuizPlayer } from '@/components/learning/quiz-player';
 import { FileLessonViewer } from '@/components/learning/file-lesson-viewer';
 import { CurriculumSidebar } from '@/components/learning/curriculum-sidebar';
 import { LessonNav } from '@/components/learning/lesson-nav';
-import { cn } from '@/lib/utils';
+import { AiTutorLauncher } from '@/components/learning/ai-tutor-launcher';
 import { createPortal } from 'react-dom';
 
 // --- Types ---
@@ -106,7 +106,9 @@ export default function LessonPlayerPage({
   const { slug, lessonId } = use(params);
   const t = useTranslations('learning');
   const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Desktop curriculum sidebar is always visible; this only controls the
+  // mobile drawer (kept separate so toggling on mobile can't hide it on desktop).
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Resolve courseId from slug
   const { data: courseData } = useCourseDetail(slug);
@@ -266,46 +268,45 @@ export default function LessonPlayerPage({
           />
         </div>
 
-        {/* Curriculum sidebar — desktop */}
-        <div
-          className={cn(
-            'hidden transition-all duration-300 lg:block',
-            sidebarOpen ? 'w-80' : 'w-0',
-          )}
-        >
-          {sidebarOpen && (
-            <CurriculumSidebar
-              curriculum={curriculum}
-              currentLessonId={lessonId}
-              onLessonClick={handleNavigate}
-            />
-          )}
+        {/* Curriculum sidebar — desktop (always visible) */}
+        <div className="hidden w-80 lg:block">
+          <CurriculumSidebar
+            curriculum={curriculum}
+            currentLessonId={lessonId}
+            onLessonClick={handleNavigate}
+          />
         </div>
 
-        {/* Sidebar toggle */}
+        {/* Mobile curriculum toggle — sits above the AI Tutor launcher */}
         <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="bg-primary text-primary-foreground fixed right-4 bottom-20 z-30 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full shadow-lg lg:hidden"
+          onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+          className="bg-primary text-primary-foreground fixed right-4 bottom-36 z-30 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full shadow-lg lg:hidden"
         >
-          {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {mobileSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
 
         {/* Mobile sidebar overlay */}
-        {sidebarOpen && (
+        {mobileSidebarOpen && (
           <div className="fixed inset-0 z-20 lg:hidden">
-            <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setMobileSidebarOpen(false)}
+            />
             <div className="absolute top-14 right-0 bottom-0 w-80">
               <CurriculumSidebar
                 curriculum={curriculum}
                 currentLessonId={lessonId}
                 onLessonClick={(id) => {
                   handleNavigate(id);
-                  setSidebarOpen(false);
+                  setMobileSidebarOpen(false);
                 }}
               />
             </div>
           </div>
         )}
+
+        {/* Inline AI Tutor — floating chat scoped to this course */}
+        {courseId && <AiTutorLauncher courseId={courseId} courseSlug={slug} />}
       </div>
     </>
   );

@@ -476,6 +476,12 @@
     "messageCount": "messages",
     "thinking": "Thinking...",
     "disclaimer": "AI may make mistakes. Verify important information.",
+    "launcherLabel": "Ask AI Tutor",
+    "back": "Back",
+    "close": "Close",
+    "widgetWelcome": "Ask me anything about this course!",
+    "enrollPrompt": "Enroll in this course to ask the AI Tutor about its lessons.",
+    "enrollCta": "View course",
     "errors": {
       "AI_DAILY_LIMIT_REACHED": "Daily limit reached (10/day)",
       "ENROLLMENT_REQUIRED": "You are not enrolled in this course",
