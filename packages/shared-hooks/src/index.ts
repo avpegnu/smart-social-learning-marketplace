@@ -345,3 +345,5 @@ export { useChatSocket } from './use-chat-socket';
 export type { ChatSocketCallbacks } from './use-chat-socket';
 export { useNotificationSocket } from './use-notification-socket';
 export { useFileProxy } from './use-file-proxy';
+export { useAiTutorChat } from './use-ai-tutor-chat';
+export type { ChatMsg } from './use-ai-tutor-chat';

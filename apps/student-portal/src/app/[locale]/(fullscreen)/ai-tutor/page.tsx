@@ -1,23 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import {
-  useAiQuota,
-  useAiSessions,
-  useSessionMessages,
-  useMyLearning,
-  useAuthStore,
-} from '@shared/hooks';
+import { useAiSessions, useMyLearning, useAuthStore, useAiTutorChat } from '@shared/hooks';
 import { SessionSidebar } from '@/components/ai-tutor/session-sidebar';
 import { ChatPanel } from '@/components/ai-tutor/chat-panel';
 import { cn } from '@/lib/utils';
-
-interface ChatMsg {
-  id: string;
-  role: 'USER' | 'ASSISTANT';
-  content: string;
-}
 
 interface SessionItem {
   id: string;
@@ -27,8 +15,6 @@ interface SessionItem {
   updatedAt: string;
   _count: { messages: number };
 }
-
-const DEFAULT_DAILY_LIMIT = 10;
 
 export default function AiTutorPage() {
   const t = useTranslations('aiTutor');
@@ -42,75 +28,33 @@ export default function AiTutorPage() {
   const enrolledCourses = (learningData?.data ?? []).map((e) => e.course);
   const [selectedCourseId, setSelectedCourseId] = useState('');
 
-  // Sessions
+  // Sessions for the selected course
   const { data: sessionsRaw } = useAiSessions(selectedCourseId || undefined);
   const sessions = ((sessionsRaw as { data?: SessionItem[] } | undefined)?.data ??
     (sessionsRaw as SessionItem[] | undefined)) as SessionItem[] | undefined;
   const sessionList = Array.isArray(sessions) ? sessions : [];
 
-  // Active session
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  // Conversation state (sessions, messages, streaming, quota) — shared hook
+  const chat = useAiTutorChat({ courseId: selectedCourseId });
 
-  // Messages
-  const { data: messagesRaw } = useSessionMessages(activeSessionId ?? '');
-  const sessionMessages = ((messagesRaw as { data?: ChatMsg[] } | undefined)?.data ??
-    (messagesRaw as ChatMsg[] | undefined)) as ChatMsg[] | undefined;
-
-  // Quota
-  const { data: quotaRaw } = useAiQuota();
-  const quota = (
-    quotaRaw as { data?: { used: number; limit: number; remaining: number } } | undefined
-  )?.data;
-  const usageCount = quota?.used ?? 0;
-  const dailyLimit = quota?.limit ?? DEFAULT_DAILY_LIMIT;
-
-  // State
-  const [localMessages, setLocalMessages] = useState<ChatMsg[]>([]);
-  const [streamingContent, setStreamingContent] = useState('');
-  const [isThinking, setIsThinking] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [input, setInput] = useState('');
   const [showSidebar, setShowSidebar] = useState(true);
-
-  // Sync session messages
-  const streamingRef = useRef(false);
-  streamingRef.current = isStreaming || isThinking;
-
-  useEffect(() => {
-    // Skip sync during streaming to preserve optimistic user message
-    if (sessionMessages && !streamingRef.current) {
-      setLocalMessages(
-        sessionMessages.map((m, i) => ({
-          id: m.id ?? `msg-${i}`,
-          role: m.role,
-          content: m.content,
-        })),
-      );
-    }
-  }, [sessionMessages]);
 
   const handleSelectSession = useCallback(
     (sessionId: string) => {
-      if (sessionId === activeSessionId) return;
-      setActiveSessionId(sessionId);
-      setLocalMessages([]);
-      setStreamingContent('');
+      chat.selectSession(sessionId);
       setShowSidebar(false);
     },
-    [activeSessionId],
+    [chat.selectSession],
   );
 
   const handleNewConversation = useCallback(() => {
-    setActiveSessionId(null);
-    setLocalMessages([]);
-    setStreamingContent('');
+    chat.newSession();
     setShowSidebar(false);
-  }, []);
+  }, [chat.newSession]);
 
   const handleCourseChange = useCallback((courseId: string) => {
+    // The conversation resets automatically when the hook's courseId changes.
     setSelectedCourseId(courseId);
-    setActiveSessionId(null);
-    setLocalMessages([]);
   }, []);
 
   return (
@@ -128,11 +72,11 @@ export default function AiTutorPage() {
             selectedCourseId={selectedCourseId}
             onCourseChange={handleCourseChange}
             sessions={sessionList}
-            activeSessionId={activeSessionId}
+            activeSessionId={chat.activeSessionId}
             onSelectSession={handleSelectSession}
             onNewConversation={handleNewConversation}
-            usageCount={usageCount}
-            dailyLimit={dailyLimit}
+            usageCount={chat.usageCount}
+            dailyLimit={chat.dailyLimit}
           />
         </div>
 
@@ -140,21 +84,16 @@ export default function AiTutorPage() {
         <div className={cn('flex flex-1 flex-col', showSidebar ? 'hidden sm:flex' : 'flex')}>
           {selectedCourseId ? (
             <ChatPanel
-              messages={localMessages}
-              setMessages={setLocalMessages}
-              selectedCourseId={selectedCourseId}
-              activeSessionId={activeSessionId}
-              setActiveSessionId={setActiveSessionId}
-              input={input}
-              setInput={setInput}
-              isStreaming={isStreaming}
-              setIsStreaming={setIsStreaming}
-              streamingContent={streamingContent}
-              setStreamingContent={setStreamingContent}
-              isThinking={isThinking}
-              setIsThinking={setIsThinking}
-              usageCount={usageCount}
-              dailyLimit={dailyLimit}
+              messages={chat.messages}
+              streamingContent={chat.streamingContent}
+              isThinking={chat.isThinking}
+              isStreaming={chat.isStreaming}
+              input={chat.input}
+              setInput={chat.setInput}
+              onSend={chat.send}
+              canSend={chat.canSend}
+              usageCount={chat.usageCount}
+              dailyLimit={chat.dailyLimit}
               userAvatar={user?.avatarUrl}
               userName={user?.fullName}
               onShowSidebar={() => setShowSidebar(true)}
