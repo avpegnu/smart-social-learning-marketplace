@@ -21,6 +21,24 @@ export class PostsService {
   ) {}
 
   async create(authorId: string, dto: CreatePostDto) {
+    // Posting into a group requires the group to exist; private groups (including
+    // course-linked ones) additionally require membership. Without this, any user
+    // could write into / spam a private group by passing its id (IDOR). Mirrors
+    // the visibility rule already enforced in GroupsService.getGroupPosts.
+    if (dto.groupId) {
+      const group = await this.prisma.group.findUnique({
+        where: { id: dto.groupId },
+        select: { privacy: true },
+      });
+      if (!group) throw new NotFoundException({ code: 'GROUP_NOT_FOUND' });
+      if (group.privacy === 'PRIVATE') {
+        const member = await this.prisma.groupMember.findUnique({
+          where: { groupId_userId: { groupId: dto.groupId, userId: authorId } },
+        });
+        if (!member) throw new ForbiddenException({ code: 'NOT_GROUP_MEMBER' });
+      }
+    }
+
     const post = await this.prisma.post.create({
       data: {
         authorId,

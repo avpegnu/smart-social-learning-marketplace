@@ -4,11 +4,12 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { RedisService } from '@/redis/redis.service';
 import { RecommendationsService } from '@/modules/recommendations/recommendations.service';
 import { EmbeddingsService } from '@/modules/ai-tutor/embeddings/embeddings.service';
+import { QueueService } from '@/modules/jobs/queue.service';
 
 describe('CronService', () => {
   let service: CronService;
   const prisma = {
-    order: { updateMany: jest.fn() },
+    order: { findMany: jest.fn(), updateMany: jest.fn() },
     course: { update: jest.fn(), findMany: jest.fn() },
     earning: { findMany: jest.fn(), updateMany: jest.fn() },
     instructorProfile: { update: jest.fn() },
@@ -19,6 +20,7 @@ describe('CronService', () => {
     analyticsSnapshot: { upsert: jest.fn() },
     courseSimilarity: { upsert: jest.fn() },
     $executeRaw: jest.fn(),
+    $transaction: jest.fn(),
   };
   const redis = {
     scan: jest.fn(),
@@ -31,6 +33,9 @@ describe('CronService', () => {
     isReady: jest.fn().mockReturnValue(true),
     indexCourseContent: jest.fn().mockResolvedValue(undefined),
   };
+  const queue = {
+    addNotification: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -40,6 +45,7 @@ describe('CronService', () => {
         { provide: RedisService, useValue: redis },
         { provide: RecommendationsService, useValue: recommendations },
         { provide: EmbeddingsService, useValue: embeddings },
+        { provide: QueueService, useValue: queue },
       ],
     }).compile();
     service = module.get(CronService);
@@ -47,17 +53,30 @@ describe('CronService', () => {
   });
 
   describe('expirePendingOrders', () => {
-    it('should expire orders past expiresAt', async () => {
-      prisma.order.updateMany.mockResolvedValue({ count: 3 });
+    it('should expire read orders with a PENDING guard and notify each buyer', async () => {
+      prisma.order.findMany.mockResolvedValue([
+        { id: 'o1', userId: 'u1' },
+        { id: 'o2', userId: 'u2' },
+      ]);
+      prisma.order.updateMany.mockResolvedValue({ count: 2 });
+
       await service.expirePendingOrders();
 
+      // The guard re-asserts PENDING so a late payment that completed an order in
+      // the race window is never overwritten to EXPIRED.
       expect(prisma.order.updateMany).toHaveBeenCalledWith({
-        where: {
-          status: 'PENDING',
-          expiresAt: { lt: expect.any(Date) },
-        },
+        where: { id: { in: ['o1', 'o2'] }, status: 'PENDING' },
         data: { status: 'EXPIRED' },
       });
+      expect(queue.addNotification).toHaveBeenCalledTimes(2);
+    });
+
+    it('should do nothing when there are no expired orders', async () => {
+      prisma.order.findMany.mockResolvedValue([]);
+
+      await service.expirePendingOrders();
+
+      expect(prisma.order.updateMany).not.toHaveBeenCalled();
     });
   });
 
@@ -98,7 +117,7 @@ describe('CronService', () => {
       await service.releaseAvailableEarnings();
 
       expect(prisma.earning.findMany).toHaveBeenCalledWith({
-        where: { status: 'PENDING' },
+        where: { status: 'PENDING', availableAt: { lte: expect.any(Date) } },
         select: { id: true, instructorId: true, netAmount: true },
       });
       expect(prisma.earning.updateMany).toHaveBeenCalledWith({
@@ -166,6 +185,9 @@ describe('CronService', () => {
 
   describe('reconcileCounters', () => {
     it('should execute raw SQL for counter reconciliation', async () => {
+      prisma.$transaction.mockImplementation(async (fn: (tx: typeof prisma) => unknown) =>
+        fn(prisma),
+      );
       prisma.$executeRaw.mockResolvedValue(0);
       await service.reconcileCounters();
 

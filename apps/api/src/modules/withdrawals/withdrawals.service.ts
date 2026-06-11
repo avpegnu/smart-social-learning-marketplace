@@ -16,55 +16,50 @@ export class WithdrawalsService {
   ) {}
 
   async requestWithdrawal(instructorId: string, dto: CreateWithdrawalDto) {
-    // 1. Check no pending withdrawal exists
-    const pending = await this.prisma.withdrawal.findFirst({
-      where: { instructorId, status: 'PENDING' },
-    });
-    if (pending) {
-      throw new ConflictException({ code: 'WITHDRAWAL_PENDING_EXISTS' });
-    }
-
-    // 2. Check available balance from instructor profile
-    const profile = await this.prisma.instructorProfile.findUnique({
-      where: { userId: instructorId },
-      select: { availableBalance: true },
-    });
-    const balance = profile?.availableBalance ?? 0;
-
     const minWithdrawal = this.platformSettings.get<number>('minimum_withdrawal', 50000);
     if (dto.amount < minWithdrawal) {
       throw new BadRequestException({ code: 'BELOW_MINIMUM_WITHDRAWAL', minimum: minWithdrawal });
     }
 
-    if (dto.amount > balance) {
-      throw new BadRequestException({ code: 'INSUFFICIENT_BALANCE' });
-    }
+    // Run the pending-check + balance debit inside one transaction so two
+    // concurrent requests cannot both pass a stale balance check (TOCTOU). The
+    // guarded updateMany only decrements when the balance still covers the amount,
+    // and the row lock serializes racing requests — preventing double-withdrawal
+    // or a negative balance.
+    const withdrawal = await this.prisma.$transaction(async (tx) => {
+      const pending = await tx.withdrawal.findFirst({
+        where: { instructorId, status: 'PENDING' },
+        select: { id: true },
+      });
+      if (pending) {
+        throw new ConflictException({ code: 'WITHDRAWAL_PENDING_EXISTS' });
+      }
 
-    // 3. Create withdrawal + deduct balance
-    return this.prisma.$transaction(async (tx) => {
-      const withdrawal = await tx.withdrawal.create({
+      const debit = await tx.instructorProfile.updateMany({
+        where: { userId: instructorId, availableBalance: { gte: dto.amount } },
+        data: { availableBalance: { decrement: dto.amount } },
+      });
+      if (debit.count === 0) {
+        throw new BadRequestException({ code: 'INSUFFICIENT_BALANCE' });
+      }
+
+      return tx.withdrawal.create({
         data: {
           instructorId,
           amount: dto.amount,
           bankInfo: dto.bankInfo as unknown as Prisma.InputJsonValue,
         },
       });
-
-      // Deduct from available balance
-      await tx.instructorProfile.update({
-        where: { userId: instructorId },
-        data: { availableBalance: { decrement: dto.amount } },
-      });
-
-      // Notify admins
-      this.queue.addAdminNotification('WITHDRAWAL_PENDING', {
-        withdrawalId: withdrawal.id,
-        amount: dto.amount,
-        instructorId,
-      });
-
-      return withdrawal;
     });
+
+    // Notify admins (fire-and-forget, outside the transaction)
+    this.queue.addAdminNotification('WITHDRAWAL_PENDING', {
+      withdrawalId: withdrawal.id,
+      amount: dto.amount,
+      instructorId,
+    });
+
+    return withdrawal;
   }
 
   async getWithdrawalHistory(instructorId: string, query: PaginationDto) {

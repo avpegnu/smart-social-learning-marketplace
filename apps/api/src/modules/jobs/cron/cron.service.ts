@@ -32,12 +32,19 @@ export class CronService {
     });
     if (expiredOrders.length === 0) return;
 
-    await this.prisma.order.updateMany({
-      where: { id: { in: expiredOrders.map((o) => o.id) } },
+    const expired = await this.prisma.order.updateMany({
+      // Re-assert PENDING in the WHERE clause: if a late SePay payment completed
+      // one of these orders between the read above and this write, the guard skips
+      // it so a paid + fulfilled order is never overwritten to EXPIRED.
+      where: { id: { in: expiredOrders.map((o) => o.id) }, status: 'PENDING' },
       data: { status: 'EXPIRED' },
     });
-    this.logger.log(`Expired ${expiredOrders.length} pending orders`);
+    if (expired.count === 0) return;
+    this.logger.log(`Expired ${expired.count} pending orders`);
 
+    // Best-effort notification. In the rare race where one order completed in the
+    // window above, the buyer also receives ORDER_COMPLETED, so a spurious
+    // ORDER_EXPIRED here is harmless and not worth an extra query to filter out.
     for (const order of expiredOrders) {
       this.queue.addNotification(order.userId, 'ORDER_EXPIRED', {
         orderId: order.id,
