@@ -14,7 +14,8 @@ const mockPrisma = {
   bookmark: { findUnique: jest.fn() },
   follow: { findMany: jest.fn() },
   feedItem: { createMany: jest.fn(), create: jest.fn() },
-  groupMember: { findMany: jest.fn() },
+  group: { findUnique: jest.fn() },
+  groupMember: { findMany: jest.fn(), findUnique: jest.fn() },
   $transaction: jest.fn(),
 };
 
@@ -52,22 +53,56 @@ describe('PostsService', () => {
       expect(mockPrisma.post.create).toHaveBeenCalled();
     });
 
-    it('should fanout to group members for group posts', async () => {
+    it('should create a post in a PUBLIC group without requiring membership', async () => {
       const post = { id: 'post-1', authorId: 'user-1', groupId: 'group-1' };
+      mockPrisma.group.findUnique.mockResolvedValue({ privacy: 'PUBLIC' });
       mockPrisma.post.create.mockResolvedValue(post);
-      mockPrisma.groupMember.findMany.mockResolvedValue([
-        { userId: 'user-2' },
-        { userId: 'user-3' },
-      ]);
-      mockPrisma.feedItem.createMany.mockResolvedValue({ count: 2 });
 
-      await service.create('user-1', {
+      const result = await service.create('user-1', {
         content: 'Group post',
         groupId: 'group-1',
       } as never);
-      expect(mockPrisma.groupMember.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { groupId: 'group-1' } }),
+
+      expect(result).toEqual(post);
+      expect(mockPrisma.post.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ groupId: 'group-1' }) }),
       );
+      // Public groups do not require a membership lookup.
+      expect(mockPrisma.groupMember.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('should reject posting into a PRIVATE group when not a member (IDOR guard)', async () => {
+      mockPrisma.group.findUnique.mockResolvedValue({ privacy: 'PRIVATE' });
+      mockPrisma.groupMember.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.create('outsider', { content: 'spam', groupId: 'private-1' } as never),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockPrisma.post.create).not.toHaveBeenCalled();
+    });
+
+    it('should allow a member to post into a PRIVATE group', async () => {
+      const post = { id: 'post-9', authorId: 'member-1', groupId: 'private-1' };
+      mockPrisma.group.findUnique.mockResolvedValue({ privacy: 'PRIVATE' });
+      mockPrisma.groupMember.findUnique.mockResolvedValue({ id: 'gm-1', role: 'MEMBER' });
+      mockPrisma.post.create.mockResolvedValue(post);
+
+      const result = await service.create('member-1', {
+        content: 'hello team',
+        groupId: 'private-1',
+      } as never);
+
+      expect(result).toEqual(post);
+      expect(mockPrisma.post.create).toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException when the target group does not exist', async () => {
+      mockPrisma.group.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.create('user-1', { content: 'x', groupId: 'ghost' } as never),
+      ).rejects.toThrow(NotFoundException);
+      expect(mockPrisma.post.create).not.toHaveBeenCalled();
     });
   });
 
