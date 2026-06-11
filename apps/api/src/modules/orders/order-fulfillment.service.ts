@@ -47,16 +47,22 @@ export class OrderFulfillmentService {
     );
     const availableAt = new Date(Date.now() + holdMinutes * 60 * 1000);
 
-    await this.prisma.$transaction(async (tx) => {
-      // 1. Update order status
-      await tx.order.update({
-        where: { id: orderId },
+    const fulfilled = await this.prisma.$transaction(async (tx) => {
+      // 1. Atomically transition the order PENDING -> COMPLETED. The status guard
+      // makes fulfillment idempotent and race-safe: a duplicate/retried SePay
+      // webhook, or a run that loses the race against the expiration cron, matches
+      // zero rows and bails out instead of double-enrolling or double-crediting.
+      const transition = await tx.order.updateMany({
+        where: { id: orderId, status: 'PENDING' },
         data: {
           status: 'COMPLETED',
           paymentRef: paymentRef ?? null,
           paidAt: new Date(),
         },
       });
+      if (transition.count === 0) {
+        return false;
+      }
 
       // Track which instructors got a new student in this order
       const instructorStudentAdded = new Set<string>();
@@ -147,7 +153,13 @@ export class OrderFulfillmentService {
           }
         }
       }
+
+      return true;
     });
+
+    // Another path already fulfilled this order (concurrent webhook retry), or it
+    // was expired before payment landed — skip side effects to stay idempotent.
+    if (!fulfilled) return;
 
     // Notify buyer: order completed
     this.queue.addNotification(userId, 'ORDER_COMPLETED', { orderId });
