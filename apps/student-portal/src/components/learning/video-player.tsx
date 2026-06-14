@@ -4,6 +4,14 @@ import { useRef, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useUpdateProgress } from '@shared/hooks';
 
+// Max gap (in media seconds, scaled by playback rate) between two `timeupdate`
+// ticks that still counts as continuous viewing. It only tolerates jittery tick
+// spacing — it is NOT how seeks are excluded. Seeks of ANY size are excluded by
+// the `seekingRef` flag below, since a mouse-drag scrub can produce arbitrarily
+// small jumps that this threshold alone would miss.
+const MAX_CONTINUOUS_GAP_SECONDS = 2;
+const PROGRESS_FLUSH_INTERVAL_MS = 10_000;
+
 interface VideoPlayerProps {
   lessonId: string;
   videoUrl: string;
@@ -20,75 +28,102 @@ export function VideoPlayer({
   const t = useTranslations('learning');
   const videoRef = useRef<HTMLVideoElement>(null);
   const segmentsRef = useRef<[number, number][]>(initialSegments);
-  const segmentStartRef = useRef<number>(lastPosition);
+  // Media time of the previous `timeupdate`. Reset to null on seek/pause so the
+  // jump itself can never be recorded as watched time.
+  const prevTickRef = useRef<number | null>(null);
+  // True between `seeking` and `seeked`, so ticks emitted mid-seek are ignored
+  // regardless of seek distance or event ordering.
+  const seekingRef = useRef(false);
   const updateProgress = useUpdateProgress();
-  const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Resume from last position
+  const flushProgress = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    updateProgress.mutate({
+      lessonId,
+      data: {
+        lastPosition: Math.floor(video.currentTime),
+        watchedSegments: segmentsRef.current,
+      },
+    });
+  }, [lessonId, updateProgress]);
+
+  // Keep the latest flush in a ref so the interval/cleanup never goes stale
+  // without having to re-subscribe the timer on every render.
+  const flushRef = useRef(flushProgress);
+  flushRef.current = flushProgress;
+
+  // Resume from last saved position
   useEffect(() => {
     if (videoRef.current && lastPosition > 0) {
       videoRef.current.currentTime = lastPosition;
     }
   }, [lastPosition]);
 
-  // Flush progress to server every 10 seconds
+  // Periodic flush during playback + final flush on unmount
   useEffect(() => {
-    flushTimerRef.current = setInterval(() => {
-      flushProgress();
-    }, 10000);
+    const timer = setInterval(() => {
+      const video = videoRef.current;
+      if (video && !video.paused) flushRef.current();
+    }, PROGRESS_FLUSH_INTERVAL_MS);
     return () => {
-      if (flushTimerRef.current) clearInterval(flushTimerRef.current);
-      flushProgress(); // Final flush on unmount
+      clearInterval(timer);
+      flushRef.current();
     };
-  }, [lessonId]); // Only re-setup timer when lesson changes
+  }, []);
 
-  const flushProgress = useCallback(() => {
+  // Flush when the tab is hidden so progress isn't lost if it is closed before
+  // the next interval tick (the unmount cleanup may not run on a hard close).
+  useEffect(() => {
+    const onHidden = () => {
+      if (document.visibilityState === 'hidden') flushRef.current();
+    };
+    document.addEventListener('visibilitychange', onHidden);
+    return () => document.removeEventListener('visibilitychange', onHidden);
+  }, []);
+
+  // Record ONLY continuous playback. A jump in currentTime between two ticks
+  // (forward seek) or a negative delta (rewind) breaks the segment, so the
+  // skipped region is never credited as watched.
+  const handleTimeUpdate = () => {
     const video = videoRef.current;
-    if (!video || video.paused) return;
+    if (!video || video.paused || seekingRef.current) return;
 
-    const currentTime = Math.floor(video.currentTime);
-    const start = segmentStartRef.current;
+    const current = video.currentTime;
+    const prev = prevTickRef.current;
+    prevTickRef.current = current;
+    if (prev === null) return;
 
-    if (currentTime > start) {
-      segmentsRef.current = mergeSegments([...segmentsRef.current, [start, currentTime]]);
-      segmentStartRef.current = currentTime;
+    const delta = current - prev;
+    const maxGap = MAX_CONTINUOUS_GAP_SECONDS * (video.playbackRate || 1);
+    if (delta <= 0 || delta > maxGap) return; // seek or rewind → ignore the gap
+
+    const start = Math.floor(prev);
+    const end = Math.floor(current);
+    if (end > start) {
+      segmentsRef.current = mergeSegments([...segmentsRef.current, [start, end]]);
     }
-
-    updateProgress.mutate({
-      lessonId,
-      data: {
-        lastPosition: currentTime,
-        watchedSegments: segmentsRef.current,
-      },
-    });
-  }, [lessonId, updateProgress]);
+  };
 
   const handlePlay = () => {
-    if (videoRef.current) {
-      segmentStartRef.current = Math.floor(videoRef.current.currentTime);
-    }
+    prevTickRef.current = videoRef.current?.currentTime ?? null;
   };
 
   const handlePause = () => {
+    prevTickRef.current = null;
     flushProgress();
   };
 
+  // Seeking breaks the continuity anchor so the jumped-over span is not counted.
   const handleSeeking = () => {
-    // Flush current segment before seek (so watched time isn't lost)
-    const video = videoRef.current;
-    if (!video) return;
-    const currentTime = Math.floor(video.currentTime);
-    const start = segmentStartRef.current;
-    if (currentTime > start) {
-      segmentsRef.current = mergeSegments([...segmentsRef.current, [start, currentTime]]);
-    }
+    prevTickRef.current = null;
+    seekingRef.current = true;
   };
 
   const handleSeeked = () => {
-    // Start new segment from seek position
-    if (videoRef.current) {
-      segmentStartRef.current = Math.floor(videoRef.current.currentTime);
-    }
+    prevTickRef.current = null;
+    seekingRef.current = false;
   };
 
   return (
@@ -102,6 +137,7 @@ export function VideoPlayer({
         onPause={handlePause}
         onSeeking={handleSeeking}
         onSeeked={handleSeeked}
+        onTimeUpdate={handleTimeUpdate}
         onEnded={handlePause}
       >
         {t('videoNotSupported')}
