@@ -25,6 +25,36 @@ export function mergeSegments(segments: [number, number][]): [number, number][] 
 }
 
 /**
+ * Sanitize client-reported watched segments before trusting them.
+ *
+ * The watched time that drives lesson completion comes from the client, so the
+ * server must not blindly trust it. This drops malformed entries and clamps
+ * each segment to [0, maxDuration] so out-of-range values cannot inflate the
+ * watched total. A non-positive maxDuration means "duration unknown" → only the
+ * shape and the lower bound are enforced.
+ */
+export function sanitizeSegments(segments: unknown, maxDuration: number): [number, number][] {
+  if (!Array.isArray(segments)) return [];
+
+  const upperBound = maxDuration > 0 ? maxDuration : Number.POSITIVE_INFINITY;
+  const clean: [number, number][] = [];
+
+  for (const segment of segments) {
+    if (!Array.isArray(segment) || segment.length !== 2) continue;
+
+    const [rawStart, rawEnd] = segment;
+    if (typeof rawStart !== 'number' || typeof rawEnd !== 'number') continue;
+    if (!Number.isFinite(rawStart) || !Number.isFinite(rawEnd)) continue;
+
+    const start = Math.min(Math.max(Math.floor(rawStart), 0), upperBound);
+    const end = Math.min(Math.max(Math.floor(rawEnd), 0), upperBound);
+    if (end > start) clean.push([start, end]);
+  }
+
+  return clean;
+}
+
+/**
  * Calculate total watched duration from segments.
  */
 export function calculateWatchedDuration(segments: [number, number][]): number {

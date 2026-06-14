@@ -87,6 +87,93 @@ describe('ProgressService', () => {
       expect(mockStreaks.trackDailyActivity).toHaveBeenCalledWith('user-1', 'lesson');
     });
 
+    it('should clamp out-of-range client segments to the lesson duration', async () => {
+      mockPrisma.lesson.findUnique.mockResolvedValue(MOCK_LESSON); // duration 600
+      mockPrisma.enrollment.findUnique.mockResolvedValue({ type: 'FULL', progress: 0 });
+      mockPrisma.lessonProgress.findUnique.mockResolvedValue(null);
+      mockPrisma.lessonProgress.upsert.mockResolvedValue({});
+      mockPrisma.lessonProgress.count.mockResolvedValue(1);
+      mockPrisma.lesson.count.mockResolvedValue(10);
+      mockPrisma.enrollment.update.mockResolvedValue({});
+
+      const result = await service.updateLessonProgress('user-1', 'les-1', {
+        watchedSegments: [[0, 999999]] as [number, number][],
+      });
+
+      // 999999 clamped to 600 → percent capped at 1.0, stored segments clamped.
+      expect(result.watchedPercent).toBe(1);
+      const stored = mockPrisma.lessonProgress.upsert.mock.calls[0][0].create.watchedSegments;
+      expect(stored).toEqual([[0, 600]]);
+    });
+
+    it('should drop malformed/inverted segments while keeping valid ones', async () => {
+      mockPrisma.lesson.findUnique.mockResolvedValue(MOCK_LESSON); // duration 600
+      mockPrisma.enrollment.findUnique.mockResolvedValue({ type: 'FULL', progress: 0 });
+      mockPrisma.lessonProgress.findUnique.mockResolvedValue({
+        watchedSegments: [[0, 50]],
+        isCompleted: false,
+      });
+      mockPrisma.lessonProgress.upsert.mockResolvedValue({});
+
+      const result = await service.updateLessonProgress('user-1', 'les-1', {
+        // Inverted entry first (dropped), valid entry kept → merged with existing.
+        watchedSegments: [
+          [500, 100],
+          [0, 100],
+        ] as [number, number][],
+      });
+
+      const stored = mockPrisma.lessonProgress.upsert.mock.calls[0][0].update.watchedSegments;
+      expect(stored).toEqual([[0, 100]]);
+      expect(result.watchedPercent).toBeCloseTo(0.1667, 3);
+      expect(result.isCompleted).toBe(false);
+    });
+
+    it('should complete at exactly the 80% boundary, not just below', async () => {
+      mockPrisma.lesson.findUnique.mockResolvedValue(MOCK_LESSON); // duration 600
+      mockPrisma.enrollment.findUnique.mockResolvedValue({ type: 'FULL', progress: 0 });
+      mockPrisma.lessonProgress.upsert.mockResolvedValue({});
+      mockPrisma.lessonProgress.count.mockResolvedValue(1);
+      mockPrisma.lesson.count.mockResolvedValue(10);
+      mockPrisma.enrollment.update.mockResolvedValue({});
+
+      // 479/600 = 0.7983 → just below threshold
+      mockPrisma.lessonProgress.findUnique.mockResolvedValue({
+        watchedSegments: [[0, 400]],
+        isCompleted: false,
+      });
+      const nearMiss = await service.updateLessonProgress('user-1', 'les-1', {
+        watchedSegments: [[400, 479]],
+      });
+      expect(nearMiss.watchedPercent).toBeCloseTo(0.7983, 3);
+      expect(nearMiss.isCompleted).toBe(false);
+
+      // 480/600 = 0.8 → meets threshold (>=)
+      mockPrisma.lessonProgress.findUnique.mockResolvedValue({
+        watchedSegments: [[0, 400]],
+        isCompleted: false,
+      });
+      const exact = await service.updateLessonProgress('user-1', 'les-1', {
+        watchedSegments: [[400, 480]],
+      });
+      expect(exact.watchedPercent).toBe(0.8);
+      expect(exact.isCompleted).toBe(true);
+    });
+
+    it('should never auto-complete a video lesson with unknown duration', async () => {
+      mockPrisma.lesson.findUnique.mockResolvedValue({ ...MOCK_LESSON, estimatedDuration: null });
+      mockPrisma.enrollment.findUnique.mockResolvedValue({ type: 'FULL', progress: 0 });
+      mockPrisma.lessonProgress.findUnique.mockResolvedValue(null);
+      mockPrisma.lessonProgress.upsert.mockResolvedValue({});
+
+      const result = await service.updateLessonProgress('user-1', 'les-1', {
+        watchedSegments: [[0, 5000]],
+      });
+
+      expect(result.watchedPercent).toBe(0);
+      expect(result.isCompleted).toBe(false);
+    });
+
     it('should throw if lesson not found', async () => {
       mockPrisma.lesson.findUnique.mockResolvedValue(null);
 

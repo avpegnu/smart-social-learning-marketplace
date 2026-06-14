@@ -1,7 +1,11 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
-import { mergeSegments, calculateWatchedPercent } from '@/common/utils/segments.util';
+import {
+  mergeSegments,
+  calculateWatchedPercent,
+  sanitizeSegments,
+} from '@/common/utils/segments.util';
 import { LESSON_COMPLETE_THRESHOLD } from '@/common/constants/app.constant';
 import { CertificatesService } from '../certificates/certificates.service';
 import { StreaksService } from '../streaks/streaks.service';
@@ -37,12 +41,15 @@ export class ProgressService {
       where: { userId_lessonId: { userId, lessonId } },
     });
 
-    // Merge video segments
-    const existingSegments = (existing?.watchedSegments as [number, number][]) ?? [];
-    const newSegments = dto.watchedSegments ?? [];
+    const totalDuration = lesson.estimatedDuration ?? 0;
+
+    // Merge video segments. Both incoming client segments and previously stored
+    // segments are sanitized/clamped to the current lesson duration — this also
+    // re-clamps legacy rows and adapts if estimatedDuration was later shortened.
+    const existingSegments = sanitizeSegments(existing?.watchedSegments, totalDuration);
+    const newSegments = sanitizeSegments(dto.watchedSegments, totalDuration);
     const merged = mergeSegments([...existingSegments, ...newSegments]);
 
-    const totalDuration = lesson.estimatedDuration ?? 0;
     const watchedPercent = calculateWatchedPercent(merged, totalDuration);
     const isCompleted = watchedPercent >= LESSON_COMPLETE_THRESHOLD;
 

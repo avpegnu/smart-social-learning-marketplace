@@ -1,4 +1,9 @@
-import { mergeSegments, calculateWatchedDuration, calculateWatchedPercent } from './segments.util';
+import {
+  mergeSegments,
+  calculateWatchedDuration,
+  calculateWatchedPercent,
+  sanitizeSegments,
+} from './segments.util';
 
 describe('segments.util', () => {
   describe('mergeSegments', () => {
@@ -131,6 +136,75 @@ describe('segments.util', () => {
 
     it('should return 1 for fully watched', () => {
       expect(calculateWatchedPercent([[0, 900]], 900)).toBe(1);
+    });
+
+    it('should return exactly 0.8 at the completion boundary', () => {
+      expect(calculateWatchedPercent([[0, 480]], 600)).toBe(0.8);
+    });
+  });
+
+  describe('sanitizeSegments', () => {
+    it('should return empty array for non-array input', () => {
+      expect(sanitizeSegments(undefined, 600)).toEqual([]);
+      expect(sanitizeSegments(null, 600)).toEqual([]);
+      expect(sanitizeSegments('oops', 600)).toEqual([]);
+    });
+
+    it('should pass valid in-range segments through', () => {
+      expect(
+        sanitizeSegments(
+          [
+            [0, 200],
+            [300, 480],
+          ],
+          600,
+        ),
+      ).toEqual([
+        [0, 200],
+        [300, 480],
+      ]);
+    });
+
+    it('should clamp segments to the lesson duration', () => {
+      // A forged segment claiming more than the video length is capped.
+      expect(sanitizeSegments([[0, 999999]], 600)).toEqual([[0, 600]]);
+      expect(sanitizeSegments([[-50, 700]], 600)).toEqual([[0, 600]]);
+    });
+
+    it('should drop inverted or zero-length segments', () => {
+      expect(
+        sanitizeSegments(
+          [
+            [400, 200],
+            [100, 100],
+          ],
+          600,
+        ),
+      ).toEqual([]);
+    });
+
+    it('should drop malformed entries', () => {
+      expect(
+        sanitizeSegments(
+          [
+            [0, 100],
+            [10], // wrong length
+            ['a', 'b'], // non-numbers
+            [NaN, 50], // not finite
+            [0, Infinity], // not finite
+            'nope',
+          ],
+          600,
+        ),
+      ).toEqual([[0, 100]]);
+    });
+
+    it('should floor fractional values to whole seconds', () => {
+      expect(sanitizeSegments([[0.9, 120.7]], 600)).toEqual([[0, 120]]);
+    });
+
+    it('should enforce only shape and lower bound when duration is unknown', () => {
+      expect(sanitizeSegments([[-10, 5000]], 0)).toEqual([[0, 5000]]);
     });
   });
 });
