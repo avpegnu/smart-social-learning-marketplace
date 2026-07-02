@@ -7,10 +7,11 @@ import { GroupsService } from '@/modules/social/groups/groups.service';
 
 const mockPrisma = {
   course: { findMany: jest.fn() },
+  user: { findUnique: jest.fn() },
   $transaction: jest.fn(),
 };
 
-const mockQueue = { addNotification: jest.fn() };
+const mockQueue = { addNotification: jest.fn(), addOrderReceiptEmail: jest.fn() };
 
 // Returns the provided fallback for any setting key
 const mockPlatformSettings = { get: jest.fn((_key: string, fallback: unknown) => fallback) };
@@ -70,6 +71,7 @@ describe('OrderFulfillmentService', () => {
       mockPrisma.course.findMany.mockResolvedValue([
         { id: 'c1', title: 'React', instructorId: 'instr-1' },
       ]);
+      mockPrisma.user.findUnique.mockResolvedValue({ email: 'buyer@example.com' });
 
       await service.fulfillOrder('order-1', 'user-1', items, 'FT123');
 
@@ -104,6 +106,13 @@ describe('OrderFulfillmentService', () => {
         orderId: 'order-1',
       });
       expect(mockGroups.addMemberByCourseId).toHaveBeenCalledWith('c1', 'user-1');
+
+      // Paid order (400000 after discount) → buyer gets a receipt email
+      expect(mockQueue.addOrderReceiptEmail).toHaveBeenCalledWith(
+        'buyer@example.com',
+        'order-1',
+        400000,
+      );
     });
 
     it('should enroll and create a zero earning for a fully-discounted (free) item', async () => {
@@ -156,6 +165,8 @@ describe('OrderFulfillmentService', () => {
       expect(mockQueue.addNotification).toHaveBeenCalledWith('user-1', 'ORDER_COMPLETED', {
         orderId: 'order-1',
       });
+      // Free/fully-discounted order (amount 0) → no receipt email
+      expect(mockQueue.addOrderReceiptEmail).not.toHaveBeenCalled();
     });
 
     it('should be idempotent: skip all side effects when the order is no longer PENDING', async () => {
@@ -180,6 +191,7 @@ describe('OrderFulfillmentService', () => {
       expect(txEarningCreate).not.toHaveBeenCalled();
       expect(mockQueue.addNotification).not.toHaveBeenCalled();
       expect(mockGroups.addMemberByCourseId).not.toHaveBeenCalled();
+      expect(mockQueue.addOrderReceiptEmail).not.toHaveBeenCalled();
     });
   });
 });

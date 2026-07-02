@@ -164,6 +164,24 @@ export class OrderFulfillmentService {
     // Notify buyer: order completed
     this.queue.addNotification(userId, 'ORDER_COMPLETED', { orderId });
 
+    // Send the buyer an order receipt email (best-effort — must never break
+    // fulfillment). Fire-and-forget like the notification above, and only for
+    // paid orders (amount > 0), so free/fully-discounted orders get no receipt.
+    try {
+      const amount = items.reduce((sum, item) => sum + (item.price - item.discount), 0);
+      if (amount > 0) {
+        const buyer = await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { email: true },
+        });
+        if (buyer?.email) {
+          this.queue.addOrderReceiptEmail(buyer.email, orderId, amount);
+        }
+      }
+    } catch {
+      // Receipt email is non-critical; never let a lookup/enqueue error surface.
+    }
+
     // Add user to course groups
     const courseIds = [...new Set(items.filter((i) => i.courseId).map((i) => i.courseId!))];
     if (courseIds.length > 0) {
