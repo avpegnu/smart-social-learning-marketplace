@@ -419,6 +419,7 @@
     "VALIDATION_ERROR": "Invalid input data",
     "UNIQUE_CONSTRAINT_VIOLATION": "This record already exists",
     "TOO_MANY_LOGIN_ATTEMPTS": "Too many login attempts, please try again later",
+    "TOO_MANY_REQUESTS": "Too many requests. Please try again in a few minutes.",
     "COURSE_NOT_FOUND": "Course not found",
     "COURSE_NOT_EDITABLE": "Course is pending review and cannot be edited",
     "COURSE_NOT_SUBMITTABLE": "Course is not eligible for submission",

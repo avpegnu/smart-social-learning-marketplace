@@ -888,6 +888,7 @@
     "INVALID_REFRESH_TOKEN": "Phiên đăng nhập đã hết hạn",
     "MISSING_REFRESH_TOKEN": "Vui lòng đăng nhập lại",
     "TOO_MANY_LOGIN_ATTEMPTS": "Quá nhiều lần thử. Vui lòng đợi một lát.",
+    "TOO_MANY_REQUESTS": "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",
     "USER_NOT_FOUND": "Không tìm thấy người dùng",
     "COURSE_NOT_FOUND": "Không tìm thấy khóa học",
     "ALREADY_ENROLLED": "Bạn đã ghi danh khóa học này",

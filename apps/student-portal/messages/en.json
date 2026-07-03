@@ -888,6 +888,7 @@
     "INVALID_REFRESH_TOKEN": "Session expired",
     "MISSING_REFRESH_TOKEN": "Please log in again",
     "TOO_MANY_LOGIN_ATTEMPTS": "Too many attempts. Please wait a moment.",
+    "TOO_MANY_REQUESTS": "Too many requests. Please try again in a few minutes.",
     "USER_NOT_FOUND": "User not found",
     "COURSE_NOT_FOUND": "Course not found",
     "ALREADY_ENROLLED": "You are already enrolled in this course",

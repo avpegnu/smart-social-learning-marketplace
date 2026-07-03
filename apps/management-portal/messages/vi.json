@@ -419,6 +419,7 @@
     "VALIDATION_ERROR": "Dữ liệu nhập không hợp lệ",
     "UNIQUE_CONSTRAINT_VIOLATION": "Bản ghi này đã tồn tại",
     "TOO_MANY_LOGIN_ATTEMPTS": "Đăng nhập quá nhiều lần, vui lòng thử lại sau",
+    "TOO_MANY_REQUESTS": "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",
     "COURSE_NOT_FOUND": "Không tìm thấy khóa học",
     "COURSE_NOT_EDITABLE": "Khóa học đang chờ duyệt, không thể chỉnh sửa",
     "COURSE_NOT_SUBMITTABLE": "Khóa học chưa đủ điều kiện gửi duyệt",

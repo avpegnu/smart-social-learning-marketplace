@@ -37,6 +37,19 @@ describe('HttpExceptionFilter', () => {
     });
   });
 
+  it('should map a 429 string exception to TOO_MANY_REQUESTS', () => {
+    const exception = new HttpException('ThrottlerException: Too Many Requests', 429);
+
+    filter.catch(exception, mockHost as never);
+
+    expect(mockResponse.status).toHaveBeenCalledWith(429);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      code: 'TOO_MANY_REQUESTS',
+      message: 'ThrottlerException: Too Many Requests',
+      statusCode: 429,
+    });
+  });
+
   it('should handle object exception response with code', () => {
     const exception = new ConflictException({
       code: 'EMAIL_ALREADY_EXISTS',
