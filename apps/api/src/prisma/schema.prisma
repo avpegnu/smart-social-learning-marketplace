@@ -979,6 +979,7 @@ model DailyActivity {
   @@map("daily_activities")
 }
 
+// chưa dùng tới
 model UserSkill {
   id     String @id @default(cuid())
   userId String @map("user_id")

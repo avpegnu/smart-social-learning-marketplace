@@ -45,7 +45,7 @@ export class AuthService {
     @Inject(QueueService) private readonly queue: QueueService,
   ) {}
 
-  // ==================== REGISTER ====================
+  // REGISTER
   async register(dto: RegisterDto) {
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email },
@@ -76,7 +76,7 @@ export class AuthService {
     return { message: 'REGISTER_SUCCESS' };
   }
 
-  // ==================== LOGIN ====================
+  // LOGIN
   async login(dto: LoginDto, ip: string) {
     // Rate limiting by IP
     const rateLimitKey = `login_attempts:${ip}`;
@@ -131,7 +131,7 @@ export class AuthService {
     };
   }
 
-  // ==================== REFRESH ====================
+  // REFRESH
   async refresh(refreshTokenValue: string) {
     const storedToken = await this.prisma.refreshToken.findUnique({
       where: { token: refreshTokenValue },
@@ -161,7 +161,7 @@ export class AuthService {
     };
   }
 
-  // ==================== LOGOUT ====================
+  // LOGOUT
   async logout(refreshTokenValue: string) {
     await this.prisma.refreshToken.deleteMany({
       where: { token: refreshTokenValue },
@@ -169,7 +169,7 @@ export class AuthService {
     return { message: 'LOGOUT_SUCCESS' };
   }
 
-  // ==================== VERIFY EMAIL ====================
+  // VERIFY EMAIL
   async verifyEmail(token: string) {
     const user = await this.prisma.user.findFirst({
       where: {
@@ -194,7 +194,7 @@ export class AuthService {
     return { message: 'EMAIL_VERIFIED' };
   }
 
-  // ==================== RESEND VERIFICATION ====================
+  // RESEND VERIFICATION
   async resendVerification(email: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
     // Always return success to prevent email enumeration
@@ -217,7 +217,7 @@ export class AuthService {
     return { message: 'VERIFICATION_EMAIL_SENT' };
   }
 
-  // ==================== FORGOT PASSWORD ====================
+  // FORGOT PASSWORD
   async forgotPassword(email: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
     // Always return success to prevent email enumeration
@@ -236,7 +236,7 @@ export class AuthService {
     return { message: 'RESET_EMAIL_SENT' };
   }
 
-  // ==================== RESET PASSWORD ====================
+  // RESET PASSWORD
   async resetPassword(dto: ResetPasswordDto) {
     const user = await this.prisma.user.findFirst({
       where: {
@@ -266,7 +266,7 @@ export class AuthService {
     return { message: 'PASSWORD_RESET_SUCCESS' };
   }
 
-  // ==================== ONE-TIME TOKEN (Cross-portal) ====================
+  // ONE-TIME TOKEN (Cross-portal)
   async generateOtt(userId: string): Promise<string> {
     const ott = crypto.randomUUID();
     await this.redis.setex(`ott:${ott}`, OTT_EXPIRY_SECONDS, userId);
@@ -293,7 +293,7 @@ export class AuthService {
     return { accessToken, refreshToken, user };
   }
 
-  // ==================== HELPERS ====================
+  // HELPERS
   private generateAccessToken(userId: string, role: string): string {
     const payload: JwtPayload = { sub: userId, role };
     return this.jwt.sign(payload, {

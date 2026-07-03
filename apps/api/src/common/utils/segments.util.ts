@@ -25,7 +25,7 @@ export function mergeSegments(segments: [number, number][]): [number, number][] 
 }
 
 /**
- * Sanitize client-reported watched segments before trusting them.
+ * Sanitize (khử trùng -> làm sạch) client-reported watched segments before trusting them.
  *
  * The watched time that drives lesson completion comes from the client, so the
  * server must not blindly trust it. This drops malformed entries and clamps

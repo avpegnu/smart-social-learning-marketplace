@@ -32,6 +32,7 @@ export class UploadsService {
     await cloudinary.uploader.destroy(publicId);
   }
 
+  // chưa dùng
   async getVideoInfo(publicId: string): Promise<UploadApiResponse> {
     return cloudinary.api.resource(publicId, { resource_type: 'video' });
   }

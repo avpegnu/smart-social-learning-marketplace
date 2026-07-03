@@ -1,11 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Trust the first reverse-proxy hop (Render/nginx) so req.ip resolves to the
+  // real client IP instead of the proxy — required for correct per-IP rate
+  // limiting (ThrottlerGuard). '1' trusts exactly one hop, not arbitrary XFF.
+  app.set('trust proxy', 1);
 
   // Cookie parser (for httpOnly refresh token)
   app.use(cookieParser());
