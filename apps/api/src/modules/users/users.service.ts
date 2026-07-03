@@ -37,13 +37,13 @@ export class UsersService {
     @Inject(QueueService) private readonly queue: QueueService,
   ) {}
 
-  // ==================== SEARCH ====================
+  // SEARCH
 
   async searchUsers(query: string) {
     if (!query || query.length < 2) return [];
     return this.prisma.user.findMany({
       where: {
-        fullName: { contains: query, mode: 'insensitive' },
+        fullName: { contains: query, mode: 'insensitive' }, // Không phân biệt hoa thường
         status: 'ACTIVE',
         deletedAt: null,
       },
@@ -72,6 +72,7 @@ export class UsersService {
         avatarUrl: true,
         followerCount: true,
       },
+      // data lớn -> đánh index cho followerCount
       orderBy: { followerCount: 'desc' },
       take: 5,
     });
@@ -79,7 +80,7 @@ export class UsersService {
     return users.map((u) => ({ ...u, isFollowing: false }));
   }
 
-  // ==================== PROFILE ====================
+  // PROFILE
 
   async getMe(userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -183,7 +184,7 @@ export class UsersService {
     return { message: 'PASSWORD_CHANGED' };
   }
 
-  // ==================== FOLLOW SYSTEM ====================
+  // FOLLOW SYSTEM
 
   async follow(followerId: string, followingId: string) {
     if (followerId === followingId) {
@@ -300,7 +301,7 @@ export class UsersService {
     return !!follow;
   }
 
-  // ==================== PRIVATE HELPERS ====================
+  // PRIVATE HELPERS
 
   private async enrichWithFollowStatus<T extends { id: string }>(
     users: T[],

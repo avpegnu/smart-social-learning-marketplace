@@ -1,4 +1,4 @@
--- Full-text search for courses
+-- Full-text search for courses (chưa dùng tới)
 ALTER TABLE courses ADD COLUMN IF NOT EXISTS search_vector tsvector;
 
 CREATE INDEX IF NOT EXISTS idx_courses_search
