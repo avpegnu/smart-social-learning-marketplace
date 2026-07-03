@@ -13,7 +13,7 @@ export class CoursesService {
     @Inject(RedisService) private readonly redis: RedisService,
   ) {}
 
-  // ==================== BROWSE ====================
+  // BROWSE
 
   async findAll(query: QueryCoursesDto) {
     const where = this.buildWhereFilter(query);
@@ -52,7 +52,7 @@ export class CoursesService {
     return createPaginatedResult(courses, total, query.page, query.limit);
   }
 
-  // ==================== COURSE DETAIL ====================
+  //COURSE DETAIL
 
   async findBySlug(slug: string, currentUserId?: string) {
     const course = await this.prisma.course.findFirst({
@@ -110,7 +110,7 @@ export class CoursesService {
     return course;
   }
 
-  // ==================== PRIVATE HELPERS ====================
+  // PRIVATE HELPERS
 
   private buildWhereFilter(query: QueryCoursesDto): Prisma.CourseWhereInput {
     const where: Prisma.CourseWhereInput = {
@@ -174,7 +174,9 @@ export class CoursesService {
     }
   }
 
+  // Track nhưng chưa dùng
   private async trackView(courseId: string, userId?: string): Promise<void> {
+    // Dùng anonymous key nếu user chưa đăng nhập --> không chính xác --> nếu cần thì sau này dùng IP address để track
     const viewerKey = userId ?? 'anon';
     const dedupKey = `viewed:${courseId}:${viewerKey}`;
 
