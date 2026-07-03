@@ -67,10 +67,12 @@ export default function CoursesPage() {
   const categories =
     (categoriesData?.data as Array<{ id: string; name: string; slug: string }>) ?? [];
 
-  // Sync filters → URL
+  // Sync filters → URL. Use the debounced search value (not the raw keystroke
+  // value) so typing does not trigger an RSC navigation request per character;
+  // the URL now updates in lockstep with the debounced API query.
   useEffect(() => {
     const params = new URLSearchParams();
-    if (filters.search) params.set('search', filters.search);
+    if (debouncedSearch) params.set('search', debouncedSearch);
     if (filters.category) params.set('category', filters.category);
     if (filters.level) params.set('level', filters.level);
     if (filters.price && filters.price !== 'all') params.set('price', filters.price);
@@ -78,7 +80,15 @@ export default function CoursesPage() {
     if (filters.page > 1) params.set('page', String(filters.page));
     const qs = params.toString();
     router.replace(qs ? `/courses?${qs}` : '/courses', { scroll: false });
-  }, [filters, router]);
+  }, [
+    debouncedSearch,
+    filters.category,
+    filters.level,
+    filters.price,
+    filters.sort,
+    filters.page,
+    router,
+  ]);
 
   const handleFilterChange = useCallback((key: keyof CourseFilters, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: key === 'page' ? prev.page : 1 }));
