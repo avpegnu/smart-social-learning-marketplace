@@ -160,7 +160,9 @@ export default function HomePage() {
                 <h2 className="text-2xl font-bold">{t('featuredTitle')}</h2>
                 <p className="text-muted-foreground mt-1">{t('featuredSubtitle')}</p>
               </div>
-              <Link href="/courses?sort=popular">
+              {/* Popular is the default sort on /courses, so omit the redundant
+                  ?sort=popular param — it would be stripped on mount and flash the URL. */}
+              <Link href="/courses">
                 <Button variant="ghost" className="gap-1">
                   {t('viewAll')}
                   <ChevronRight className="h-4 w-4" />
