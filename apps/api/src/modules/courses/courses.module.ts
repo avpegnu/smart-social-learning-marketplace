@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { JobsModule } from '@/modules/jobs/jobs.module';
 import { SocialModule } from '@/modules/social/social.module';
+import { UploadsModule } from '@/uploads/uploads.module';
 import { CoursesController } from './browse/courses.controller';
 import { CourseManagementController } from './management/course-management.controller';
 import { SectionsController } from './sections/sections.controller';
@@ -17,7 +18,7 @@ import { QuizzesService } from './quizzes/quizzes.service';
 import { ReviewsService } from './reviews/reviews.service';
 
 @Module({
-  imports: [JobsModule, SocialModule],
+  imports: [JobsModule, SocialModule, UploadsModule],
   controllers: [
     CoursesController,
     CourseManagementController,

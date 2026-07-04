@@ -9,6 +9,7 @@ export const lessonService = {
       type: 'VIDEO' | 'TEXT' | 'QUIZ' | 'FILE';
       textContent?: string;
       videoUrl?: string;
+      videoPublicId?: string;
       fileUrl?: string;
       fileMimeType?: string;
       estimatedDuration?: number;
@@ -24,6 +25,7 @@ export const lessonService = {
       title?: string;
       textContent?: string;
       videoUrl?: string;
+      videoPublicId?: string;
       fileUrl?: string;
       fileMimeType?: string;
       estimatedDuration?: number;

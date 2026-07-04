@@ -3,6 +3,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { ParseCuidPipe } from '@/common/pipes/parse-cuid.pipe';
 import type { JwtPayload } from '@/common/interfaces/jwt-payload.interface';
+import { UploadsService } from './uploads.service';
 import { MediaService } from '@/modules/media/media.service';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { SignUploadDto } from '@/modules/media/dto/sign-upload.dto';
@@ -16,12 +17,20 @@ export class UploadsController {
   constructor(
     @Inject(MediaService)
     private readonly mediaService: MediaService,
+    @Inject(UploadsService)
+    private readonly uploadsService: UploadsService,
   ) {}
 
   @Post('sign')
   @ApiOperation({ summary: 'Generate signed upload params' })
   async sign(@CurrentUser() user: JwtPayload, @Body() dto: SignUploadDto) {
     return this.mediaService.signAndCreatePending(user.sub, dto);
+  }
+
+  @Post('video-signature')
+  @ApiOperation({ summary: 'Signed params for authenticated video upload' })
+  videoSignature() {
+    return this.uploadsService.generateVideoUploadSignature();
   }
 
   @Post(':mediaId/complete')

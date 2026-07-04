@@ -34,6 +34,7 @@ export interface LocalLesson {
   textContent?: string;
   estimatedDuration?: number;
   videoUrl?: string;
+  videoPublicId?: string;
   fileUrl?: string;
   fileMimeType?: string;
   quizData?: LocalQuizData;
@@ -134,6 +135,7 @@ export function CourseWizard({ mode, courseId: initialCourseId }: CourseWizardPr
                     textContent: (l.textContent as string) ?? '',
                     estimatedDuration: (l.estimatedDuration as number) ?? 0,
                     videoUrl: (l.videoUrl as string) ?? undefined,
+                    videoPublicId: (l.videoPublicId as string) ?? undefined,
                     fileUrl: (l.fileUrl as string) ?? undefined,
                     fileMimeType: (l.fileMimeType as string) ?? undefined,
                     chapterId: ch.id as string,

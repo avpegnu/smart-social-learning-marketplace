@@ -1,9 +1,13 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { UploadsService } from '@/uploads/uploads.service';
 
 @Injectable()
 export class CoursePlayerService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(UploadsService) private readonly uploads: UploadsService,
+  ) {}
 
   async getLesson(userId: string, courseId: string, lessonId: string) {
     // 1. Get lesson with full context
@@ -46,13 +50,18 @@ export class CoursePlayerService {
     // 4. Get curriculum with completion status
     const curriculum = await this.getCurriculumWithProgress(userId, courseId);
 
+    // Video authenticated: ký URL theo public_id. Video cũ (public) trả nguyên videoUrl.
+    const videoUrl = lesson.videoPublicId
+      ? this.uploads.getSignedVideoUrl(lesson.videoPublicId)
+      : lesson.videoUrl;
+
     return {
       lesson: {
         id: lesson.id,
         title: lesson.title,
         type: lesson.type,
         textContent: lesson.textContent,
-        videoUrl: lesson.videoUrl,
+        videoUrl,
         fileUrl: lesson.fileUrl,
         fileMimeType: lesson.fileMimeType,
         estimatedDuration: lesson.estimatedDuration,
@@ -72,7 +81,7 @@ export class CoursePlayerService {
     };
   }
 
-  // ==================== ACCESS CONTROL ====================
+  // ACCESS CONTROL
 
   private async verifyAccess(
     userId: string,
@@ -98,7 +107,7 @@ export class CoursePlayerService {
     throw new ForbiddenException({ code: 'LESSON_ACCESS_DENIED' });
   }
 
-  // ==================== CURRICULUM SIDEBAR ====================
+  // CURRICULUM SIDEBAR
 
   private async getCurriculumWithProgress(userId: string, courseId: string) {
     const sections = await this.prisma.section.findMany({

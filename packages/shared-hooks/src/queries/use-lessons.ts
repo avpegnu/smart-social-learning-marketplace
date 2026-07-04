@@ -20,6 +20,7 @@ export function useCreateLesson() {
         type: 'VIDEO' | 'TEXT' | 'QUIZ' | 'FILE';
         textContent?: string;
         videoUrl?: string;
+        videoPublicId?: string;
         fileUrl?: string;
         fileMimeType?: string;
         estimatedDuration?: number;
@@ -46,6 +47,7 @@ export function useUpdateLesson() {
         title?: string;
         textContent?: string;
         videoUrl?: string;
+        videoPublicId?: string;
         fileUrl?: string;
         fileMimeType?: string;
         estimatedDuration?: number;

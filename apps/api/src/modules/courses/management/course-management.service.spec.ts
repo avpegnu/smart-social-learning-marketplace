@@ -5,6 +5,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { QueueService } from '@/modules/jobs/queue.service';
 import { PlatformSettingsService } from '@/modules/platform-settings/platform-settings.service';
 import { GroupsService } from '@/modules/social/groups/groups.service';
+import { UploadsService } from '@/uploads/uploads.service';
 
 const mockPrisma = {
   course: {
@@ -38,6 +39,10 @@ const mockGroups = {
   create: jest.fn().mockResolvedValue(undefined),
 };
 
+const mockUploads = {
+  getSignedVideoUrl: jest.fn((publicId: string) => `https://signed.example/${publicId}`),
+};
+
 const MOCK_COURSE = {
   id: 'course-1',
   title: 'React Masterclass',
@@ -60,6 +65,7 @@ describe('CourseManagementService', () => {
         { provide: QueueService, useValue: mockQueue },
         { provide: PlatformSettingsService, useValue: mockPlatformSettings },
         { provide: GroupsService, useValue: mockGroups },
+        { provide: UploadsService, useValue: mockUploads },
       ],
     }).compile();
 
@@ -166,6 +172,45 @@ describe('CourseManagementService', () => {
       await expect(service.verifyOwnership('course-1', 'other-user')).rejects.toThrow(
         ForbiddenException,
       );
+    });
+  });
+
+  // ==================== findById ====================
+
+  describe('findById', () => {
+    it('should sign videoUrl for authenticated lessons and leave legacy ones untouched', async () => {
+      mockPrisma.course.findUnique.mockResolvedValue({
+        ...MOCK_COURSE,
+        sections: [
+          {
+            chapters: [
+              {
+                lessons: [
+                  { id: 'l1', videoUrl: null, videoPublicId: 'courses/videos/new1' },
+                  {
+                    id: 'l2',
+                    videoUrl: 'https://res.cloudinary.com/demo/legacy.mp4',
+                    videoPublicId: null,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await service.findById('course-1', 'instr-1');
+      const lessons = result.sections[0]!.chapters[0]!.lessons;
+
+      expect(mockUploads.getSignedVideoUrl).toHaveBeenCalledWith('courses/videos/new1');
+      expect(lessons[0]!.videoUrl).toBe('https://signed.example/courses/videos/new1');
+      expect(lessons[1]!.videoUrl).toBe('https://res.cloudinary.com/demo/legacy.mp4');
+    });
+
+    it('should throw ForbiddenException when not the course owner', async () => {
+      mockPrisma.course.findUnique.mockResolvedValue({ ...MOCK_COURSE, sections: [] });
+
+      await expect(service.findById('course-1', 'other-user')).rejects.toThrow(ForbiddenException);
     });
   });
 

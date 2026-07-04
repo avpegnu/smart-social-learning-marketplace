@@ -948,6 +948,7 @@
     "fileTooLarge": "File too large (max 25MB)",
     "videoTooLarge": "File too large (max 500MB)",
     "changeVideo": "Change video",
+    "videoUploaded": "Video uploaded",
     "videoPreview": "Video preview",
     "file": "Document",
     "uploadFile": "Upload document",

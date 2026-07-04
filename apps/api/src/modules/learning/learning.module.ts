@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { UploadsModule } from '@/uploads/uploads.module';
 import { CoursePlayerController } from './course-player/course-player.controller';
 import { ProgressController } from './progress/progress.controller';
 import { QuizAttemptsController } from './quiz-attempts/quiz-attempts.controller';
@@ -13,6 +14,7 @@ import { StreaksService } from './streaks/streaks.service';
 import { PlacementTestsService } from './placement-tests/placement-tests.service';
 
 @Module({
+  imports: [UploadsModule],
   controllers: [
     CoursePlayerController,
     ProgressController,

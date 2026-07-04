@@ -68,7 +68,9 @@ export function LessonDialog({ open, lesson, onSave, onClose }: LessonDialogProp
   const [title, setTitle] = useState('');
   const [type, setType] = useState<LessonType>('VIDEO');
   const [textContent, setTextContent] = useState('');
-  const [videoData, setVideoData] = useState<{ url: string; duration: number } | undefined>();
+  const [videoData, setVideoData] = useState<
+    { url: string; publicId?: string; duration: number } | undefined
+  >();
   const [fileData, setFileData] = useState<FileUploadResult | undefined>();
   const [filePreviewOpen, setFilePreviewOpen] = useState(false);
   const [quizData, setQuizData] = useState<LocalQuizData | undefined>();
@@ -82,7 +84,11 @@ export function LessonDialog({ open, lesson, onSave, onClose }: LessonDialogProp
         setTextContent(lesson.textContent ?? '');
         setQuizData(lesson.quizData);
         if (lesson.videoUrl && lesson.estimatedDuration) {
-          setVideoData({ url: lesson.videoUrl, duration: lesson.estimatedDuration });
+          setVideoData({
+            url: lesson.videoUrl,
+            publicId: lesson.videoPublicId,
+            duration: lesson.estimatedDuration,
+          });
         } else {
           setVideoData(undefined);
         }
@@ -134,7 +140,9 @@ export function LessonDialog({ open, lesson, onSave, onClose }: LessonDialogProp
       type,
       textContent: type === 'TEXT' ? textContent : undefined,
       estimatedDuration: type === 'VIDEO' ? videoData?.duration : undefined,
-      videoUrl: type === 'VIDEO' ? videoData?.url : undefined,
+      // Có publicId (video authenticated) thì chỉ gửi publicId, không ghi đè videoUrl bằng URL đã ký.
+      videoUrl: type === 'VIDEO' && !videoData?.publicId ? videoData?.url : undefined,
+      videoPublicId: type === 'VIDEO' ? videoData?.publicId : undefined,
       fileUrl: type === 'FILE' ? fileData?.url : undefined,
       fileMimeType: type === 'FILE' ? fileData?.mimeType : undefined,
       quizData: type === 'QUIZ' ? quizData : undefined,

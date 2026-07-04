@@ -948,6 +948,7 @@
     "fileTooLarge": "File quá lớn (tối đa 25MB)",
     "videoTooLarge": "File quá lớn (tối đa 500MB)",
     "changeVideo": "Đổi video",
+    "videoUploaded": "Đã tải video lên",
     "videoPreview": "Xem trước video",
     "file": "Tài liệu",
     "uploadFile": "Tải tài liệu lên",
