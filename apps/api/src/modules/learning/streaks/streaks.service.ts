@@ -7,7 +7,7 @@ const MS_PER_DAY = 86400000;
 export class StreaksService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  // ==================== DAILY ACTIVITY ====================
+  // DAILY ACTIVITY
 
   async trackDailyActivity(userId: string, type: 'lesson' | 'quiz') {
     const today = new Date();
@@ -30,7 +30,7 @@ export class StreaksService {
     });
   }
 
-  // ==================== STREAK ====================
+  // STREAK
 
   async getStreak(userId: string) {
     const activities = await this.prisma.dailyActivity.findMany({
@@ -89,7 +89,7 @@ export class StreaksService {
     return { currentStreak: streak, longestStreak, todayCompleted };
   }
 
-  // ==================== DASHBOARD ====================
+  // DASHBOARD
 
   async getDashboard(userId: string) {
     const [activeEnrollments, completedEnrollments, streak, certificates] = await Promise.all([

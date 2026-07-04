@@ -17,7 +17,7 @@ import { UpdateInstructorProfileDto } from './dto/update-instructor-profile.dto'
 export class InstructorController {
   constructor(@Inject(InstructorService) private readonly instructorService: InstructorService) {}
 
-  // ==================== APPLICATION (Student only) ====================
+  // APPLICATION (Student only)
 
   @Post('applications')
   @Roles('STUDENT')
@@ -32,7 +32,7 @@ export class InstructorController {
     return this.instructorService.getApplicationStatus(user.sub);
   }
 
-  // ==================== PROFILE (Instructor only) ====================
+  // PROFILE (Instructor only)
 
   @Get('profile')
   @Roles('INSTRUCTOR')
@@ -48,7 +48,7 @@ export class InstructorController {
     return this.instructorService.updateProfile(user.sub, dto);
   }
 
-  // ==================== DASHBOARD (Instructor only) ====================
+  // DASHBOARD (Instructor only)
 
   @Get('dashboard')
   @Roles('INSTRUCTOR')

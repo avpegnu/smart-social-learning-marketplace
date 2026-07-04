@@ -12,7 +12,7 @@ export class InstructorService {
     @Inject(QueueService) private readonly queue: QueueService,
   ) {}
 
-  // ==================== APPLICATION ====================
+  // APPLICATION
 
   async submitApplication(userId: string, dto: CreateApplicationDto) {
     const user = await this.prisma.user.findUnique({
@@ -57,7 +57,7 @@ export class InstructorService {
     });
   }
 
-  // ==================== PROFILE ====================
+  // PROFILE
 
   async getProfile(userId: string) {
     const profile = await this.prisma.instructorProfile.findUnique({
@@ -92,7 +92,7 @@ export class InstructorService {
     });
   }
 
-  // ==================== DASHBOARD ====================
+  // DASHBOARD
 
   async getDashboard(userId: string) {
     const thirtyDaysAgo = new Date();

@@ -19,7 +19,7 @@ export class ProgressService {
     @Inject(StreaksService) private readonly streaksService: StreaksService,
   ) {}
 
-  // ==================== VIDEO PROGRESS ====================
+  // VIDEO PROGRESS
 
   async updateLessonProgress(userId: string, lessonId: string, dto: UpdateProgressDto) {
     const lesson = await this.prisma.lesson.findUnique({
@@ -87,7 +87,7 @@ export class ProgressService {
     return { watchedPercent, isCompleted: finalCompleted, courseProgress };
   }
 
-  // ==================== TEXT LESSON COMPLETE ====================
+  // TEXT LESSON COMPLETE
 
   async completeLesson(userId: string, lessonId: string) {
     const lesson = await this.prisma.lesson.findUnique({
@@ -123,7 +123,7 @@ export class ProgressService {
     return { isCompleted: true, courseProgress };
   }
 
-  // ==================== COURSE PROGRESS ====================
+  // COURSE PROGRESS
 
   async getCourseProgress(userId: string, courseId: string) {
     const [enrollment, lessonProgresses] = await Promise.all([
@@ -144,7 +144,7 @@ export class ProgressService {
     };
   }
 
-  // ==================== ENROLLMENT PROGRESS RECALCULATION ====================
+  // ENROLLMENT PROGRESS RECALCULATION
 
   async recalculateEnrollmentProgress(userId: string, courseId: string): Promise<number> {
     const enrollment = await this.prisma.enrollment.findUnique({

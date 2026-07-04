@@ -185,7 +185,7 @@ export class OrdersService {
     return createPaginatedResult(orders, total, query.page, query.limit);
   }
 
-  // ==================== PRIVATE HELPERS ====================
+  // PRIVATE HELPERS
 
   private distributeDiscount(
     cartItems: { courseId: string | null; price: number }[],

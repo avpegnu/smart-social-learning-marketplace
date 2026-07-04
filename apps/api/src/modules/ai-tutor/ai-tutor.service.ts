@@ -258,10 +258,15 @@ Remember: You are a tutor for THIS specific course only. Do not provide informat
       const queryEmbedding = await this.embeddingsService.generateEmbedding(question);
       const embeddingStr = `[${queryEmbedding.join(',')}]`;
 
+      // Truy hồi 5 chunk liên quan nhất về NGỮ NGHĨA (không phải khớp từ khoá).
+      // <=> là toán tử KHOẢNG CÁCH COSINE của pgvector; vector đã normalize nên đo bằng góc.
       const chunks = await this.prisma.$queryRaw<{ content: string; similarity: number }[]>`
+        -- similarity = 1 - khoảng_cách_cosine (0..1, càng gần 1 càng giống câu hỏi)
         SELECT content, 1 - (embedding <=> ${embeddingStr}::vector) AS similarity
         FROM course_chunks
+        -- Chỉ tìm trong chunk của đúng khoá này (cô lập, không lẫn khoá khác)
         WHERE course_id = ${courseId}
+        -- Sắp theo khoảng cách TĂNG DẦN = gần (liên quan) nhất lên đầu
         ORDER BY embedding <=> ${embeddingStr}::vector
         LIMIT 5
       `;

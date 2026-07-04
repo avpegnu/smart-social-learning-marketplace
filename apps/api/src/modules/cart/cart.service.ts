@@ -15,7 +15,7 @@ import type { MergeCartItemDto } from './dto/merge-cart.dto';
 export class CartService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  // ==================== CART ====================
+  // CART
 
   async getCart(userId: string) {
     const items = await this.prisma.cartItem.findMany({
@@ -140,7 +140,7 @@ export class CartService {
     return this.getCart(userId);
   }
 
-  // ==================== WISHLIST ====================
+  // WISHLIST
 
   async getWishlist(userId: string, query: PaginationDto) {
     const [items, total] = await Promise.all([
