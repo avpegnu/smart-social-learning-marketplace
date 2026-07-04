@@ -79,7 +79,7 @@ export class QuizzesService {
     await this.prisma.quiz.deleteMany({ where: { lessonId } });
   }
 
-  // ==================== PRIVATE HELPERS ====================
+  // PRIVATE HELPERS
 
   private async verifyLessonBelongsToCourse(lessonId: string, courseId: string) {
     const lesson = await this.prisma.lesson.findUnique({
