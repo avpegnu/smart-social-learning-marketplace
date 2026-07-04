@@ -429,6 +429,7 @@
     "COURSE_GROUP_EXISTS": "Nhóm cho khóa học này đã tồn tại",
     "INVALID_COURSE_STATUS": "Trạng thái khóa học không hợp lệ cho thao tác này",
     "NOT_COURSE_OWNER": "Bạn không phải chủ sở hữu khóa học này",
+    "INVALID_REORDER_IDS": "Danh sách sắp xếp chứa mục không thuộc khóa học này",
     "SECTION_NOT_FOUND": "Không tìm thấy phần",
     "CHAPTER_NOT_FOUND": "Không tìm thấy chương",
     "CHAPTER_ALREADY_PURCHASED": "Chương này đã được mua",

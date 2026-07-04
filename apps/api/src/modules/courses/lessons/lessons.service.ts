@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CourseManagementService } from '../management/course-management.service';
 import { ChaptersService } from '../chapters/chapters.service';
@@ -79,8 +79,18 @@ export class LessonsService {
     await this.chaptersService.recalculateChapterCounters(lesson.chapterId);
   }
 
-  async reorder(courseId: string, _chapterId: string, instructorId: string, orderedIds: string[]) {
+  async reorder(courseId: string, chapterId: string, instructorId: string, orderedIds: string[]) {
     await this.courseManagement.verifyOwnership(courseId, instructorId);
+
+    // Guard IDOR: every id must be a lesson of the given chapter AND that chapter
+    // must belong to this course, otherwise reorder could overwrite the `order` of
+    // another instructor's lessons.
+    const validCount = await this.prisma.lesson.count({
+      where: { id: { in: orderedIds }, chapterId, chapter: { section: { courseId } } },
+    });
+    if (validCount !== orderedIds.length) {
+      throw new ForbiddenException({ code: 'INVALID_REORDER_IDS' });
+    }
 
     await this.prisma.$transaction(
       orderedIds.map((id, index) =>

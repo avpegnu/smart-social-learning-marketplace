@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CourseManagementService } from '../management/course-management.service';
 import type { CreateSectionDto, UpdateSectionDto } from '../dto/create-section.dto';
@@ -52,6 +52,15 @@ export class SectionsService {
 
   async reorder(courseId: string, instructorId: string, orderedIds: string[]) {
     await this.courseManagement.verifyOwnership(courseId, instructorId);
+
+    // Guard IDOR: every id must be a section of this course, otherwise reorder
+    // could overwrite the `order` of another instructor's sections.
+    const validCount = await this.prisma.section.count({
+      where: { id: { in: orderedIds }, courseId },
+    });
+    if (validCount !== orderedIds.length) {
+      throw new ForbiddenException({ code: 'INVALID_REORDER_IDS' });
+    }
 
     await this.prisma.$transaction(
       orderedIds.map((id, index) =>

@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CourseManagementService } from '../management/course-management.service';
 import { SectionsService } from '../sections/sections.service';
@@ -66,6 +66,15 @@ export class ChaptersService {
     const section = await this.prisma.section.findUnique({ where: { id: sectionId } });
     if (!section || section.courseId !== courseId) {
       throw new NotFoundException({ code: 'SECTION_NOT_FOUND' });
+    }
+
+    // Guard IDOR: every id must be a chapter of this (already verified) section,
+    // otherwise reorder could overwrite the `order` of another course's chapters.
+    const validCount = await this.prisma.chapter.count({
+      where: { id: { in: orderedIds }, sectionId },
+    });
+    if (validCount !== orderedIds.length) {
+      throw new ForbiddenException({ code: 'INVALID_REORDER_IDS' });
     }
 
     await this.prisma.$transaction(

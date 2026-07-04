@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { SectionsService } from './sections.service';
 import { CourseManagementService } from '../management/course-management.service';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -11,6 +11,7 @@ const mockPrisma = {
     delete: jest.fn(),
     findFirst: jest.fn(),
     findUnique: jest.fn(),
+    count: jest.fn(),
   },
   chapter: {
     findMany: jest.fn(),
@@ -137,6 +138,7 @@ describe('SectionsService', () => {
   describe('reorder', () => {
     it('should reorder sections in transaction', async () => {
       mockCourseManagement.verifyOwnership.mockResolvedValue({});
+      mockPrisma.section.count.mockResolvedValue(3);
       mockPrisma.$transaction.mockResolvedValue([]);
 
       await service.reorder('course-1', 'instr-1', ['sec-3', 'sec-1', 'sec-2']);
@@ -144,6 +146,16 @@ describe('SectionsService', () => {
       expect(mockPrisma.$transaction).toHaveBeenCalledWith(
         expect.arrayContaining([expect.anything()]),
       );
+    });
+
+    it('should reject reorder ids not belonging to the course (IDOR guard)', async () => {
+      mockCourseManagement.verifyOwnership.mockResolvedValue({});
+      mockPrisma.section.count.mockResolvedValue(2); // only 2 of 3 ids belong
+
+      await expect(
+        service.reorder('course-1', 'instr-1', ['sec-1', 'sec-2', 'foreign']),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
     });
   });
 

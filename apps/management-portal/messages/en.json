@@ -429,6 +429,7 @@
     "COURSE_GROUP_EXISTS": "A group for this course already exists",
     "INVALID_COURSE_STATUS": "Invalid course status for this action",
     "NOT_COURSE_OWNER": "You are not the owner of this course",
+    "INVALID_REORDER_IDS": "The reorder list contains items that do not belong to this course",
     "SECTION_NOT_FOUND": "Section not found",
     "CHAPTER_NOT_FOUND": "Chapter not found",
     "CHAPTER_ALREADY_PURCHASED": "Chapter already purchased",
