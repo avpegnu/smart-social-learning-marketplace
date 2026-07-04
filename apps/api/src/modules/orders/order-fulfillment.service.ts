@@ -64,22 +64,33 @@ export class OrderFulfillmentService {
         return false;
       }
 
-      // Track which instructors got a new student in this order
+      // Track which instructors got a new student in this order + cache their
+      // commission rate (constant within a tx, so compute it once per instructor).
       const instructorStudentAdded = new Set<string>();
+      const rateCache = new Map<string, number>();
 
       // 2. Process each order item
       for (const item of items) {
+        // Whether this item created a brand-new enrollment (drives student counters).
+        let isNewEnrollment = false;
         if (item.type === 'COURSE' && item.courseId) {
-          // Full course enrollment
+          // Full course enrollment. Only bump totalStudents for a brand-new
+          // enrollment — upgrading an existing PARTIAL one must not double-count.
+          const existing = await tx.enrollment.findUnique({
+            where: { userId_courseId: { userId, courseId: item.courseId } },
+          });
           await tx.enrollment.upsert({
             where: { userId_courseId: { userId, courseId: item.courseId } },
             update: { type: 'FULL' },
             create: { userId, courseId: item.courseId, type: 'FULL' },
           });
-          await tx.course.update({
-            where: { id: item.courseId },
-            data: { totalStudents: { increment: 1 } },
-          });
+          if (!existing) {
+            isNewEnrollment = true;
+            await tx.course.update({
+              where: { id: item.courseId },
+              data: { totalStudents: { increment: 1 } },
+            });
+          }
         }
 
         if (item.type === 'CHAPTER' && item.chapterId) {
@@ -96,6 +107,7 @@ export class OrderFulfillmentService {
               where: { userId_courseId: { userId, courseId: item.courseId } },
             });
             if (!existing) {
+              isNewEnrollment = true;
               await tx.enrollment.create({
                 data: { userId, courseId: item.courseId, type: 'PARTIAL' },
               });
@@ -115,7 +127,11 @@ export class OrderFulfillmentService {
           });
           if (course) {
             const actualPrice = item.price - item.discount;
-            const commissionRate = await this.getCommissionRate(course.instructorId, tx);
+            let commissionRate = rateCache.get(course.instructorId);
+            if (commissionRate === undefined) {
+              commissionRate = await this.getCommissionRate(course.instructorId, tx);
+              rateCache.set(course.instructorId, commissionRate);
+            }
             const commissionAmount = Math.round(actualPrice * commissionRate);
             const netAmount = actualPrice - commissionAmount;
 
@@ -132,9 +148,11 @@ export class OrderFulfillmentService {
               },
             });
 
-            // Update instructor profile counters
-            const studentIncrement = instructorStudentAdded.has(course.instructorId) ? 0 : 1;
-            instructorStudentAdded.add(course.instructorId);
+            // Count a new student once per instructor per order — only when this
+            // item actually created an enrollment (not a re-purchase / upgrade).
+            const studentIncrement =
+              isNewEnrollment && !instructorStudentAdded.has(course.instructorId) ? 1 : 0;
+            if (isNewEnrollment) instructorStudentAdded.add(course.instructorId);
 
             await tx.instructorProfile.upsert({
               where: { userId: course.instructorId },

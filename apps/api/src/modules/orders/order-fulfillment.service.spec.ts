@@ -54,7 +54,7 @@ describe('OrderFulfillmentService', () => {
       mockPrisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({
           order: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
-          enrollment: { upsert: jest.fn() },
+          enrollment: { findUnique: jest.fn().mockResolvedValue(null), upsert: jest.fn() },
           course: {
             findUnique: jest.fn().mockResolvedValue({ instructorId: 'instr-1' }),
             update: jest.fn(),
@@ -124,7 +124,7 @@ describe('OrderFulfillmentService', () => {
       mockPrisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({
           order: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
-          enrollment: { upsert: txEnrollUpsert },
+          enrollment: { findUnique: jest.fn().mockResolvedValue(null), upsert: txEnrollUpsert },
           course: {
             findUnique: jest.fn().mockResolvedValue({ instructorId: 'instr-1' }),
             update: jest.fn(),
@@ -158,6 +158,41 @@ describe('OrderFulfillmentService', () => {
       });
     });
 
+    it('should not increment totalStudents when the user is already enrolled (PARTIAL->FULL)', async () => {
+      const items = [
+        { id: 'oi-1', type: 'COURSE', courseId: 'c1', chapterId: null, price: 500000, discount: 0 },
+      ];
+      const txCourseUpdate = jest.fn();
+
+      mockPrisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          order: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+          enrollment: {
+            findUnique: jest.fn().mockResolvedValue({ type: 'PARTIAL' }), // already enrolled
+            upsert: jest.fn(),
+          },
+          course: {
+            findUnique: jest.fn().mockResolvedValue({ instructorId: 'instr-1' }),
+            update: txCourseUpdate,
+          },
+          earning: {
+            create: jest.fn(),
+            aggregate: jest.fn().mockResolvedValue({ _sum: { netAmount: 0 } }),
+          },
+          commissionTier: { findFirst: jest.fn().mockResolvedValue({ rate: 0.3 }) },
+          instructorProfile: { upsert: jest.fn() },
+        }),
+      );
+      mockPrisma.course.findMany.mockResolvedValue([
+        { id: 'c1', title: 'React', instructorId: 'instr-1' },
+      ]);
+
+      await service.fulfillOrder('order-1', 'user-1', items, 'FT123');
+
+      // Upgrading an existing enrollment must not bump the course student counter.
+      expect(txCourseUpdate).not.toHaveBeenCalled();
+    });
+
     it('should be idempotent: skip all side effects when the order is no longer PENDING', async () => {
       const items = [
         { id: 'oi-1', type: 'COURSE', courseId: 'c1', chapterId: null, price: 500000, discount: 0 },
@@ -168,7 +203,7 @@ describe('OrderFulfillmentService', () => {
         fn({
           // Guarded transition matches zero rows: already completed/expired elsewhere.
           order: { updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
-          enrollment: { upsert: jest.fn() },
+          enrollment: { findUnique: jest.fn().mockResolvedValue(null), upsert: jest.fn() },
           course: { findUnique: jest.fn(), update: jest.fn() },
           earning: { create: txEarningCreate, aggregate: jest.fn() },
           instructorProfile: { upsert: jest.fn() },
