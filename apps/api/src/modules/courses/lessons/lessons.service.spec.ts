@@ -19,7 +19,7 @@ const mockPrisma = {
   $transaction: jest.fn(),
 };
 
-const mockCourseManagement = { verifyOwnership: jest.fn() };
+const mockCourseManagement = { verifyOwnership: jest.fn(), assertCurriculumDeletable: jest.fn() };
 const mockChaptersService = { recalculateChapterCounters: jest.fn() };
 
 describe('LessonsService', () => {

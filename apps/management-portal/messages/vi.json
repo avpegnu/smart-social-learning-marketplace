@@ -422,6 +422,7 @@
     "TOO_MANY_REQUESTS": "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",
     "COURSE_NOT_FOUND": "Không tìm thấy khóa học",
     "COURSE_NOT_EDITABLE": "Khóa học đang chờ duyệt, không thể chỉnh sửa",
+    "COURSE_HAS_ENROLLMENTS": "Khóa học đã có học viên đăng ký, không thể xóa nội dung này",
     "COURSE_NOT_SUBMITTABLE": "Khóa học chưa đủ điều kiện gửi duyệt",
     "COURSE_INCOMPLETE": "Khóa học chưa hoàn thiện",
     "COURSE_INCOMPLETE_INFO": "Thông tin khóa học chưa đầy đủ",

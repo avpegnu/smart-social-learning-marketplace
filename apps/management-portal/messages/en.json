@@ -422,6 +422,7 @@
     "TOO_MANY_REQUESTS": "Too many requests. Please try again in a few minutes.",
     "COURSE_NOT_FOUND": "Course not found",
     "COURSE_NOT_EDITABLE": "Course is pending review and cannot be edited",
+    "COURSE_HAS_ENROLLMENTS": "This course has enrolled students; its content cannot be deleted",
     "COURSE_NOT_SUBMITTABLE": "Course is not eligible for submission",
     "COURSE_INCOMPLETE": "Course is incomplete",
     "COURSE_INCOMPLETE_INFO": "Course information is incomplete",

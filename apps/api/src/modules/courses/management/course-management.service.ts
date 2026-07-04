@@ -26,7 +26,7 @@ export class CourseManagementService {
     @Inject(GroupsService) private readonly groupsService: GroupsService,
   ) {}
 
-  // ==================== CRUD ====================
+  // CRUD
 
   async create(instructorId: string, dto: CreateCourseDto) {
     const allowFree = this.platformSettings.get<boolean>('allow_free_courses', true);
@@ -235,7 +235,7 @@ export class CourseManagementService {
     return createPaginatedResult(courses, total, query.page, query.limit);
   }
 
-  // ==================== STUDENTS ====================
+  // STUDENTS
 
   async getCourseStudents(courseId: string, instructorId: string, query: QueryCourseStudentsDto) {
     await this.verifyOwnership(courseId, instructorId);
@@ -267,7 +267,7 @@ export class CourseManagementService {
     return createPaginatedResult(enrollments, total, query.page, query.limit);
   }
 
-  // ==================== PUBLISHING FLOW ====================
+  // PUBLISHING FLOW
 
   async submitForReview(courseId: string, instructorId: string) {
     const course = await this.verifyOwnership(courseId, instructorId);
@@ -323,7 +323,7 @@ export class CourseManagementService {
     });
   }
 
-  // ==================== TAGS ====================
+  // TAGS
 
   async updateTags(courseId: string, instructorId: string, tagIds: string[]) {
     await this.verifyOwnership(courseId, instructorId);
@@ -336,7 +336,7 @@ export class CourseManagementService {
     ]);
   }
 
-  // ==================== SHARED HELPERS ====================
+  // SHARED HELPERS
 
   /** Verify instructor owns the course. Used by sub-services. */
   async verifyOwnership(courseId: string, instructorId: string) {
@@ -355,7 +355,20 @@ export class CourseManagementService {
     return course;
   }
 
-  // ==================== PRIVATE HELPERS ====================
+  /**
+   * Guard for destructive curriculum operations (hard delete of section/chapter/lesson).
+   * Hard delete cascades (FK onDelete: Cascade) down to Quiz + LessonProgress, so once the
+   * course has enrollments a delete would irreversibly wipe enrolled students' progress and
+   * quiz history. Block it — a live course should add/edit content, not physically destroy it.
+   */
+  async assertCurriculumDeletable(courseId: string) {
+    const enrollmentCount = await this.prisma.enrollment.count({ where: { courseId } });
+    if (enrollmentCount > 0) {
+      throw new BadRequestException({ code: 'COURSE_HAS_ENROLLMENTS' });
+    }
+  }
+
+  // PRIVATE HELPERS
 
   private async validateCourseCompleteness(courseId: string) {
     const course = await this.prisma.course.findUnique({

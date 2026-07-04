@@ -41,10 +41,12 @@ export class SectionsService {
   async delete(courseId: string, sectionId: string, instructorId: string) {
     await this.courseManagement.verifyOwnership(courseId, instructorId);
     await this.verifySectionBelongsToCourse(sectionId, courseId);
+    await this.courseManagement.assertCurriculumDeletable(courseId);
 
-    await this.prisma.section.update({ where: { id: sectionId }, data: { deletedAt: new Date() } });
+    // Hard delete — FK onDelete: Cascade removes child chapters, lessons, quizzes and progress
+    await this.prisma.section.delete({ where: { id: sectionId } });
 
-    // Recalculate course counters after cascade delete
+    // Recalculate course counters after delete
     await this.recalculateCourseCounters(courseId);
   }
 
@@ -61,7 +63,7 @@ export class SectionsService {
     );
   }
 
-  // ==================== SHARED HELPERS ====================
+  // SHARED HELPERS
 
   /** Recalculate totalLessons + totalDuration on Course from all chapters */
   async recalculateCourseCounters(courseId: string) {
@@ -79,7 +81,7 @@ export class SectionsService {
     });
   }
 
-  // ==================== PRIVATE HELPERS ====================
+  // PRIVATE HELPERS
 
   private async verifySectionBelongsToCourse(sectionId: string, courseId: string) {
     const section = await this.prisma.section.findUnique({ where: { id: sectionId } });

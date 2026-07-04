@@ -70,8 +70,10 @@ export class LessonsService {
   async delete(courseId: string, lessonId: string, instructorId: string) {
     await this.courseManagement.verifyOwnership(courseId, instructorId);
     const lesson = await this.verifyLessonBelongsToCourse(lessonId, courseId);
+    await this.courseManagement.assertCurriculumDeletable(courseId);
 
-    await this.prisma.lesson.update({ where: { id: lessonId }, data: { deletedAt: new Date() } });
+    // Hard delete — FK onDelete: Cascade removes the lesson's quiz and progress
+    await this.prisma.lesson.delete({ where: { id: lessonId } });
 
     // Recalculate chapter + course counters
     await this.chaptersService.recalculateChapterCounters(lesson.chapterId);
@@ -90,7 +92,7 @@ export class LessonsService {
     );
   }
 
-  // ==================== PRIVATE HELPERS ====================
+  // PRIVATE HELPERS
 
   private async verifyChapterBelongsToCourse(chapterId: string, courseId: string) {
     const chapter = await this.prisma.chapter.findUnique({

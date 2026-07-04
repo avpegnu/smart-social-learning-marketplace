@@ -23,6 +23,7 @@ const mockPrisma = {
 
 const mockCourseManagement = {
   verifyOwnership: jest.fn(),
+  assertCurriculumDeletable: jest.fn(),
 };
 
 describe('SectionsService', () => {
