@@ -15,7 +15,10 @@ const mockPrisma = {
   $transaction: jest.fn(),
 };
 
-const mockCourseManagement = { verifyOwnership: jest.fn() };
+const mockCourseManagement = {
+  verifyOwnership: jest.fn(),
+  scheduleReindexIfPublished: jest.fn(),
+};
 
 const VALID_QUIZ_DTO = {
   passingScore: 70,

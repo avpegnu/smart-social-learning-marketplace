@@ -7,18 +7,31 @@ import { AiTutorModule } from '@/modules/ai-tutor/ai-tutor.module';
 import { EmailProcessor } from './processors/email.processor';
 import { NotificationProcessor } from './processors/notification.processor';
 import { FeedProcessor } from './processors/feed.processor';
+import { ReindexProcessor } from './processors/reindex.processor';
 import { CronService } from './cron/cron.service';
 import { QueueService } from './queue.service';
 
 @Module({
   imports: [
-    BullModule.registerQueue({ name: 'email' }, { name: 'notification' }, { name: 'feed' }),
+    BullModule.registerQueue(
+      { name: 'email' },
+      { name: 'notification' },
+      { name: 'feed' },
+      { name: 'reindex' },
+    ),
     MailModule,
     NotificationsModule,
     RecommendationsModule,
     AiTutorModule,
   ],
-  providers: [EmailProcessor, NotificationProcessor, FeedProcessor, CronService, QueueService],
+  providers: [
+    EmailProcessor,
+    NotificationProcessor,
+    FeedProcessor,
+    ReindexProcessor,
+    CronService,
+    QueueService,
+  ],
   exports: [QueueService],
 })
 export class JobsModule {}

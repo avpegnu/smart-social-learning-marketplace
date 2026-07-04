@@ -41,10 +41,13 @@ export class ChaptersService {
     await this.courseManagement.verifyOwnership(courseId, instructorId);
     const chapter = await this.verifyChapterBelongsToCourse(chapterId, courseId);
 
-    return this.prisma.chapter.update({
+    const updated = await this.prisma.chapter.update({
       where: { id: chapter.id },
       data: dto,
     });
+
+    void this.courseManagement.scheduleReindexIfPublished(courseId);
+    return updated;
   }
 
   async delete(courseId: string, chapterId: string, instructorId: string) {
@@ -57,6 +60,8 @@ export class ChaptersService {
 
     // Recalculate course counters after delete
     await this.sectionsService.recalculateCourseCounters(courseId);
+
+    void this.courseManagement.scheduleReindexIfPublished(courseId);
   }
 
   async reorder(courseId: string, sectionId: string, instructorId: string, orderedIds: string[]) {

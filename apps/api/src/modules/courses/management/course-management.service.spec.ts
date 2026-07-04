@@ -27,6 +27,7 @@ const mockPrisma = {
 const mockQueue = {
   addNotification: jest.fn(),
   addAdminNotification: jest.fn(),
+  enqueueReindex: jest.fn(),
 };
 
 const mockPlatformSettings = {

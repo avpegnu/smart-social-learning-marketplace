@@ -12,6 +12,7 @@ export class QueueService {
     @InjectQueue('email') private readonly emailQueue: Queue,
     @InjectQueue('notification') private readonly notificationQueue: Queue,
     @InjectQueue('feed') private readonly feedQueue: Queue,
+    @InjectQueue('reindex') private readonly reindexQueue: Queue,
   ) {}
 
   private enqueue(queue: Queue, name: string, data: Record<string, unknown>) {
@@ -58,5 +59,27 @@ export class QueueService {
 
   addFeedFanout(postId: string, authorId: string, groupId?: string) {
     this.enqueue(this.feedQueue, 'fanout', { postId, authorId, groupId });
+  }
+
+  // Đẩy job re-index khóa cho AI Tutor.
+  // jobId cố định theo courseId → GOM nhiều mutation của 1 lần Save về 1 job (dedupe).
+  // delay 60s → chờ burst lắng; job đọc DB mới nhất lúc chạy nên luôn index bản mới nhất.
+  enqueueReindex(courseId: string) {
+    this.reindexQueue
+      .add(
+        'course',
+        { courseId },
+        {
+          jobId: `reindex:${courseId}`,
+          delay: 60_000,
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 30_000 },
+          removeOnComplete: true,
+          removeOnFail: true, // giải phóng jobId để lần sửa sau còn enqueue lại được
+        },
+      )
+      .catch((err: Error) => {
+        this.logger.warn(`Failed to enqueue reindex for ${courseId}: ${err.message}`);
+      });
   }
 }

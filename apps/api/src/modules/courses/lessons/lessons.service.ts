@@ -43,6 +43,7 @@ export class LessonsService {
     // Recalculate chapter + course counters
     await this.chaptersService.recalculateChapterCounters(chapterId);
 
+    void this.courseManagement.scheduleReindexIfPublished(courseId);
     return lesson;
   }
 
@@ -64,6 +65,7 @@ export class LessonsService {
       await this.chaptersService.recalculateChapterCounters(lesson.chapterId);
     }
 
+    void this.courseManagement.scheduleReindexIfPublished(courseId);
     return updated;
   }
 
@@ -77,6 +79,8 @@ export class LessonsService {
 
     // Recalculate chapter + course counters
     await this.chaptersService.recalculateChapterCounters(lesson.chapterId);
+
+    void this.courseManagement.scheduleReindexIfPublished(courseId);
   }
 
   async reorder(courseId: string, chapterId: string, instructorId: string, orderedIds: string[]) {

@@ -23,7 +23,7 @@ export class QuizzesService {
       }
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const quiz = await this.prisma.$transaction(async (tx) => {
       // Delete existing quiz if any (cascade deletes questions + options)
       await tx.quiz.deleteMany({ where: { lessonId } });
 
@@ -57,6 +57,9 @@ export class QuizzesService {
         },
       });
     });
+
+    void this.courseManagement.scheduleReindexIfPublished(courseId);
+    return quiz;
   }
 
   async getQuiz(courseId: string, lessonId: string, instructorId: string) {
@@ -77,6 +80,8 @@ export class QuizzesService {
     await this.courseManagement.verifyOwnership(courseId, instructorId);
 
     await this.prisma.quiz.deleteMany({ where: { lessonId } });
+
+    void this.courseManagement.scheduleReindexIfPublished(courseId);
   }
 
   // PRIVATE HELPERS

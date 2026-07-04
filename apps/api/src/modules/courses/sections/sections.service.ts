@@ -32,10 +32,13 @@ export class SectionsService {
     await this.courseManagement.verifyOwnership(courseId, instructorId);
     await this.verifySectionBelongsToCourse(sectionId, courseId);
 
-    return this.prisma.section.update({
+    const updated = await this.prisma.section.update({
       where: { id: sectionId },
       data: dto,
     });
+
+    void this.courseManagement.scheduleReindexIfPublished(courseId);
+    return updated;
   }
 
   async delete(courseId: string, sectionId: string, instructorId: string) {
@@ -48,6 +51,8 @@ export class SectionsService {
 
     // Recalculate course counters after delete
     await this.recalculateCourseCounters(courseId);
+
+    void this.courseManagement.scheduleReindexIfPublished(courseId);
   }
 
   async reorder(courseId: string, instructorId: string, orderedIds: string[]) {

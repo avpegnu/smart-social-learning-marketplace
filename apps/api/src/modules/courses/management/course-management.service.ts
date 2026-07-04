@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
@@ -19,6 +20,8 @@ import type { QueryCourseStudentsDto } from './dto/query-course-students.dto';
 
 @Injectable()
 export class CourseManagementService {
+  private readonly logger = new Logger(CourseManagementService.name);
+
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(QueueService) private readonly queue: QueueService,
@@ -297,6 +300,9 @@ export class CourseManagementService {
         courseTitle: course.title,
       });
 
+      // Auto-approve publish khóa ngay → index nội dung cho AI Tutor (như đường admin duyệt)
+      this.queue.enqueueReindex(courseId);
+
       return updated;
     }
 
@@ -312,6 +318,23 @@ export class CourseManagementService {
     });
 
     return updated;
+  }
+
+  // Nội dung khóa vừa đổi → nếu khóa đang PUBLISHED thì đẩy job re-index (debounced).
+  // Khóa DRAFT bỏ qua: sẽ được index lúc duyệt/auto-approve nên không cần index sớm.
+  // Side-effect phụ: KHÔNG ném — tránh làm hỏng mutation đã ghi xong. Gọi bằng void (fire-and-forget).
+  async scheduleReindexIfPublished(courseId: string) {
+    try {
+      const course = await this.prisma.course.findUnique({
+        where: { id: courseId },
+        select: { status: true },
+      });
+      if (course?.status === 'PUBLISHED') {
+        this.queue.enqueueReindex(courseId);
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to schedule reindex for ${courseId}: ${(err as Error).message}`);
+    }
   }
 
   async softDelete(courseId: string, instructorId: string) {
