@@ -88,6 +88,38 @@ describe('CouponsService', () => {
     });
   });
 
+  describe('update', () => {
+    it('should reject an out-of-range percentage on update (re-validates business rules)', async () => {
+      mockPrisma.coupon.findUnique.mockResolvedValue(MOCK_COUPON); // type PERCENTAGE
+
+      await expect(service.update('coupon-1', 'instr-1', { value: 150 } as never)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should reject applicable courses not owned by the instructor on update', async () => {
+      mockPrisma.coupon.findUnique.mockResolvedValue(MOCK_COUPON);
+      mockPrisma.course.findMany.mockResolvedValue([]); // none owned
+
+      await expect(
+        service.update('coupon-1', 'instr-1', { applicableCourseIds: ['foreign'] } as never),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should update with valid data', async () => {
+      mockPrisma.coupon.findUnique.mockResolvedValue(MOCK_COUPON);
+      mockPrisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          couponCourse: { deleteMany: jest.fn(), createMany: jest.fn() },
+          coupon: { update: jest.fn().mockResolvedValue({ ...MOCK_COUPON, value: 30 }) },
+        }),
+      );
+
+      const result = await service.update('coupon-1', 'instr-1', { value: 30 } as never);
+      expect(result.value).toBe(30);
+    });
+  });
+
   describe('deactivate', () => {
     it('should soft delete coupon', async () => {
       mockPrisma.coupon.findUnique.mockResolvedValue(MOCK_COUPON);

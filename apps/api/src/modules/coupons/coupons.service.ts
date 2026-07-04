@@ -9,36 +9,16 @@ import type { UpdateCouponDto } from './dto/update-coupon.dto';
 export class CouponsService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  // ==================== INSTRUCTOR CRUD ====================
+  // INSTRUCTOR CRUD
 
   async create(instructorId: string, dto: CreateCouponDto) {
-    // Validate applicable courses belong to instructor
-    if (dto.applicableCourseIds?.length) {
-      const courses = await this.prisma.course.findMany({
-        where: { id: { in: dto.applicableCourseIds }, instructorId },
-        select: { id: true },
-      });
-      if (courses.length !== dto.applicableCourseIds.length) {
-        throw new BadRequestException({ code: 'INVALID_COURSE_IDS' });
-      }
-    }
-
-    // Validate discount value
-    if (dto.type === 'PERCENTAGE') {
-      if (dto.value < 1 || dto.value > 100) {
-        throw new BadRequestException({ code: 'INVALID_PERCENTAGE_VALUE' });
-      }
-    } else if (dto.value < 1) {
-      // FIXED_AMOUNT must be a positive amount. A value above a course price is
-      // allowed on purpose — at apply time it is capped to the order total, which
-      // simply makes the course free (handled by the zero-total checkout path).
-      throw new BadRequestException({ code: 'INVALID_DISCOUNT_VALUE' });
-    }
-
-    // Validate dates
-    if (new Date(dto.startsAt) >= new Date(dto.expiresAt)) {
-      throw new BadRequestException({ code: 'INVALID_DATE_RANGE' });
-    }
+    await this.assertCoursesOwned(instructorId, dto.applicableCourseIds);
+    this.assertValidDiscountRules(
+      dto.type,
+      dto.value,
+      new Date(dto.startsAt),
+      new Date(dto.expiresAt),
+    );
 
     const { applicableCourseIds, startsAt, expiresAt, ...couponData } = dto;
 
@@ -77,7 +57,16 @@ export class CouponsService {
   }
 
   async update(couponId: string, instructorId: string, dto: UpdateCouponDto) {
-    await this.verifyCouponOwnership(couponId, instructorId);
+    const existing = await this.verifyCouponOwnership(couponId, instructorId);
+
+    // Re-run the same business validation as create — a PATCH must not bypass it.
+    await this.assertCoursesOwned(instructorId, dto.applicableCourseIds);
+    this.assertValidDiscountRules(
+      dto.type ?? existing.type,
+      dto.value ?? existing.value,
+      dto.startsAt ? new Date(dto.startsAt) : existing.startDate,
+      dto.expiresAt ? new Date(dto.expiresAt) : existing.endDate,
+    );
 
     const { applicableCourseIds, startsAt, expiresAt, ...updateData } = dto;
 
@@ -113,7 +102,7 @@ export class CouponsService {
     });
   }
 
-  // ==================== VALIDATION (called by OrdersService + CartController) ====================
+  // VALIDATION (called by OrdersService + CartController) ====================
 
   async validateAndCalculateDiscount(
     code: string,
@@ -195,7 +184,35 @@ export class CouponsService {
     };
   }
 
-  // ==================== PRIVATE HELPERS ====================
+  // PRIVATE HELPERS
+
+  /** Verify every applicable course belongs to the instructor (blocks coupons for others' courses). */
+  private async assertCoursesOwned(instructorId: string, courseIds?: string[]) {
+    if (!courseIds?.length) return;
+    const courses = await this.prisma.course.findMany({
+      where: { id: { in: courseIds }, instructorId },
+      select: { id: true },
+    });
+    if (courses.length !== courseIds.length) {
+      throw new BadRequestException({ code: 'INVALID_COURSE_IDS' });
+    }
+  }
+
+  /** Business-rule validation shared by create + update so a PATCH cannot bypass it. */
+  private assertValidDiscountRules(type: string, value: number, startDate: Date, endDate: Date) {
+    if (type === 'PERCENTAGE') {
+      if (value < 1 || value > 100) {
+        throw new BadRequestException({ code: 'INVALID_PERCENTAGE_VALUE' });
+      }
+    } else if (value < 1) {
+      // FIXED_AMOUNT above a course price is allowed on purpose — capped to the
+      // order total at apply time (zero-total checkout makes the course free).
+      throw new BadRequestException({ code: 'INVALID_DISCOUNT_VALUE' });
+    }
+    if (startDate >= endDate) {
+      throw new BadRequestException({ code: 'INVALID_DATE_RANGE' });
+    }
+  }
 
   private async verifyCouponOwnership(couponId: string, instructorId: string) {
     const coupon = await this.prisma.coupon.findUnique({ where: { id: couponId } });

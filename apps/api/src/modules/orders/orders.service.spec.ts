@@ -111,7 +111,10 @@ describe('OrdersService', () => {
         fn({
           order: { create: jest.fn().mockResolvedValue(mockOrder) },
           couponUsage: { create: jest.fn() },
-          coupon: { update: jest.fn() },
+          coupon: {
+            findUnique: jest.fn().mockResolvedValue({ usageLimit: null }),
+            updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+          },
           cartItem: { deleteMany: jest.fn() },
         }),
       );
@@ -160,7 +163,10 @@ describe('OrdersService', () => {
         fn({
           order: { create: jest.fn().mockResolvedValue(createdOrder) },
           couponUsage: { create: jest.fn() },
-          coupon: { update: jest.fn() },
+          coupon: {
+            findUnique: jest.fn().mockResolvedValue({ usageLimit: null }),
+            updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+          },
           cartItem: { deleteMany: jest.fn() },
         }),
       );

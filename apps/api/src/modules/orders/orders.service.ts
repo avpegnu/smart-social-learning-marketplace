@@ -90,14 +90,26 @@ export class OrdersService {
         include: { items: true },
       });
 
-      // Record coupon usage + increment counter
+      // Record coupon usage + atomically increment the counter guarded by usageLimit.
+      // A conditional updateMany prevents concurrent orders from over-redeeming the
+      // coupon — the validate-time check alone is a TOCTOU race.
       if (couponId) {
+        const coupon = await tx.coupon.findUnique({
+          where: { id: couponId },
+          select: { usageLimit: true },
+        });
+        const incremented = await tx.coupon.updateMany({
+          where:
+            coupon?.usageLimit != null
+              ? { id: couponId, usageCount: { lt: coupon.usageLimit } }
+              : { id: couponId },
+          data: { usageCount: { increment: 1 } },
+        });
+        if (incremented.count === 0) {
+          throw new BadRequestException({ code: 'COUPON_USAGE_EXCEEDED' });
+        }
         await tx.couponUsage.create({
           data: { couponId, orderId: newOrder.id, discount: discountAmount },
-        });
-        await tx.coupon.update({
-          where: { id: couponId },
-          data: { usageCount: { increment: 1 } },
         });
       }
 
