@@ -58,7 +58,7 @@ export class ReviewsService {
 
       // Recalculate avg rating
       const agg = await tx.review.aggregate({
-        where: { courseId },
+        where: { courseId, deletedAt: null },
         _avg: { rating: true },
         _count: true,
       });
@@ -80,7 +80,7 @@ export class ReviewsService {
 
     const [reviews, total] = await Promise.all([
       this.prisma.review.findMany({
-        where: { courseId },
+        where: { courseId, deletedAt: null },
         orderBy,
         skip: query.skip,
         take: query.limit,
@@ -88,7 +88,7 @@ export class ReviewsService {
           user: { select: { id: true, fullName: true, avatarUrl: true } },
         },
       }),
-      this.prisma.review.count({ where: { courseId } }),
+      this.prisma.review.count({ where: { courseId, deletedAt: null } }),
     ]);
 
     return createPaginatedResult(reviews, total, query.page, query.limit);
@@ -111,7 +111,7 @@ export class ReviewsService {
 
       // Recalculate avg rating
       const agg = await tx.review.aggregate({
-        where: { courseId: review.courseId },
+        where: { courseId: review.courseId, deletedAt: null },
         _avg: { rating: true },
       });
       await tx.course.update({

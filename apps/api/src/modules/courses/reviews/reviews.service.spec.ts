@@ -214,7 +214,7 @@ describe('ReviewsService', () => {
       mockPrisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({
           review: {
-            delete: jest.fn(),
+            update: jest.fn(),
             aggregate: jest.fn().mockResolvedValue({ _avg: { rating: 4.0 }, _count: 9 }),
           },
           course: { update: jest.fn() },
