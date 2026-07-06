@@ -74,7 +74,7 @@ export class ContentBasedService {
       normA += a[i]! * a[i]!;
       normB += b[i]! * b[i]!;
     }
-    const denominator = Math.sqrt(normA) * Math.sqrt(normB);
+    const denominator = Math.sqrt(normA) * Math.sqrt(normB); // denominator (mẫu số)
     return denominator === 0 ? 0 : dotProduct / denominator;
   }
 }

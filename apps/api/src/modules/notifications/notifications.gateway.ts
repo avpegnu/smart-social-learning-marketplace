@@ -52,6 +52,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     this.server.to(`user_${userId}`).emit('unread_count', { count });
   }
 
+  // chưa dùng
   pushOrderStatus(userId: string, orderId: string, status: string) {
     this.server.to(`user_${userId}`).emit('order_status_changed', { orderId, status });
   }
