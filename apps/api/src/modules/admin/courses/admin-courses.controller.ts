@@ -9,6 +9,8 @@ import { AdminCoursesService } from './admin-courses.service';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PaginationDto } from '@/common/dto/pagination.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { QueryAdminCoursesDto } from '../dto/query-admin-courses.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { ReviewCourseDto } from '../dto/review-course.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { QueryCourseStudentsDto } from '../../courses/management/dto/query-course-students.dto';
@@ -26,7 +28,7 @@ export class AdminCoursesController {
 
   @Get()
   @ApiOperation({ summary: 'List all courses (admin)' })
-  async getAll(@Query() query: PaginationDto) {
+  async getAll(@Query() query: QueryAdminCoursesDto) {
     return this.service.getAllCourses(query);
   }
 

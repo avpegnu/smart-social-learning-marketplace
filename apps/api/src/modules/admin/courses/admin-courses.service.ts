@@ -1,4 +1,5 @@
 import { Injectable, Inject, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import type { Prisma, CourseStatus } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import { QueueService } from '@/modules/jobs/queue.service';
 import { EmbeddingsService } from '@/modules/ai-tutor/embeddings/embeddings.service';
@@ -10,6 +11,8 @@ import { PaginationDto } from '@/common/dto/pagination.dto';
 import { ReviewCourseDto } from '../dto/review-course.dto';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { QueryCourseStudentsDto } from '../../courses/management/dto/query-course-students.dto';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { QueryAdminCoursesDto } from '../dto/query-admin-courses.dto';
 
 @Injectable()
 export class AdminCoursesService {
@@ -22,8 +25,15 @@ export class AdminCoursesService {
     @Inject(GroupsService) private readonly groupsService: GroupsService,
   ) {}
 
-  async getAllCourses(query: PaginationDto) {
-    const where = { deletedAt: null, status: { not: 'DRAFT' as const } };
+  async getAllCourses(query: QueryAdminCoursesDto) {
+    const where: Prisma.CourseWhereInput = {
+      deletedAt: null,
+      // Filter by tab status when provided; otherwise show everything except drafts
+      ...(query.status ? { status: query.status as CourseStatus } : { status: { not: 'DRAFT' } }),
+      ...(query.search && {
+        title: { contains: query.search, mode: 'insensitive' as const },
+      }),
+    };
 
     const [courses, total] = await Promise.all([
       this.prisma.course.findMany({
