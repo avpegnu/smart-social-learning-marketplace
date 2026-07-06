@@ -23,12 +23,14 @@ export class PopularityService {
           select: { id: true, fullName: true, avatarUrl: true },
         },
         totalLessons: true,
-        _count: { select: { reviews: true } },
+        // Dùng field reviewCount (đã loại review xoá mềm, khớp avgRating) thay vì
+        // _count.reviews (đếm cả review đã xoá) — nhất quán với các thuật toán khác + FE.
+        reviewCount: true,
       },
     });
 
     const scored = courses.map((course) => {
-      const wilsonScore = this.wilsonScoreLowerBound(course.avgRating, course._count.reviews);
+      const wilsonScore = this.wilsonScoreLowerBound(course.avgRating, course.reviewCount);
 
       const ageInDays = (Date.now() - course.createdAt.getTime()) / (1000 * 60 * 60 * 24);
       const timeFactor = 1 / (1 + Math.log10(1 + ageInDays / 30));

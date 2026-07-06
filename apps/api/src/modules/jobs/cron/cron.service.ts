@@ -271,10 +271,15 @@ export class CronService {
   async reconcileCounters() {
     try {
       await this.prisma.$transaction(async (tx) => {
+        // comment_count phải khớp ngữ nghĩa app: chỉ đếm comment CHƯA xoá mềm
+        // (likes xoá cứng nên không cần lọc).
         await tx.$executeRaw`
           UPDATE posts SET
             like_count = (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id),
-            comment_count = (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id)
+            comment_count = (
+              SELECT COUNT(*) FROM comments
+              WHERE comments.post_id = posts.id AND comments.deleted_at IS NULL
+            )
           WHERE deleted_at IS NULL
         `;
 
@@ -285,9 +290,14 @@ export class CronService {
           WHERE deleted_at IS NULL
         `;
 
+        // Không đếm khóa đã xoá mềm: softDelete chỉ set deletedAt, KHÔNG dọn course_tags.
         await tx.$executeRaw`
           UPDATE tags SET
-            course_count = (SELECT COUNT(*) FROM course_tags WHERE course_tags.tag_id = tags.id)
+            course_count = (
+              SELECT COUNT(*) FROM course_tags
+              JOIN courses ON courses.id = course_tags.course_id
+              WHERE course_tags.tag_id = tags.id AND courses.deleted_at IS NULL
+            )
         `;
       });
 
