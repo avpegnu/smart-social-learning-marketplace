@@ -5,7 +5,7 @@ import { usePathname } from '@/i18n/navigation';
 import { Link } from '@/i18n/navigation';
 import { ChevronRight, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useInstructorCourseDetail } from '@shared/hooks';
+import { useAdminCourseDetail, useInstructorCourseDetail } from '@shared/hooks';
 
 // CUID pattern: starts with c + 25 alphanumeric chars
 function isCuid(segment: string): boolean {
@@ -44,6 +44,9 @@ export function Breadcrumb() {
   };
 
   const basePath = allSegments[0] ? `/${allSegments[0]}` : '';
+  // Admin portal must resolve course titles via the admin endpoint, not the
+  // instructor one (admin isn't the course owner → instructor route returns 403).
+  const isAdmin = allSegments[0] === 'admin';
 
   return (
     <nav className="text-muted-foreground flex items-center gap-1.5 text-sm">
@@ -56,7 +59,7 @@ export function Breadcrumb() {
 
         // For CUID segments, show course title instead
         const label = isCuid(segment) ? (
-          <CourseTitle courseId={segment} />
+          <CourseTitle courseId={segment} isAdmin={isAdmin} />
         ) : (
           labelMap[segment] || segment
         );
@@ -78,8 +81,11 @@ export function Breadcrumb() {
   );
 }
 
-function CourseTitle({ courseId }: { courseId: string }) {
-  const { data } = useInstructorCourseDetail(courseId);
+function CourseTitle({ courseId, isAdmin }: { courseId: string; isAdmin: boolean }) {
+  // Only one query fires — the other gets an empty id (hooks are `enabled: !!courseId`)
+  const adminQuery = useAdminCourseDetail(isAdmin ? courseId : '');
+  const instructorQuery = useInstructorCourseDetail(isAdmin ? '' : courseId);
+  const data = isAdmin ? adminQuery.data : instructorQuery.data;
   const title = (data?.data as Record<string, unknown>)?.title as string | undefined;
 
   if (!title) return <span className="animate-pulse">...</span>;
