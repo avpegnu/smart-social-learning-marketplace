@@ -19,7 +19,32 @@ export interface ApiError {
   field?: string;
 }
 
-// --- Server-side fetch (Server Components) ---
+// --- Public server-side fetch (Server Components, SSR/ISR) ---
+// KHÔNG đọc cookie: đọc cookie sẽ ép route sang dynamic, mất khả năng static/ISR.
+// Dùng cho nội dung công khai (danh sách/chi tiết khóa) cần SEO + cache.
+// `revalidate` giây → Next cache kết quả fetch, chia sẻ cho mọi request tới khi hết hạn.
+export async function publicFetch<T>(
+  path: string,
+  options?: { revalidate?: number },
+): Promise<ApiResponse<T>> {
+  // `next` là mở rộng của Next.js trên RequestInit, không có trong lib DOM types
+  // của package này → khai báo init với type mở rộng thay vì cast `any`.
+  const init: RequestInit & { next?: { revalidate?: number } } = {
+    headers: { 'Content-Type': 'application/json' },
+    next: { revalidate: options?.revalidate ?? 300 },
+  };
+
+  const res = await fetch(`${API_BASE}${path}`, init);
+
+  if (!res.ok) {
+    const error: ApiError = await res.json();
+    throw error;
+  }
+
+  return res.json();
+}
+
+// --- Server-side fetch with auth cookie (Server Components) ---
 // chưa dùng
 export async function serverFetch<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
   const { cookies } = await import('next/headers');

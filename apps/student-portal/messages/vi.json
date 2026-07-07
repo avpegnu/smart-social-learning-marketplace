@@ -138,6 +138,8 @@
     "students": "học viên"
   },
   "courses": {
+    "metaTitle": "Khóa học",
+    "metaDescription": "Khám phá và tìm kiếm các khóa học trực tuyến chất lượng trên nền tảng.",
     "searchPlaceholder": "Tìm kiếm khóa học, chủ đề, giảng viên...",
     "filters": "Bộ lọc",
     "category": "Danh mục",
