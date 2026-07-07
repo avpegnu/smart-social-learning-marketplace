@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Homepage — Smart Social Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #1e293b; --primary-fg: #f1f5f9;
+    --secondary: #f1f5f9; --secondary-fg: #1e293b;
+    --accent: #16a34a; --accent-fg: #fff;
+    --bg: #ffffff; --fg: #0f172a;
+    --card: #ffffff; --card-fg: #0f172a;
+    --muted: #f1f5f9; --muted-fg: #64748b;
+    --border: #e2e8f0; --input: #e2e8f0;
+    --success: #16a34a; --warning: #f59e0b; --destructive: #ef4444; --info: #3b82f6;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
+    --radius: 0.5rem; --radius-lg: 0.75rem;
+  }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; }
+
+  /* Navbar */
+  .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+  .nav-left { display: flex; align-items: center; gap: 2rem; }
+  .logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
+  .logo-icon { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
+  .nav-links { display: flex; gap: 1.5rem; font-size: 0.875rem; font-weight: 500; color: var(--muted-fg); }
+  .nav-links a:hover { color: var(--fg); }
+  .nav-search { display: flex; align-items: center; background: var(--muted); border-radius: 9999px; padding: 0.5rem 1rem; gap: 0.5rem; width: 320px; }
+  .nav-search input { border: none; background: none; outline: none; font-size: 0.875rem; width: 100%; font-family: inherit; }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: var(--muted-fg); font-size: 1.1rem; position: relative; }
+  .nav-icon:hover { background: var(--muted); }
+  .badge-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: var(--destructive); border-radius: 50%; border: 2px solid white; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.875rem; font-weight: 600; cursor: pointer; }
+  .theme-toggle, .lang-toggle { font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--card); cursor: pointer; color: var(--muted-fg); }
+
+  /* Hero */
+  .hero { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); color: white; padding: 5rem 2rem; text-align: center; }
+  .hero h1 { font-size: 2.75rem; font-weight: 800; line-height: 1.1; margin-bottom: 1rem; }
+  .hero h1 span { background: linear-gradient(135deg, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { font-size: 1.125rem; color: #94a3b8; max-width: 600px; margin: 0 auto 2rem; }
+  .hero-buttons { display: flex; gap: 1rem; justify-content: center; margin-bottom: 3rem; }
+  .btn { padding: 0.75rem 1.5rem; border-radius: var(--radius); font-weight: 600; font-size: 0.875rem; cursor: pointer; border: none; font-family: inherit; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.15s; }
+  .btn-primary { background: white; color: var(--primary); }
+  .btn-primary:hover { transform: scale(1.02); box-shadow: var(--shadow-md); }
+  .btn-outline { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); }
+  .btn-outline:hover { background: rgba(255,255,255,0.1); }
+  .btn-accent { background: var(--accent); color: white; }
+  .btn-accent:hover { opacity: 0.9; }
+  .hero-stats { display: flex; gap: 3rem; justify-content: center; }
+  .hero-stat { text-align: center; }
+  .hero-stat .number { font-size: 1.5rem; font-weight: 700; }
+  .hero-stat .label { font-size: 0.875rem; color: #94a3b8; }
+
+  /* Container */
+  .container { max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
+
+  /* Categories */
+  .categories { padding: 2rem 0; background: var(--muted); }
+  .categories-scroll { display: flex; gap: 0.75rem; overflow-x: auto; padding: 0.5rem 0; }
+  .category-chip { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.25rem; background: var(--card); border-radius: 9999px; font-size: 0.875rem; font-weight: 500; white-space: nowrap; border: 1px solid var(--border); cursor: pointer; transition: all 0.15s; }
+  .category-chip:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+  .category-icon { font-size: 1.1rem; }
+
+  /* Section */
+  .section { padding: 3rem 0; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+  .section-title { font-size: 1.5rem; font-weight: 700; }
+  .section-link { font-size: 0.875rem; color: var(--info); font-weight: 500; }
+  .section-link:hover { text-decoration: underline; }
+
+  /* Course Grid */
+  .course-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+  .course-card { background: var(--card); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-card); transition: all 0.2s; cursor: pointer; border: 1px solid var(--border); }
+  .course-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+  .course-thumb { aspect-ratio: 16/9; background: linear-gradient(135deg, #6366f1, #8b5cf6); position: relative; overflow: hidden; }
+  .course-thumb.t2 { background: linear-gradient(135deg, #0ea5e9, #06b6d4); }
+  .course-thumb.t3 { background: linear-gradient(135deg, #f59e0b, #eab308); }
+  .course-thumb.t4 { background: linear-gradient(135deg, #ef4444, #f97316); }
+  .course-thumb.t5 { background: linear-gradient(135deg, #10b981, #14b8a6); }
+  .course-thumb.t6 { background: linear-gradient(135deg, #8b5cf6, #a855f7); }
+  .course-thumb.t7 { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+  .course-thumb.t8 { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
+  .course-thumb-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1rem; padding: 1rem; text-align: center; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .course-badge { position: absolute; top: 0.5rem; left: 0.5rem; background: var(--warning); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; text-transform: uppercase; }
+  .course-badge.new { background: var(--accent); }
+  .course-info { padding: 1rem; }
+  .course-title { font-size: 0.95rem; font-weight: 600; line-height: 1.4; margin-bottom: 0.25rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .course-instructor { font-size: 0.8rem; color: var(--muted-fg); margin-bottom: 0.5rem; }
+  .course-meta { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .course-rating { display: flex; align-items: center; gap: 0.25rem; font-size: 0.8rem; font-weight: 600; color: #f59e0b; }
+  .course-rating .count { color: var(--muted-fg); font-weight: 400; }
+  .course-price { display: flex; align-items: center; gap: 0.5rem; }
+  .price-current { font-size: 1.1rem; font-weight: 700; color: var(--fg); }
+  .price-original { font-size: 0.85rem; color: var(--muted-fg); text-decoration: line-through; }
+  .price-free { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+
+  /* Why Us */
+  .why-us { background: var(--muted); padding: 4rem 0; }
+  .why-us-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+  .why-card { background: var(--card); padding: 2rem; border-radius: var(--radius-lg); text-align: center; border: 1px solid var(--border); }
+  .why-icon { width: 64px; height: 64px; background: linear-gradient(135deg, #ede9fe, #dbeafe); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; margin: 0 auto 1rem; }
+  .why-card h3 { font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .why-card p { font-size: 0.875rem; color: var(--muted-fg); }
+
+  /* Footer */
+  .footer { background: var(--primary); color: var(--primary-fg); padding: 3rem 2rem 1.5rem; }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+  .footer-brand p { font-size: 0.875rem; color: #94a3b8; margin-top: 0.5rem; }
+  .footer h4 { font-size: 0.875rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; }
+  .footer ul { list-style: none; }
+  .footer li { margin-bottom: 0.5rem; }
+  .footer li a { font-size: 0.875rem; color: #cbd5e1; }
+  .footer li a:hover { color: white; }
+  .footer-bottom { border-top: 1px solid #334155; padding-top: 1.5rem; display: flex; justify-content: space-between; font-size: 0.8rem; color: #64748b; }
+  .footer-social { display: flex; gap: 1rem; }
+  .footer-social a { color: #94a3b8; font-size: 1.1rem; }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="nav-left">
+    <div class="logo">
+      <div class="logo-icon">S</div>
+      SSML
+    </div>
+    <div class="nav-search">
+      <span>🔍</span>
+      <input type="text" placeholder="Tìm kiếm khóa học...">
+    </div>
+    <div class="nav-links">
+      <a href="#">Khám phá</a>
+      <a href="#">Học tập của tôi</a>
+    </div>
+  </div>
+  <div class="nav-right">
+    <button class="nav-icon">🛒</button>
+    <button class="nav-icon">
+      🔔
+      <span class="badge-dot"></span>
+    </button>
+    <button class="theme-toggle">🌙</button>
+    <button class="lang-toggle">VI</button>
+    <div class="avatar">VT</div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <h1>Học tập thông minh,<br><span>kết nối cộng đồng</span></h1>
+  <p>Nền tảng học trực tuyến kết hợp mạng xã hội, AI Tutor thông minh và cộng đồng học tập sôi động</p>
+  <div class="hero-buttons">
+    <button class="btn btn-primary">📚 Khám phá khóa học</button>
+    <button class="btn btn-outline">Tìm hiểu thêm →</button>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="number">500+</div>
+      <div class="label">Khóa học</div>
+    </div>
+    <div class="hero-stat">
+      <div class="number">10,000+</div>
+      <div class="label">Học viên</div>
+    </div>
+    <div class="hero-stat">
+      <div class="number">4.8 ⭐</div>
+      <div class="label">Đánh giá</div>
+    </div>
+    <div class="hero-stat">
+      <div class="number">50+</div>
+      <div class="label">Giảng viên</div>
+    </div>
+  </div>
+</section>
+
+<!-- Categories -->
+<section class="categories">
+  <div class="container">
+    <div class="categories-scroll">
+      <div class="category-chip"><span class="category-icon">🌐</span> Web Development</div>
+      <div class="category-chip"><span class="category-icon">📱</span> Mobile</div>
+      <div class="category-chip"><span class="category-icon">🤖</span> AI / Machine Learning</div>
+      <div class="category-chip"><span class="category-icon">📊</span> Data Science</div>
+      <div class="category-chip"><span class="category-icon">🎨</span> Design</div>
+      <div class="category-chip"><span class="category-icon">☁️</span> DevOps & Cloud</div>
+      <div class="category-chip"><span class="category-icon">🔒</span> Cybersecurity</div>
+      <div class="category-chip"><span class="category-icon">🎮</span> Game Dev</div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Courses -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">🔥 Khóa học nổi bật</h2>
+      <a href="#" class="section-link">Xem tất cả →</a>
+    </div>
+    <div class="course-grid">
+      <div class="course-card">
+        <div class="course-thumb">
+          <div class="course-thumb-text">React & Next.js</div>
+          <span class="course-badge">Bestseller</span>
+        </div>
+        <div class="course-info">
+          <div class="course-title">Lập trình React & Next.js từ cơ bản đến nâng cao 2026</div>
+          <div class="course-instructor">Nguyễn Văn A</div>
+          <div class="course-meta">
+            <span class="course-rating">⭐ 4.8 <span class="count">(1,234)</span></span>
+          </div>
+          <div class="course-price">
+            <span class="price-current">499,000₫</span>
+            <span class="price-original">999,000₫</span>
+          </div>
+        </div>
+      </div>
+      <div class="course-card">
+        <div class="course-thumb t2">
+          <div class="course-thumb-text">Node.js Backend</div>
+          <span class="course-badge">Bestseller</span>
+        </div>
+        <div class="course-info">
+          <div class="course-title">Node.js & NestJS — Xây dựng Backend chuyên nghiệp</div>
+          <div class="course-instructor">Trần Văn B</div>
+          <div class="course-meta">
+            <span class="course-rating">⭐ 4.7 <span class="count">(856)</span></span>
+          </div>
+          <div class="course-price">
+            <span class="price-current">599,000₫</span>
+            <span class="price-original">1,200,000₫</span>
+          </div>
+        </div>
+      </div>
+      <div class="course-card">
+        <div class="course-thumb t3">
+          <div class="course-thumb-text">Python AI/ML</div>
+        </div>
+        <div class="course-info">
+          <div class="course-title">Python cho AI & Machine Learning — Khóa học toàn diện</div>
+          <div class="course-instructor">Lê Thị C</div>
+          <div class="course-meta">
+            <span class="course-rating">⭐ 4.9 <span class="count">(2,100)</span></span>
+          </div>
+          <div class="course-price">
+            <span class="price-current">699,000₫</span>
+            <span class="price-original">1,500,000₫</span>
+          </div>
+        </div>
+      </div>
+      <div class="course-card">
+        <div class="course-thumb t4">
+          <div class="course-thumb-text">TypeScript Pro</div>
+          <span class="course-badge new">Mới</span>
+        </div>
+        <div class="course-info">
+          <div class="course-title">TypeScript nâng cao — Design Patterns & Best Practices</div>
+          <div class="course-instructor">Phạm Văn D</div>
+          <div class="course-meta">
+            <span class="course-rating">⭐ 4.6 <span class="count">(432)</span></span>
+          </div>
+          <div class="course-price">
+            <span class="price-current">399,000₫</span>
+            <span class="price-original">799,000₫</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- New Courses -->
+<section class="section" style="background: var(--muted); padding: 3rem 0;">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">🆕 Khóa học mới nhất</h2>
+      <a href="#" class="section-link">Xem tất cả →</a>
+    </div>
+    <div class="course-grid">
+      <div class="course-card">
+        <div class="course-thumb t5">
+          <div class="course-thumb-text">Flutter Mobile</div>
+          <span class="course-badge new">Mới</span>
+        </div>
+        <div class="course-info">
+          <div class="course-title">Flutter & Dart — Lập trình mobile đa nền tảng</div>
+          <div class="course-instructor">Hoàng Minh E</div>
+          <div class="course-meta">
+            <span class="course-rating">⭐ 4.5 <span class="count">(89)</span></span>
+          </div>
+          <div class="course-price">
+            <span class="price-current">449,000₫</span>
+          </div>
+        </div>
+      </div>
+      <div class="course-card">
+        <div class="course-thumb t6">
+          <div class="course-thumb-text">Docker & K8s</div>
+          <span class="course-badge new">Mới</span>
+        </div>
+        <div class="course-info">
+          <div class="course-title">DevOps với Docker, Kubernetes & CI/CD Pipeline</div>
+          <div class="course-instructor">Vũ Đức F</div>
+          <div class="course-meta">
+            <span class="course-rating">⭐ 4.8 <span class="count">(156)</span></span>
+          </div>
+          <div class="course-price">
+            <span class="price-current">549,000₫</span>
+            <span class="price-original">899,000₫</span>
+          </div>
+        </div>
+      </div>
+      <div class="course-card">
+        <div class="course-thumb t7">
+          <div class="course-thumb-text">UI/UX Design</div>
+          <span class="course-badge new">Mới</span>
+        </div>
+        <div class="course-info">
+          <div class="course-title">UI/UX Design — Figma từ zero đến portfolio</div>
+          <div class="course-instructor">Ngọc Anh G</div>
+          <div class="course-meta">
+            <span class="course-rating">⭐ 4.7 <span class="count">(234)</span></span>
+          </div>
+          <div class="course-price">
+            <span class="price-free">Miễn phí</span>
+          </div>
+        </div>
+      </div>
+      <div class="course-card">
+        <div class="course-thumb t8">
+          <div class="course-thumb-text">SQL & PostgreSQL</div>
+          <span class="course-badge new">Mới</span>
+        </div>
+        <div class="course-info">
+          <div class="course-title">SQL Master — PostgreSQL & Database Design</div>
+          <div class="course-instructor">Đặng Văn H</div>
+          <div class="course-meta">
+            <span class="course-rating">⭐ 4.4 <span class="count">(67)</span></span>
+          </div>
+          <div class="course-price">
+            <span class="price-current">299,000₫</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Recommended -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">💡 Gợi ý cho bạn</h2>
+      <a href="#" class="section-link">Xem tất cả →</a>
+    </div>
+    <div class="course-grid">
+      <div class="course-card">
+        <div class="course-thumb t2">
+          <div class="course-thumb-text">GraphQL API</div>
+        </div>
+        <div class="course-info">
+          <div class="course-title">GraphQL với Apollo — API hiện đại cho React & Node.js</div>
+          <div class="course-instructor">Nguyễn Văn A</div>
+          <div class="course-meta"><span class="course-rating">⭐ 4.6 <span class="count">(312)</span></span></div>
+          <div class="course-price"><span class="price-current">399,000₫</span></div>
+        </div>
+      </div>
+      <div class="course-card">
+        <div class="course-thumb t5">
+          <div class="course-thumb-text">Testing</div>
+        </div>
+        <div class="course-info">
+          <div class="course-title">Testing JavaScript — Jest, Cypress & Best Practices</div>
+          <div class="course-instructor">Trần Văn B</div>
+          <div class="course-meta"><span class="course-rating">⭐ 4.7 <span class="count">(198)</span></span></div>
+          <div class="course-price"><span class="price-current">349,000₫</span></div>
+        </div>
+      </div>
+      <div class="course-card">
+        <div class="course-thumb t4">
+          <div class="course-thumb-text">AWS Cloud</div>
+        </div>
+        <div class="course-info">
+          <div class="course-title">AWS Solutions Architect — Luyện thi chứng chỉ SAA</div>
+          <div class="course-instructor">Lê Thị C</div>
+          <div class="course-meta"><span class="course-rating">⭐ 4.9 <span class="count">(567)</span></span></div>
+          <div class="course-price"><span class="price-current">799,000₫</span><span class="price-original">1,299,000₫</span></div>
+        </div>
+      </div>
+      <div class="course-card">
+        <div class="course-thumb t6">
+          <div class="course-thumb-text">System Design</div>
+        </div>
+        <div class="course-info">
+          <div class="course-title">System Design Interview — Thiết kế hệ thống phân tán</div>
+          <div class="course-instructor">Phạm Văn D</div>
+          <div class="course-meta"><span class="course-rating">⭐ 4.8 <span class="count">(445)</span></span></div>
+          <div class="course-price"><span class="price-current">599,000₫</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Why Us -->
+<section class="why-us">
+  <div class="container">
+    <div class="section-header" style="justify-content: center; margin-bottom: 2rem;">
+      <h2 class="section-title">✨ Tại sao chọn chúng tôi?</h2>
+    </div>
+    <div class="why-us-grid">
+      <div class="why-card">
+        <div class="why-icon">👥</div>
+        <h3>Học tập xã hội</h3>
+        <p>Kết nối với cộng đồng học viên, chia sẻ kiến thức, thảo luận và cùng nhau phát triển</p>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">🤖</div>
+        <h3>AI Tutor thông minh</h3>
+        <p>Trợ lý AI giải đáp thắc mắc 24/7, hỗ trợ bạn trong suốt quá trình học tập</p>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">✅</div>
+        <h3>Khóa học chất lượng</h3>
+        <p>Nội dung được kiểm duyệt bởi chuyên gia, cập nhật theo xu hướng công nghệ mới nhất</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo" style="color: white;">
+          <div class="logo-icon">S</div>
+          Smart Social Learning
+        </div>
+        <p>Nền tảng học trực tuyến kết hợp mạng xã hội dành cho lập trình viên Việt Nam.</p>
+      </div>
+      <div>
+        <h4>Khám phá</h4>
+        <ul>
+          <li><a href="#">Tất cả khóa học</a></li>
+          <li><a href="#">Khóa học miễn phí</a></li>
+          <li><a href="#">Giảng viên</a></li>
+          <li><a href="#">Chứng chỉ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Cộng đồng</h4>
+        <ul>
+          <li><a href="#">Bảng tin</a></li>
+          <li><a href="#">Nhóm học</a></li>
+          <li><a href="#">Hỏi đáp</a></li>
+          <li><a href="#">Blog</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Hỗ trợ</h4>
+        <ul>
+          <li><a href="#">Liên hệ</a></li>
+          <li><a href="#">Điều khoản</a></li>
+          <li><a href="#">Chính sách bảo mật</a></li>
+          <li><a href="#">Trở thành giảng viên</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Smart Social Learning Marketplace. All rights reserved.</span>
+      <div class="footer-social">
+        <a href="#">Facebook</a>
+        <a href="#">YouTube</a>
+        <a href="#">GitHub</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
