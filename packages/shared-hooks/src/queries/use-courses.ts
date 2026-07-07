@@ -8,20 +8,30 @@ import type { CourseListParams } from '../services/course.service';
 
 // ── Public Course Browse ──
 
-export function useCourses(params: Record<string, string>) {
+// initialData (tùy chọn): dữ liệu fetch sẵn ở Server Component để seed cache,
+// giúp SSR render ra nội dung thật ngay lần đầu (SEO) mà không cần fetch lại ở client.
+export function useCourses(
+  params: Record<string, string>,
+  initialData?: Awaited<ReturnType<typeof courseService.browse>>,
+) {
   return useQuery({
     queryKey: ['courses', params],
     queryFn: () => courseService.browse(params),
+    initialData,
   });
 }
 
 // ── Course Detail by Slug ──
 
-export function useCourseDetail(slug: string) {
+export function useCourseDetail(
+  slug: string,
+  initialData?: Awaited<ReturnType<typeof courseService.getBySlug>>,
+) {
   return useQuery({
     queryKey: ['courses', 'detail', slug],
     queryFn: () => courseService.getBySlug(slug),
     enabled: !!slug,
+    initialData,
   });
 }
 
