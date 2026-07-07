@@ -1,3 +1,5 @@
+// chưa dùng
+
 export const SUPPORTED_LOCALES = ['vi', 'en'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 

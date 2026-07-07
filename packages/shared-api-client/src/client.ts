@@ -20,7 +20,7 @@ export interface ApiError {
 }
 
 // --- Server-side fetch (Server Components) ---
-
+// chưa dùng
 export async function serverFetch<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();

@@ -42,6 +42,7 @@ export function formatRelativeTime(date: string | Date, locale: string = 'vi'): 
 /**
  * Check if error is an API error with code and statusCode
  */
+// chưa dùng (use-api-error đã viết lại)
 export function isApiError(
   error: unknown,
 ): error is { code: string; statusCode: number; message: string } {
@@ -51,6 +52,7 @@ export function isApiError(
 /**
  * Get i18n key for API error code
  */
+// chưa dùng (use-api-error đã viết lại)
 export function getErrorMessageKey(code: string): string {
   return `apiErrors.${code}`;
 }
