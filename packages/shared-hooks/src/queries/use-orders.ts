@@ -52,5 +52,7 @@ export function useOrderStatus(orderId: string) {
       if (status === 'COMPLETED' || status === 'EXPIRED') return false;
       return 5000;
     },
+    // Keep polling while the tab is unfocused
+    // refetchIntervalInBackground: true,
   });
 }
