@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bảng tin — Smart Social Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #1e293b; --primary-fg: #f1f5f9;
+    --secondary: #f1f5f9; --secondary-fg: #1e293b;
+    --accent: #16a34a; --accent-fg: #fff;
+    --bg: #ffffff; --fg: #0f172a;
+    --card: #ffffff; --card-fg: #0f172a;
+    --muted: #f1f5f9; --muted-fg: #64748b;
+    --border: #e2e8f0; --input: #e2e8f0;
+    --success: #16a34a; --warning: #f59e0b; --destructive: #ef4444; --info: #3b82f6;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
+    --radius: 0.5rem; --radius-lg: 0.75rem;
+  }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--muted); color: var(--fg); line-height: 1.6; }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; }
+
+  /* Navbar */
+  .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+  .nav-left { display: flex; align-items: center; gap: 2rem; }
+  .logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
+  .logo-icon { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
+  .nav-links { display: flex; gap: 1.5rem; font-size: 0.875rem; font-weight: 500; color: var(--muted-fg); }
+  .nav-links a:hover { color: var(--fg); }
+  .nav-links a.active { color: var(--fg); font-weight: 600; }
+  .nav-search { display: flex; align-items: center; background: var(--muted); border-radius: 9999px; padding: 0.5rem 1rem; gap: 0.5rem; width: 320px; }
+  .nav-search input { border: none; background: none; outline: none; font-size: 0.875rem; width: 100%; font-family: inherit; }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: var(--muted-fg); font-size: 1.1rem; position: relative; }
+  .nav-icon:hover { background: var(--muted); }
+  .badge-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: var(--destructive); border-radius: 50%; border: 2px solid white; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.875rem; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+
+  /* Three-column layout */
+  .feed-layout { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; display: grid; grid-template-columns: 200px 1fr 260px; gap: 1.5rem; align-items: start; }
+
+  /* Left Sidebar */
+  .sidebar-left { position: sticky; top: 80px; }
+  .sidebar-card { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; }
+  .sidebar-card + .sidebar-card { margin-top: 1rem; }
+  .sidebar-card-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-fg); padding: 1rem 1rem 0.5rem; }
+  .quick-links { list-style: none; padding: 0.5rem 0; }
+  .quick-links li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: var(--fg); transition: background 0.15s; }
+  .quick-links li a:hover { background: var(--muted); }
+  .quick-links li a.active { background: var(--muted); color: var(--primary); font-weight: 600; }
+  .quick-links li a .link-icon { font-size: 1.1rem; width: 24px; text-align: center; }
+  .group-list { list-style: none; padding: 0 0 0.5rem; }
+  .group-list li a { display: flex; align-items: center; gap: 0.625rem; padding: 0.4rem 1rem; font-size: 0.8125rem; color: var(--fg); transition: background 0.15s; }
+  .group-list li a:hover { background: var(--muted); }
+  .group-avatar { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: white; flex-shrink: 0; }
+
+  /* Main Feed */
+  .feed-main { min-width: 0; }
+
+  /* Post Composer */
+  .composer { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .composer-top { display: flex; align-items: center; gap: 0.75rem; }
+  .composer-input { flex: 1; background: var(--muted); border: 1px solid var(--border); border-radius: 9999px; padding: 0.625rem 1rem; font-size: 0.875rem; font-family: inherit; color: var(--muted-fg); cursor: pointer; outline: none; transition: border-color 0.15s; }
+  .composer-input:hover { border-color: #cbd5e1; }
+  .composer-input:focus { border-color: var(--info); color: var(--fg); }
+  .composer-divider { height: 1px; background: var(--border); margin: 0.75rem 0; }
+  .composer-actions { display: flex; align-items: center; justify-content: space-between; }
+  .composer-buttons { display: flex; gap: 0.25rem; }
+  .composer-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border: none; background: none; border-radius: var(--radius); font-size: 0.8125rem; font-weight: 500; color: var(--muted-fg); cursor: pointer; font-family: inherit; transition: background 0.15s; }
+  .composer-btn:hover { background: var(--muted); }
+  .composer-btn .cb-icon { font-size: 1.1rem; }
+  .btn-post { padding: 0.5rem 1.25rem; border-radius: var(--radius); background: var(--accent); color: white; border: none; font-size: 0.8125rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+  .btn-post:hover { opacity: 0.9; }
+
+  /* Post Card */
+  .post-card { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 1rem; overflow: hidden; }
+  .post-header { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem 0; }
+  .post-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.875rem; font-weight: 700; flex-shrink: 0; }
+  .post-meta { flex: 1; }
+  .post-author { font-size: 0.9375rem; font-weight: 600; color: var(--fg); }
+  .post-time { font-size: 0.75rem; color: var(--muted-fg); }
+  .post-more { width: 32px; height: 32px; border-radius: 50%; border: none; background: none; cursor: pointer; color: var(--muted-fg); font-size: 1.1rem; display: flex; align-items: center; justify-content: center; }
+  .post-more:hover { background: var(--muted); }
+  .post-body { padding: 0.75rem 1.25rem; }
+  .post-body p { font-size: 0.9375rem; line-height: 1.7; color: var(--fg); }
+  .post-body .hashtag { color: var(--info); font-weight: 500; cursor: pointer; }
+  .post-body .hashtag:hover { text-decoration: underline; }
+  .post-image { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 50%, #ede9fe 100%); display: flex; align-items: center; justify-content: center; color: var(--muted-fg); font-size: 0.875rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .post-image-inner { text-align: center; }
+  .post-image-inner .img-icon { font-size: 2.5rem; margin-bottom: 0.5rem; display: block; }
+
+  /* Code Block */
+  .post-code { margin: 0.75rem 1.25rem; background: #1e293b; border-radius: var(--radius); overflow: hidden; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; background: #0f172a; }
+  .code-lang { font-size: 0.75rem; font-weight: 600; color: #94a3b8; }
+  .code-copy { font-size: 0.75rem; color: #94a3b8; background: none; border: 1px solid #334155; border-radius: 4px; padding: 0.2rem 0.5rem; cursor: pointer; font-family: inherit; }
+  .code-copy:hover { background: #334155; color: #e2e8f0; }
+  .code-body { padding: 1rem; overflow-x: auto; }
+  .code-body pre { margin: 0; font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace; font-size: 0.8125rem; line-height: 1.7; color: #e2e8f0; }
+  .code-body .kw { color: #c084fc; }
+  .code-body .fn { color: #60a5fa; }
+  .code-body .str { color: #34d399; }
+  .code-body .cm { color: #64748b; }
+  .code-body .num { color: #fbbf24; }
+
+  /* Shared Course Card */
+  .shared-course { margin: 0.75rem 1.25rem; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: box-shadow 0.15s; }
+  .shared-course:hover { box-shadow: var(--shadow-md); }
+  .shared-course-img { width: 100%; height: 160px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); display: flex; align-items: center; justify-content: center; color: white; }
+  .shared-course-img .course-icon { font-size: 2.5rem; }
+  .shared-course-body { padding: 1rem; }
+  .shared-course-badge { display: inline-block; font-size: 0.6875rem; font-weight: 600; padding: 0.2rem 0.5rem; background: #dbeafe; color: var(--info); border-radius: 4px; margin-bottom: 0.5rem; }
+  .shared-course-title { font-size: 0.9375rem; font-weight: 700; color: var(--fg); margin-bottom: 0.25rem; }
+  .shared-course-instructor { font-size: 0.8125rem; color: var(--muted-fg); margin-bottom: 0.5rem; }
+  .shared-course-footer { display: flex; align-items: center; justify-content: space-between; }
+  .shared-course-rating { display: flex; align-items: center; gap: 0.25rem; font-size: 0.8125rem; font-weight: 600; color: var(--warning); }
+  .shared-course-price { font-size: 0.9375rem; font-weight: 700; color: var(--accent); }
+
+  /* Post Actions */
+  .post-stats { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1.25rem; font-size: 0.8125rem; color: var(--muted-fg); }
+  .post-stats-left { display: flex; align-items: center; gap: 0.25rem; }
+  .post-stats-right { display: flex; gap: 1rem; }
+  .post-actions { display: flex; border-top: 1px solid var(--border); padding: 0.25rem 0.5rem; }
+  .post-action { flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem; border: none; background: none; border-radius: var(--radius); cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: var(--muted-fg); font-family: inherit; transition: background 0.15s; }
+  .post-action:hover { background: var(--muted); }
+  .post-action.liked { color: var(--info); }
+  .post-action.bookmarked { color: var(--warning); }
+  .post-action .action-icon { font-size: 1.1rem; }
+
+  /* Loading Spinner */
+  .loading-more { display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 2rem; color: var(--muted-fg); font-size: 0.875rem; }
+  .spinner { width: 20px; height: 20px; border: 2.5px solid var(--border); border-top-color: var(--info); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Right Sidebar */
+  .sidebar-right { position: sticky; top: 80px; }
+  .widget { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; }
+  .widget + .widget { margin-top: 1rem; }
+  .widget-title { font-size: 0.875rem; font-weight: 700; padding: 1rem 1rem 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+  .widget-title .wt-icon { font-size: 1rem; }
+
+  /* Trending */
+  .trending-list { list-style: none; padding: 0 1rem 1rem; }
+  .trending-list li { padding: 0.375rem 0; }
+  .trending-list li a { font-size: 0.8125rem; font-weight: 500; color: var(--info); }
+  .trending-list li a:hover { text-decoration: underline; }
+  .trending-count { font-size: 0.75rem; color: var(--muted-fg); font-weight: 400; margin-left: 0.5rem; }
+
+  /* Follow Suggestions */
+  .follow-item { display: flex; align-items: center; gap: 0.625rem; padding: 0.625rem 1rem; }
+  .follow-item + .follow-item { border-top: 1px solid var(--border); }
+  .follow-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8125rem; font-weight: 700; flex-shrink: 0; }
+  .follow-info { flex: 1; min-width: 0; }
+  .follow-name { font-size: 0.8125rem; font-weight: 600; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .follow-desc { font-size: 0.75rem; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .btn-follow { padding: 0.3rem 0.75rem; border-radius: 9999px; background: var(--primary); color: white; border: none; font-size: 0.75rem; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; transition: opacity 0.15s; }
+  .btn-follow:hover { opacity: 0.85; }
+
+  /* Course Suggestion Widget */
+  .course-widget { padding: 0 1rem 1rem; }
+  .course-widget-card { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: box-shadow 0.15s; }
+  .course-widget-card:hover { box-shadow: var(--shadow-md); }
+  .course-widget-img { height: 100px; background: linear-gradient(135deg, #16a34a, #15803d); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; }
+  .course-widget-body { padding: 0.75rem; }
+  .course-widget-title { font-size: 0.8125rem; font-weight: 600; color: var(--fg); margin-bottom: 0.25rem; line-height: 1.4; }
+  .course-widget-meta { display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; }
+  .course-widget-rating { color: var(--warning); font-weight: 600; }
+  .course-widget-price { color: var(--accent); font-weight: 700; }
+
+  /* Footer */
+  .footer { background: var(--primary); color: #94a3b8; padding: 2rem; margin-top: 2rem; text-align: center; font-size: 0.8125rem; }
+  .footer a { color: #cbd5e1; }
+  .footer a:hover { color: white; }
+  .footer-links { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 0.75rem; }
+
+  /* Reactions mini icons */
+  .reaction-icons { display: flex; }
+  .reaction-icons span { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; border: 2px solid white; margin-right: -4px; }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="nav-left">
+    <a href="#" class="logo">
+      <div class="logo-icon">S</div>
+      SSML
+    </a>
+    <div class="nav-links">
+      <a href="#">Trang chủ</a>
+      <a href="#">Khóa học</a>
+      <a href="#" class="active">Bảng tin</a>
+      <a href="#">Cộng đồng</a>
+      <a href="#">Giảng viên</a>
+    </div>
+  </div>
+  <div class="nav-search">
+    <span>🔍</span>
+    <input type="text" placeholder="Tìm kiếm bài viết, người dùng...">
+  </div>
+  <div class="nav-right">
+    <button class="nav-icon" title="Giỏ hàng">🛒</button>
+    <button class="nav-icon" title="Thông báo">
+      🔔
+      <span class="badge-dot"></span>
+    </button>
+    <div class="avatar">TN</div>
+  </div>
+</nav>
+
+<!-- Feed Layout -->
+<div class="feed-layout">
+
+  <!-- Left Sidebar -->
+  <aside class="sidebar-left">
+    <div class="sidebar-card">
+      <ul class="quick-links">
+        <li><a href="#" class="active"><span class="link-icon">🏠</span> Bảng tin</a></li>
+        <li><a href="#"><span class="link-icon">👥</span> Nhóm</a></li>
+        <li><a href="#"><span class="link-icon">🔖</span> Đã lưu</a></li>
+        <li><a href="#"><span class="link-icon">❓</span> Hỏi đáp</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-card">
+      <div class="sidebar-card-title">Nhóm của bạn</div>
+      <ul class="group-list">
+        <li>
+          <a href="#">
+            <div class="group-avatar" style="background: linear-gradient(135deg, #06b6d4, #0284c7);">R</div>
+            React VN
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <div class="group-avatar" style="background: linear-gradient(135deg, #22c55e, #16a34a);">N</div>
+            Node.js VN
+          </a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Main Feed -->
+  <main class="feed-main">
+
+    <!-- Post Composer -->
+    <div class="composer">
+      <div class="composer-top">
+        <div class="avatar" style="width:40px;height:40px;">TN</div>
+        <input type="text" class="composer-input" placeholder="Bạn đang nghĩ gì?">
+      </div>
+      <div class="composer-divider"></div>
+      <div class="composer-actions">
+        <div class="composer-buttons">
+          <button class="composer-btn"><span class="cb-icon">🖼️</span> Hình ảnh</button>
+          <button class="composer-btn"><span class="cb-icon">💻</span> Code</button>
+          <button class="composer-btn"><span class="cb-icon">📎</span> Tệp đính kèm</button>
+        </div>
+        <button class="btn-post">Đăng bài</button>
+      </div>
+    </div>
+
+    <!-- Post 1: Text + Image -->
+    <article class="post-card">
+      <div class="post-header">
+        <div class="post-avatar" style="background: linear-gradient(135deg, #f97316, #ea580c);">NA</div>
+        <div class="post-meta">
+          <div class="post-author">Nguyễn Văn A</div>
+          <div class="post-time">2 giờ trước</div>
+        </div>
+        <button class="post-more">···</button>
+      </div>
+      <div class="post-body">
+        <p>Vừa học xong React Hooks, chia sẻ với mọi người một số tips hay mà mình tổng hợp được. useState và useEffect là hai hooks cơ bản nhưng nếu dùng đúng cách sẽ giúp code clean hơn rất nhiều! 🚀</p>
+        <p style="margin-top:0.5rem"><span class="hashtag">#react</span> <span class="hashtag">#hooks</span> <span class="hashtag">#frontend</span> <span class="hashtag">#tips</span></p>
+      </div>
+      <div class="post-image">
+        <div class="post-image-inner">
+          <span class="img-icon">📊</span>
+          React Hooks Cheat Sheet — 1200 x 675
+        </div>
+      </div>
+      <div class="post-stats">
+        <div class="post-stats-left">
+          <div class="reaction-icons">
+            <span style="background:#3b82f6;color:white;">👍</span>
+            <span style="background:#ef4444;color:white;">❤️</span>
+          </div>
+          <span style="margin-left:6px;">12 lượt thích</span>
+        </div>
+        <div class="post-stats-right">
+          <span>5 bình luận</span>
+        </div>
+      </div>
+      <div class="post-actions">
+        <button class="post-action liked"><span class="action-icon">👍</span> Thích</button>
+        <button class="post-action"><span class="action-icon">💬</span> Bình luận</button>
+        <button class="post-action"><span class="action-icon">🔖</span> Lưu</button>
+      </div>
+    </article>
+
+    <!-- Post 2: Text + Code Block -->
+    <article class="post-card">
+      <div class="post-header">
+        <div class="post-avatar" style="background: linear-gradient(135deg, #ec4899, #db2777);">TB</div>
+        <div class="post-meta">
+          <div class="post-author">Trần Thị B</div>
+          <div class="post-time">5 giờ trước</div>
+        </div>
+        <button class="post-more">···</button>
+      </div>
+      <div class="post-body">
+        <p>Chia sẻ custom hook useDebounce mà mình hay dùng trong dự án. Rất hữu ích khi làm tính năng search realtime, tránh gọi API liên tục khi user đang gõ 💡</p>
+        <p style="margin-top:0.5rem"><span class="hashtag">#react</span> <span class="hashtag">#customhook</span> <span class="hashtag">#typescript</span></p>
+      </div>
+      <div class="post-code">
+        <div class="code-header">
+          <span class="code-lang">TypeScript</span>
+          <button class="code-copy">Sao chép</button>
+        </div>
+        <div class="code-body">
+<pre><span class="kw">const</span> <span class="fn">useDebounce</span> = &lt;<span class="fn">T</span>&gt;(value: <span class="fn">T</span>, delay: <span class="num">number</span>): <span class="fn">T</span> =&gt; {
+  <span class="kw">const</span> [debouncedValue, setDebouncedValue] = <span class="fn">useState</span>&lt;<span class="fn">T</span>&gt;(value);
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="kw">const</span> timer = <span class="fn">setTimeout</span>(() =&gt; {
+      <span class="fn">setDebouncedValue</span>(value);
+    }, delay);
+
+    <span class="kw">return</span> () =&gt; <span class="fn">clearTimeout</span>(timer);
+  }, [value, delay]);
+
+  <span class="kw">return</span> debouncedValue;
+};</pre>
+        </div>
+      </div>
+      <div class="post-stats">
+        <div class="post-stats-left">
+          <div class="reaction-icons">
+            <span style="background:#3b82f6;color:white;">👍</span>
+          </div>
+          <span style="margin-left:6px;">8 lượt thích</span>
+        </div>
+        <div class="post-stats-right">
+          <span>3 bình luận</span>
+        </div>
+      </div>
+      <div class="post-actions">
+        <button class="post-action"><span class="action-icon">👍</span> Thích</button>
+        <button class="post-action"><span class="action-icon">💬</span> Bình luận</button>
+        <button class="post-action bookmarked"><span class="action-icon">🔖</span> Đã lưu</button>
+      </div>
+    </article>
+
+    <!-- Post 3: Shared Course -->
+    <article class="post-card">
+      <div class="post-header">
+        <div class="post-avatar" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">LC</div>
+        <div class="post-meta">
+          <div class="post-author">Lê Văn C</div>
+          <div class="post-time">1 ngày trước</div>
+        </div>
+        <button class="post-more">···</button>
+      </div>
+      <div class="post-body">
+        <p>Vừa hoàn thành khóa học này, nội dung rất chất lượng! Recommend cho ai muốn nâng cao kỹ năng Next.js 🔥</p>
+      </div>
+      <div class="shared-course">
+        <div class="shared-course-img">
+          <span class="course-icon">⚡</span>
+        </div>
+        <div class="shared-course-body">
+          <div class="shared-course-badge">KHÓA HỌC</div>
+          <div class="shared-course-title">Next.js 14 — Xây dựng ứng dụng Full-Stack từ A đến Z</div>
+          <div class="shared-course-instructor">Giảng viên: Phạm Minh D</div>
+          <div class="shared-course-footer">
+            <div class="shared-course-rating">⭐ 4.8 (342 đánh giá)</div>
+            <div class="shared-course-price">599.000đ</div>
+          </div>
+        </div>
+      </div>
+      <div class="post-stats">
+        <div class="post-stats-left">
+          <div class="reaction-icons">
+            <span style="background:#3b82f6;color:white;">👍</span>
+            <span style="background:#ef4444;color:white;">❤️</span>
+            <span style="background:#f59e0b;color:white;">🔥</span>
+          </div>
+          <span style="margin-left:6px;">24 lượt thích</span>
+        </div>
+        <div class="post-stats-right">
+          <span>8 bình luận</span>
+          <span>·</span>
+          <span>3 chia sẻ</span>
+        </div>
+      </div>
+      <div class="post-actions">
+        <button class="post-action"><span class="action-icon">👍</span> Thích</button>
+        <button class="post-action"><span class="action-icon">💬</span> Bình luận</button>
+        <button class="post-action"><span class="action-icon">🔗</span> Chia sẻ</button>
+      </div>
+    </article>
+
+    <!-- Loading More -->
+    <div class="loading-more">
+      <div class="spinner"></div>
+      Đang tải thêm bài viết...
+    </div>
+
+  </main>
+
+  <!-- Right Sidebar -->
+  <aside class="sidebar-right">
+
+    <!-- Trending Hashtags -->
+    <div class="widget">
+      <div class="widget-title"><span class="wt-icon">🔥</span> Trending</div>
+      <ul class="trending-list">
+        <li><a href="#">#react <span class="trending-count">1.2k bài viết</span></a></li>
+        <li><a href="#">#nodejs <span class="trending-count">856 bài viết</span></a></li>
+        <li><a href="#">#typescript <span class="trending-count">743 bài viết</span></a></li>
+        <li><a href="#">#nextjs <span class="trending-count">621 bài viết</span></a></li>
+        <li><a href="#">#ai <span class="trending-count">534 bài viết</span></a></li>
+      </ul>
+    </div>
+
+    <!-- Follow Suggestions -->
+    <div class="widget">
+      <div class="widget-title"><span class="wt-icon">👥</span> Gợi ý theo dõi</div>
+      <div class="follow-item">
+        <div class="follow-avatar" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">HD</div>
+        <div class="follow-info">
+          <div class="follow-name">Hoàng Minh D</div>
+          <div class="follow-desc">Senior React Developer</div>
+        </div>
+        <button class="btn-follow">Theo dõi</button>
+      </div>
+      <div class="follow-item">
+        <div class="follow-avatar" style="background: linear-gradient(135deg, #f97316, #ea580c);">PE</div>
+        <div class="follow-info">
+          <div class="follow-name">Phạm Thị E</div>
+          <div class="follow-desc">Full-Stack Instructor</div>
+        </div>
+        <button class="btn-follow">Theo dõi</button>
+      </div>
+    </div>
+
+    <!-- Course Suggestion -->
+    <div class="widget">
+      <div class="widget-title"><span class="wt-icon">📚</span> Khóa học gợi ý</div>
+      <div class="course-widget">
+        <div class="course-widget-card">
+          <div class="course-widget-img">🤖</div>
+          <div class="course-widget-body">
+            <div class="course-widget-title">Machine Learning cơ bản với Python</div>
+            <div class="course-widget-meta">
+              <span class="course-widget-rating">⭐ 4.9</span>
+              <span class="course-widget-price">499.000đ</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-links">
+    <a href="#">Về chúng tôi</a>
+    <a href="#">Điều khoản</a>
+    <a href="#">Chính sách bảo mật</a>
+    <a href="#">Trợ giúp</a>
+    <a href="#">Liên hệ</a>
+  </div>
+  <p>&copy; 2026 Smart Social Learning Marketplace. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
