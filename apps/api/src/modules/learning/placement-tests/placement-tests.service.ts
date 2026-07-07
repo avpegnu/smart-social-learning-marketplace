@@ -7,7 +7,7 @@ import type { SubmitPlacementDto } from '../dto/submit-placement.dto';
 export class PlacementTestsService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  async startTest(categoryId: string) {
+  async startTest(categoryId?: string) {
     // Get questions — if categoryId provided, filter by related tags
     let questions = await this.prisma.placementQuestion.findMany();
 

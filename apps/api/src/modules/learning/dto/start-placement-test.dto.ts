@@ -1,9 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsOptional } from 'class-validator';
 
 export class StartPlacementTestDto {
-  @ApiProperty({ description: 'Category ID for placement test' })
+  @ApiPropertyOptional({
+    description: 'Category ID for placement test; omit for a general test across all categories',
+  })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  categoryId!: string;
+  categoryId?: string;
 }
