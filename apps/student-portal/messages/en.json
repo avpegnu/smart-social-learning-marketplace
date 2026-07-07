@@ -138,6 +138,8 @@
     "students": "students"
   },
   "courses": {
+    "metaTitle": "Courses",
+    "metaDescription": "Explore and search high-quality online courses on the platform.",
     "searchPlaceholder": "Search courses, topics, instructors...",
     "filters": "Filters",
     "category": "Category",
