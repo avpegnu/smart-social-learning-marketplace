@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { groupService } from '../services/group.service';
 import type { CreateGroupData, UpdateGroupData } from '../services/group.service';
+import { useAuthStore } from '../stores/auth-store';
 import { useApiError } from '../use-api-error';
 
 // ── Queries ──
@@ -41,10 +42,11 @@ export function useGroupPosts(id: string, params?: { page?: number; limit?: numb
 }
 
 export function useJoinRequests(id: string, params?: { page?: number; limit?: number }) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: ['groups', id, 'requests', params],
     queryFn: () => groupService.getJoinRequests(id, params),
-    enabled: !!id,
+    enabled: !!id && isAuthenticated,
   });
 }
 

@@ -3,19 +3,24 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { aiTutorService } from '../services/ai-tutor.service';
+import { useAuthStore } from '../stores/auth-store';
 import { useApiError } from '../use-api-error';
 
 export function useAiQuota() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: ['ai-tutor', 'quota'],
     queryFn: () => aiTutorService.getQuota(),
+    enabled: isAuthenticated,
   });
 }
 
 export function useAiSessions(courseId?: string) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: ['ai-tutor', 'sessions', courseId],
     queryFn: () => aiTutorService.getSessions(courseId),
+    enabled: isAuthenticated,
   });
 }
 

@@ -4,12 +4,15 @@ import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tansta
 import { toast } from 'sonner';
 import { chatService } from '../services/chat.service';
 import type { CreateConversationData, SendMessageData } from '../services/chat.service';
+import { useAuthStore } from '../stores/auth-store';
 import { useApiError } from '../use-api-error';
 
 export function useConversations() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: ['chat', 'conversations'],
     queryFn: () => chatService.getConversations(),
+    enabled: isAuthenticated,
   });
 }
 

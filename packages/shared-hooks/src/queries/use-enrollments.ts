@@ -36,8 +36,10 @@ export function useEnrollFree() {
 // ── My Learning (enrolled courses) ──
 
 export function useMyLearning(params?: Record<string, string>) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: ['enrollments', 'my-learning', params],
     queryFn: () => enrollmentService.getMyLearning(params),
+    enabled: isAuthenticated,
   });
 }
