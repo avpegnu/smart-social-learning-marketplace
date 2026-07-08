@@ -25,6 +25,8 @@ export class OrdersService {
     const cartItems = await this.prisma.cartItem.findMany({
       where: { userId },
       include: { course: true, chapter: true },
+      // FIX(suspension-gap): also load the instructor to re-check status at checkout
+      // include: { course: { include: { instructor: true } }, chapter: true },
     });
     if (cartItems.length === 0) throw new BadRequestException({ code: 'CART_EMPTY' });
 
@@ -33,6 +35,10 @@ export class OrdersService {
       if (item.course && item.course.status !== 'PUBLISHED') {
         throw new BadRequestException({ code: 'COURSE_NO_LONGER_AVAILABLE' });
       }
+      // FIX(suspension-gap): reject if the course's instructor is suspended
+      // if (item.course?.instructor?.status === 'SUSPENDED') {
+      //   throw new BadRequestException({ code: 'COURSE_NO_LONGER_AVAILABLE' });
+      // }
     }
 
     // 3. Calculate totals

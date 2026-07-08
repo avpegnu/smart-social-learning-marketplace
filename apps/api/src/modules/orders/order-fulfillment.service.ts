@@ -124,8 +124,14 @@ export class OrderFulfillmentService {
           const course = await tx.course.findUnique({
             where: { id: item.courseId },
             select: { instructorId: true },
+            // FIX(suspension-gap): also read instructor status to hold earnings
+            // select: { instructorId: true, instructor: { select: { status: true } } },
           });
           if (course) {
+            // FIX(suspension-gap): don't accrue earnings while the instructor is suspended
+            // if (course.instructor.status === 'SUSPENDED') {
+            //   continue; // skip creating the Earning; revisit on reactivation
+            // }
             const actualPrice = item.price - item.discount;
             let commissionRate = rateCache.get(course.instructorId);
             if (commissionRate === undefined) {
