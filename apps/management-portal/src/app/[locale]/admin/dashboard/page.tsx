@@ -11,6 +11,8 @@ import {
   BookMarked,
   Flag,
   Wallet,
+  Landmark,
+  GraduationCap,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, Skeleton, Badge } from '@shared/ui';
 import { useAdminDashboard } from '@shared/hooks';
@@ -26,7 +28,9 @@ export default function AdminDashboardPage() {
         overview: {
           totalUsers: number;
           totalCourses: number;
-          totalRevenue: number;
+          grossRevenue: number;
+          platformCommission: number;
+          instructorEarnings: number;
           todayOrders: number;
           newUsersThisWeek: number;
         };
@@ -54,6 +58,11 @@ export default function AdminDashboardPage() {
             <Skeleton key={i} className="h-24" />
           ))}
         </div>
+        <div className="grid grid-cols-2 gap-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Skeleton key={i} className="h-24" />
+          ))}
+        </div>
         <div className="grid grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-20" />
@@ -76,8 +85,25 @@ export default function AdminDashboardPage() {
       sub: `+${overview.newUsersThisWeek} ${t('thisWeek')}`,
     },
     { label: t('activeCourses'), value: String(overview.totalCourses), icon: BookOpen },
-    { label: t('totalRevenue'), value: formatPrice(overview.totalRevenue), icon: DollarSign },
     { label: t('todayOrders'), value: String(overview.todayOrders), icon: ShoppingCart },
+    { label: t('grossRevenue'), value: formatPrice(overview.grossRevenue), icon: DollarSign },
+  ];
+
+  const financials = [
+    {
+      label: t('platformCommission'),
+      value: formatPrice(overview.platformCommission),
+      icon: Landmark,
+      hint: t('platformCommissionHint'),
+      highlight: true,
+    },
+    {
+      label: t('instructorEarnings'),
+      value: formatPrice(overview.instructorEarnings),
+      icon: GraduationCap,
+      hint: t('instructorEarningsHint'),
+      highlight: false,
+    },
   ];
 
   const pending = [
@@ -130,6 +156,35 @@ export default function AdminDashboardPage() {
             </Card>
           );
         })}
+      </div>
+
+      {/* Revenue Breakdown — how gross sales split between the platform and instructors */}
+      <div>
+        <h2 className="mb-3 text-lg font-semibold">{t('revenueBreakdown')}</h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {financials.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Card
+                key={item.label}
+                className={item.highlight ? 'border-primary/40 bg-primary/5' : undefined}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-xs">{item.label}</p>
+                      <p className="mt-1 text-2xl font-bold">{item.value}</p>
+                      <p className="text-muted-foreground mt-1 text-xs">{item.hint}</p>
+                    </div>
+                    <Icon
+                      className={`h-8 w-8 ${item.highlight ? 'text-primary' : 'text-muted-foreground'}`}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
       {/* Pending Approvals */}

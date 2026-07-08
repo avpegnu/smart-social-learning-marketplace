@@ -157,7 +157,13 @@
     "pendingReports": "Báo cáo chờ",
     "pendingWithdrawals": "Rút tiền chờ",
     "topCourses": "Khóa học nổi bật",
-    "students": "học viên"
+    "students": "học viên",
+    "grossRevenue": "Tổng doanh số",
+    "revenueBreakdown": "Phân bổ doanh thu",
+    "platformCommission": "Hoa hồng nền tảng",
+    "platformCommissionHint": "Phần nền tảng giữ lại từ các đơn hàng",
+    "instructorEarnings": "Thu nhập giảng viên",
+    "instructorEarningsHint": "Phần chi trả cho giảng viên"
   },
   "courses": {
     "title": "Khóa học của tôi",
@@ -868,7 +874,11 @@
     "noData": "Chưa có dữ liệu",
     "enrollments": "Đăng ký",
     "newCourses": "Khóa học mới",
-    "revenue": "Doanh thu"
+    "revenue": "Doanh thu",
+    "grossRevenue": "Tổng doanh số",
+    "platformCommission": "Hoa hồng nền tảng",
+    "commissionTrends": "Xu hướng hoa hồng",
+    "commission": "Hoa hồng"
   },
   "theme": {
     "light": "Sáng",

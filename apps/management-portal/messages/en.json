@@ -157,7 +157,13 @@
     "pendingReports": "Pending Reports",
     "pendingWithdrawals": "Pending Withdrawals",
     "topCourses": "Top Courses",
-    "students": "students"
+    "students": "students",
+    "grossRevenue": "Gross Revenue",
+    "revenueBreakdown": "Revenue Breakdown",
+    "platformCommission": "Platform Commission",
+    "platformCommissionHint": "The platform's cut of all sales",
+    "instructorEarnings": "Instructor Earnings",
+    "instructorEarningsHint": "Amount paid out to instructors"
   },
   "courses": {
     "title": "My Courses",
@@ -868,7 +874,11 @@
     "noData": "No data yet",
     "enrollments": "Enrollments",
     "newCourses": "New Courses",
-    "revenue": "Revenue"
+    "revenue": "Revenue",
+    "grossRevenue": "Gross Revenue",
+    "platformCommission": "Platform Commission",
+    "commissionTrends": "Commission Trends",
+    "commission": "Commission"
   },
   "theme": {
     "light": "Light",

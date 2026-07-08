@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { ChartWidget } from '@/components/data-display/chart-widget';
 import { Badge, Card, CardContent, CardHeader, CardTitle, Skeleton } from '@shared/ui';
 import { useAdminDashboard, useAdminAnalytics } from '@shared/hooks';
-import { BarChart3, FileText, TrendingUp, Users } from 'lucide-react';
+import { FileText, Landmark, TrendingUp, Users } from 'lucide-react';
 import { formatPrice } from '@shared/utils';
 
 const RANGES: Record<string, number> = {
@@ -77,6 +77,7 @@ export default function AnalyticsPage() {
 
   const usersQuery = useAdminAnalytics({ type: 'DAILY_USERS', from, to });
   const revenueQuery = useAdminAnalytics({ type: 'DAILY_REVENUE', from, to });
+  const commissionQuery = useAdminAnalytics({ type: 'DAILY_COMMISSION', from, to });
   const enrollmentsQuery = useAdminAnalytics({ type: 'DAILY_ENROLLMENTS', from, to });
   const coursesQuery = useAdminAnalytics({ type: 'DAILY_COURSES', from, to });
 
@@ -86,6 +87,10 @@ export default function AnalyticsPage() {
   );
   const revenueData = transformSnapshots(
     revenueQuery.data as ApiWrapper<AnalyticsSnapshot[]> | undefined,
+    dateRange,
+  );
+  const commissionData = transformSnapshots(
+    commissionQuery.data as ApiWrapper<AnalyticsSnapshot[]> | undefined,
     dateRange,
   );
   const enrollmentsData = transformSnapshots(
@@ -100,6 +105,7 @@ export default function AnalyticsPage() {
   const isLoading =
     usersQuery.isLoading ||
     revenueQuery.isLoading ||
+    commissionQuery.isLoading ||
     enrollmentsQuery.isLoading ||
     coursesQuery.isLoading;
 
@@ -129,14 +135,14 @@ export default function AnalyticsPage() {
       icon: FileText,
     },
     {
-      label: t('totalRevenue'),
-      value: formatPrice(overview?.totalRevenue ?? 0),
+      label: t('grossRevenue'),
+      value: formatPrice(overview?.grossRevenue ?? 0),
       icon: TrendingUp,
     },
     {
-      label: t('newUsersThisWeek'),
-      value: overview?.newUsersThisWeek ?? 0,
-      icon: BarChart3,
+      label: t('platformCommission'),
+      value: formatPrice(overview?.platformCommission ?? 0),
+      icon: Landmark,
     },
   ];
 
@@ -178,7 +184,7 @@ export default function AnalyticsPage() {
       {/* Charts */}
       {isLoading ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {Array.from({ length: 5 }).map((_, i) => (
             <Card key={i}>
               <CardHeader>
                 <Skeleton className="h-5 w-40" />
@@ -214,6 +220,17 @@ export default function AnalyticsPage() {
             height={280}
           >
             {revenueData.length === 0 && <EmptyChartNote text={t('noData')} />}
+          </ChartWidget>
+
+          <ChartWidget
+            title={t('commissionTrends')}
+            type="line"
+            data={commissionData}
+            dataKeys={[{ key: 'commission', color: '#f59e0b', name: t('commission') }]}
+            xAxisKey="date"
+            height={280}
+          >
+            {commissionData.length === 0 && <EmptyChartNote text={t('noData')} />}
           </ChartWidget>
 
           <ChartWidget
