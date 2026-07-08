@@ -126,13 +126,17 @@ describe('StreaksService', () => {
       expect(mockPrisma.chapterPurchase.findMany).not.toHaveBeenCalled();
     });
 
-    it('should restrict next lesson to purchased chapters for PARTIAL enrollment', async () => {
+    it('should restrict next lesson to purchased chapters and expose upgrade price for PARTIAL enrollment', async () => {
       mockPrisma.enrollment.findMany
-        .mockResolvedValueOnce([{ courseId: 'c1', type: 'PARTIAL', course: { title: 'React' } }]) // active
+        .mockResolvedValueOnce([
+          { courseId: 'c1', type: 'PARTIAL', course: { title: 'React', price: 500 } },
+        ]) // active
         .mockResolvedValueOnce([]); // completed
       mockPrisma.dailyActivity.findMany.mockResolvedValue([]);
       mockPrisma.certificate.findMany.mockResolvedValue([]);
-      mockPrisma.chapterPurchase.findMany.mockResolvedValue([{ chapterId: 'ch-2' }]);
+      mockPrisma.chapterPurchase.findMany.mockResolvedValue([
+        { chapterId: 'ch-2', chapter: { price: 200 } },
+      ]);
       mockPrisma.lesson.findFirst.mockResolvedValue({ id: 'les-2', title: 'Chapter 2 lesson' });
 
       const result = await service.getDashboard('user-1');
@@ -145,6 +149,8 @@ describe('StreaksService', () => {
       // never the whole course.
       const where = mockPrisma.lesson.findFirst.mock.calls[0]![0].where;
       expect(where.chapter.OR).toEqual([{ isFreePreview: true }, { id: { in: ['ch-2'] } }]);
+      // Upgrade price = course price (500) − owned chapter price (200).
+      expect(result.activeCourses[0]!.upgradePrice).toBe(300);
     });
   });
 });

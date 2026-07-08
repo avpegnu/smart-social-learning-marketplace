@@ -9,6 +9,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { QueueService } from '@/modules/jobs/queue.service';
 import { GroupsService } from '@/modules/social/groups/groups.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
+import { computeUpgradeInfo } from '@/common/utils/upgrade-price.util';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
 
 @Injectable()
@@ -24,14 +25,25 @@ export class EnrollmentsService {
       where: { userId_courseId: { userId, courseId } },
     });
 
-    // Also check individual chapter purchases
+    // For anyone without a FULL enrollment, surface which chapters they own and,
+    // for PARTIAL learners, the price to upgrade to the full course.
     let purchasedChapterIds: string[] = [];
+    let upgrade: { upgradePrice: number; coursePrice: number; credit: number } | null = null;
     if (!enrollment || enrollment.type === 'PARTIAL') {
-      const purchases = await this.prisma.chapterPurchase.findMany({
-        where: { userId, chapter: { section: { courseId } } },
-        select: { chapterId: true },
+      const course = await this.prisma.course.findUnique({
+        where: { id: courseId },
+        select: { price: true },
       });
-      purchasedChapterIds = purchases.map((p) => p.chapterId);
+      const info = await computeUpgradeInfo(this.prisma, userId, courseId, course?.price ?? 0);
+      purchasedChapterIds = info.purchasedChapterIds;
+      // An upgrade offer only makes sense for a PARTIAL enrollee (owns ≥ 1 chapter).
+      if (enrollment?.type === 'PARTIAL') {
+        upgrade = {
+          upgradePrice: info.upgradePrice,
+          coursePrice: info.coursePrice,
+          credit: info.credit,
+        };
+      }
     }
 
     return {
@@ -39,6 +51,7 @@ export class EnrollmentsService {
       type: enrollment?.type ?? null,
       progress: enrollment?.progress ?? 0,
       purchasedChapterIds,
+      upgrade,
     };
   }
 

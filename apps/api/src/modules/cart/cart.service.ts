@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
+import { computeUpgradeInfo } from '@/common/utils/upgrade-price.util';
 import type { PaginationDto } from '@/common/dto/pagination.dto';
 import type { AddCartItemDto } from './dto/add-cart-item.dto';
 import type { MergeCartItemDto } from './dto/merge-cart.dto';
@@ -45,6 +46,13 @@ export class CartService {
     // 1. Validate course exists + is published
     const course = await this.prisma.course.findFirst({
       where: { id: dto.courseId, status: 'PUBLISHED', deletedAt: null },
+      // FIX(suspension-gap): block adding a suspended instructor's course to cart
+      // where: {
+      //   id: dto.courseId,
+      //   status: 'PUBLISHED',
+      //   deletedAt: null,
+      //   instructor: { status: { not: 'SUSPENDED' } },
+      // },
     });
     if (!course) throw new NotFoundException({ code: 'COURSE_NOT_FOUND' });
 
@@ -102,6 +110,13 @@ export class CartService {
       }
 
       price = course.price;
+
+      // Upgrade path: a PARTIAL enrollee already paid for some chapters, so only
+      // charge the remaining course value (course price minus chapters owned).
+      if (enrollment?.type === 'PARTIAL') {
+        const info = await computeUpgradeInfo(this.prisma, userId, dto.courseId, course.price);
+        price = info.upgradePrice;
+      }
     }
 
     // 5. Check duplicate in cart

@@ -14,7 +14,7 @@ const mockPrisma = {
   course: { findFirst: jest.fn() },
   chapter: { findUnique: jest.fn() },
   enrollment: { findUnique: jest.fn() },
-  chapterPurchase: { findUnique: jest.fn() },
+  chapterPurchase: { findUnique: jest.fn(), findMany: jest.fn() },
   wishlist: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
@@ -84,6 +84,29 @@ describe('CartService', () => {
       expect(mockPrisma.cartItem.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ price: 499000 }),
+        }),
+      );
+    });
+
+    it('should charge only the upgrade price when a PARTIAL enrollee buys the full course', async () => {
+      mockPrisma.course.findFirst.mockResolvedValue(MOCK_COURSE); // price 499000
+      mockPrisma.enrollment.findUnique.mockResolvedValue({ type: 'PARTIAL' });
+      mockPrisma.cartItem.findMany.mockResolvedValue([]);
+      mockPrisma.cartItem.findFirst.mockResolvedValue(null);
+      // Already owns two chapters worth 300000 total.
+      mockPrisma.chapterPurchase.findMany.mockResolvedValue([
+        { chapterId: 'ch-1', chapter: { price: 100000 } },
+        { chapterId: 'ch-2', chapter: { price: 200000 } },
+      ]);
+      mockPrisma.cartItem.create.mockResolvedValue({ id: 'item-1', price: 199000 });
+
+      const result = await service.addItem('user-1', { courseId: 'course-1' });
+
+      // 499000 course − 300000 owned chapters = 199000 top-up.
+      expect(result.price).toBe(199000);
+      expect(mockPrisma.cartItem.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ price: 199000 }),
         }),
       );
     });

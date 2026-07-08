@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
+import { computeUpgradeInfo } from '@/common/utils/upgrade-price.util';
 
 const MS_PER_DAY = 86400000;
 
@@ -104,6 +105,7 @@ export class StreaksService {
               slug: true,
               thumbnailUrl: true,
               totalLessons: true,
+              price: true,
             },
           },
         },
@@ -150,7 +152,20 @@ export class StreaksService {
           select: { id: true, title: true, type: true },
         });
 
-        return { ...enrollment, nextLesson };
+        // PARTIAL enrollees can top up to the full course — expose that price so
+        // the card can show an "Upgrade" CTA.
+        let upgradePrice: number | null = null;
+        if (enrollment.type === 'PARTIAL') {
+          const info = await computeUpgradeInfo(
+            this.prisma,
+            userId,
+            enrollment.courseId,
+            enrollment.course.price,
+          );
+          upgradePrice = info.upgradePrice;
+        }
+
+        return { ...enrollment, nextLesson, upgradePrice };
       }),
     );
 
