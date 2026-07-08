@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ChevronDown, ChevronRight, BookOpen, ShoppingCart } from 'lucide-react';
+import { ChevronDown, ChevronRight, BookOpen, ShoppingCart, CheckCircle2 } from 'lucide-react';
 import { Badge, Button } from '@shared/ui';
 import { formatDuration, formatPrice } from '@shared/utils';
 import { Link } from '@/i18n/navigation';
@@ -15,6 +15,8 @@ interface CourseCurriculumProps {
   totalLessons: number;
   totalDuration: number;
   onAddChapterToCart?: (chapter: ApiChapter) => void;
+  /** Chapters the current user has already purchased individually. */
+  purchasedChapterIds?: string[];
 }
 
 export function CourseCurriculum({
@@ -23,6 +25,7 @@ export function CourseCurriculum({
   totalLessons,
   totalDuration,
   onAddChapterToCart,
+  purchasedChapterIds = [],
 }: CourseCurriculumProps) {
   const t = useTranslations('courseDetail');
   const [expandedSections, setExpandedSections] = useState<string[]>(
@@ -77,80 +80,94 @@ export function CourseCurriculum({
             {/* Chapters + Lessons */}
             {expandedSections.includes(section.id) && (
               <div className="bg-muted/30">
-                {section.chapters.map((chapter) => (
-                  <div key={chapter.id}>
-                    {/* Chapter header */}
-                    <div className="border-border/50 flex items-center gap-2 border-t px-6 py-2.5">
-                      <button
-                        onClick={() => toggleChapter(chapter.id)}
-                        className="flex flex-1 cursor-pointer items-center gap-2"
-                      >
-                        {expandedChapters.includes(chapter.id) ? (
-                          <ChevronDown className="h-3.5 w-3.5 shrink-0" />
-                        ) : (
-                          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-                        )}
-                        <span className="text-left text-sm font-medium">{chapter.title}</span>
-                      </button>
-                      {chapter.isFreePreview && (
-                        <Badge variant="outline" className="text-xs">
-                          {t('freePreview')}
-                        </Badge>
-                      )}
-                      {chapter.price != null && chapter.price > 0 && !chapter.isFreePreview && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 gap-1 text-xs"
-                          onClick={() => onAddChapterToCart?.(chapter)}
+                {section.chapters.map((chapter) => {
+                  const isOwned = purchasedChapterIds.includes(chapter.id);
+                  // Free-preview and individually-purchased chapters are playable.
+                  const isAccessible = chapter.isFreePreview || isOwned;
+                  return (
+                    <div key={chapter.id}>
+                      {/* Chapter header */}
+                      <div className="border-border/50 flex items-center gap-2 border-t px-6 py-2.5">
+                        <button
+                          onClick={() => toggleChapter(chapter.id)}
+                          className="flex flex-1 cursor-pointer items-center gap-2"
                         >
-                          <ShoppingCart className="h-3 w-3" />
-                          {formatPrice(chapter.price)}
-                        </Button>
-                      )}
-                      <span className="text-muted-foreground text-xs">
-                        {chapter.lessons.length} {t('lessons')}
-                      </span>
+                          {expandedChapters.includes(chapter.id) ? (
+                            <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+                          ) : (
+                            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                          )}
+                          <span className="text-left text-sm font-medium">{chapter.title}</span>
+                        </button>
+                        {chapter.isFreePreview && (
+                          <Badge variant="outline" className="text-xs">
+                            {t('freePreview')}
+                          </Badge>
+                        )}
+                        {isOwned && !chapter.isFreePreview && (
+                          <Badge variant="secondary" className="gap-1 text-xs">
+                            <CheckCircle2 className="h-3 w-3" />
+                            {t('owned')}
+                          </Badge>
+                        )}
+                        {chapter.price != null &&
+                          chapter.price > 0 &&
+                          !chapter.isFreePreview &&
+                          !isOwned && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 gap-1 text-xs"
+                              onClick={() => onAddChapterToCart?.(chapter)}
+                            >
+                              <ShoppingCart className="h-3 w-3" />
+                              {formatPrice(chapter.price)}
+                            </Button>
+                          )}
+                        <span className="text-muted-foreground text-xs">
+                          {chapter.lessons.length} {t('lessons')}
+                        </span>
+                      </div>
+                      {/* Lessons */}
+                      {expandedChapters.includes(chapter.id) &&
+                        chapter.lessons.map((lesson) => {
+                          const LessonIcon = LESSON_ICONS[lesson.type] ?? BookOpen;
+                          const lessonContent = (
+                            <>
+                              <LessonIcon className="text-muted-foreground h-4 w-4 shrink-0" />
+                              <span className="flex-1">{lesson.title}</span>
+                              {chapter.isFreePreview && (
+                                <Badge variant="outline" className="text-primary text-xs">
+                                  {t('preview')}
+                                </Badge>
+                              )}
+                              {lesson.estimatedDuration && (
+                                <span className="text-muted-foreground text-xs">
+                                  {formatDuration(lesson.estimatedDuration)}
+                                </span>
+                              )}
+                            </>
+                          );
+                          return isAccessible ? (
+                            <Link
+                              key={lesson.id}
+                              href={`/courses/${courseSlug}/lessons/${lesson.id}`}
+                              className="border-border/30 hover:bg-accent/50 flex items-center gap-3 border-t px-8 py-2 text-sm transition-colors"
+                            >
+                              {lessonContent}
+                            </Link>
+                          ) : (
+                            <div
+                              key={lesson.id}
+                              className="border-border/30 flex items-center gap-3 border-t px-8 py-2 text-sm"
+                            >
+                              {lessonContent}
+                            </div>
+                          );
+                        })}
                     </div>
-                    {/* Lessons */}
-                    {expandedChapters.includes(chapter.id) &&
-                      chapter.lessons.map((lesson) => {
-                        const LessonIcon = LESSON_ICONS[lesson.type] ?? BookOpen;
-                        const lessonContent = (
-                          <>
-                            <LessonIcon className="text-muted-foreground h-4 w-4 shrink-0" />
-                            <span className="flex-1">{lesson.title}</span>
-                            {chapter.isFreePreview && (
-                              <Badge variant="outline" className="text-primary text-xs">
-                                {t('preview')}
-                              </Badge>
-                            )}
-                            {lesson.estimatedDuration && (
-                              <span className="text-muted-foreground text-xs">
-                                {formatDuration(lesson.estimatedDuration)}
-                              </span>
-                            )}
-                          </>
-                        );
-                        return chapter.isFreePreview ? (
-                          <Link
-                            key={lesson.id}
-                            href={`/courses/${courseSlug}/lessons/${lesson.id}`}
-                            className="border-border/30 hover:bg-accent/50 flex items-center gap-3 border-t px-8 py-2 text-sm transition-colors"
-                          >
-                            {lessonContent}
-                          </Link>
-                        ) : (
-                          <div
-                            key={lesson.id}
-                            className="border-border/30 flex items-center gap-3 border-t px-8 py-2 text-sm"
-                          >
-                            {lessonContent}
-                          </div>
-                        );
-                      })}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

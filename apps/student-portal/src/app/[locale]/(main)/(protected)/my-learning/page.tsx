@@ -2,7 +2,15 @@
 
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { BookOpen, CheckCircle2, Award, TrendingUp, Play, Flame } from 'lucide-react';
+import {
+  BookOpen,
+  CheckCircle2,
+  Award,
+  TrendingUp,
+  Play,
+  Flame,
+  ArrowUpCircle,
+} from 'lucide-react';
 import {
   Button,
   Card,
@@ -17,6 +25,7 @@ import {
 } from '@shared/ui';
 import { EmptyState } from '@/components/feedback/empty-state';
 import { useLearningDashboard } from '@shared/hooks';
+import { formatPrice } from '@shared/utils';
 import { RecommendationSection } from '@/components/course/recommendation-section';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +36,8 @@ interface ActiveCourse {
   id: string;
   progress: number;
   courseId: string;
+  type?: 'FULL' | 'PARTIAL';
+  upgradePrice?: number | null;
   course: {
     id: string;
     title: string;
@@ -68,6 +79,8 @@ interface CourseCardProps {
   nextLesson?: { id: string; title: string } | null;
   firstLessonId?: string | null;
   isCompleted: boolean;
+  enrollmentType?: 'FULL' | 'PARTIAL';
+  upgradePrice?: number | null;
 }
 
 function CourseProgressCard({
@@ -76,6 +89,8 @@ function CourseProgressCard({
   nextLesson,
   firstLessonId,
   isCompleted,
+  enrollmentType,
+  upgradePrice,
 }: CourseCardProps) {
   const t = useTranslations('myLearning');
   const progressPercent = Math.round(progress * 100);
@@ -118,13 +133,25 @@ function CourseProgressCard({
             </div>
             <Progress value={progressPercent} className="h-1.5" />
           </div>
-          <div className="mt-3">
+          <div className="mt-3 space-y-2">
             <Link href={learnUrl}>
               <Button size="sm" className="w-full gap-1">
                 <Play className="h-3 w-3" />
                 {isCompleted ? t('review') : t('continue')}
               </Button>
             </Link>
+            {/* PARTIAL enrollee: offer upgrade to the full course (top-up price).
+                The full purchase flow lives on the course detail page. */}
+            {enrollmentType === 'PARTIAL' && (
+              <Link href={`/courses/${course.slug}`}>
+                <Button size="sm" variant="outline" className="w-full gap-1">
+                  <ArrowUpCircle className="h-3 w-3" />
+                  {upgradePrice != null && upgradePrice > 0
+                    ? t('upgradeToFull', { price: formatPrice(upgradePrice) })
+                    : t('upgradeToFullFree')}
+                </Button>
+              </Link>
+            )}
           </div>
         </CardContent>
       </div>
@@ -275,6 +302,8 @@ export default function MyLearningPage() {
                   progress={item.progress ?? 0}
                   nextLesson={item.nextLesson}
                   isCompleted={false}
+                  enrollmentType={item.type}
+                  upgradePrice={item.upgradePrice}
                 />
               ))}
             </div>
@@ -303,6 +332,8 @@ export default function MyLearningPage() {
                   progress={item.progress ?? 0}
                   nextLesson={item.nextLesson}
                   isCompleted={false}
+                  enrollmentType={item.type}
+                  upgradePrice={item.upgradePrice}
                 />
               ))}
               {completedCourses.map((item) => (

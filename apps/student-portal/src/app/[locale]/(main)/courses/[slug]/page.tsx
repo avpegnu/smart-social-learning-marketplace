@@ -35,6 +35,7 @@ import {
   useServerCart,
   useAddCartItem,
 } from '@shared/hooks';
+import { formatPrice } from '@shared/utils';
 import { toast } from 'sonner';
 import { ReportDialog } from '@/components/feedback/report-dialog';
 
@@ -55,7 +56,18 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
   const { data: enrollmentData } = useEnrollmentCheck(course?.id ?? '');
   const enrollFreeMutation = useEnrollFree();
 
-  const isEnrolled = (enrollmentData?.data as { enrolled: boolean } | undefined)?.enrolled === true;
+  const enrollment = enrollmentData?.data as
+    | {
+        enrolled: boolean;
+        type: 'FULL' | 'PARTIAL' | null;
+        purchasedChapterIds: string[];
+        upgrade: { upgradePrice: number; coursePrice: number; credit: number } | null;
+      }
+    | undefined;
+  const isEnrolled = enrollment?.enrolled === true;
+  const isPartial = enrollment?.type === 'PARTIAL';
+  const purchasedChapterIds = enrollment?.purchasedChapterIds ?? [];
+  const upgrade = enrollment?.upgrade ?? null;
   const serverCartItems =
     (serverCartData as { data?: { items?: Array<{ courseId?: string }> } })?.data?.items ?? [];
   const isInCart = isAuthenticated
@@ -114,6 +126,20 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
     }
   };
 
+  // Upgrade a PARTIAL enrollee to the full course. The server prices the cart
+  // item as (course price − chapters already owned); we just add the course.
+  const handleUpgrade = () => {
+    addCartItemMutation.mutate(
+      { courseId: course.id },
+      {
+        onSuccess: () => {
+          toast.success(t('addedToCart'));
+          router.push('/cart');
+        },
+      },
+    );
+  };
+
   const handleEnrollFree = () => {
     if (!isAuthenticated) {
       router.push('/login');
@@ -130,6 +156,39 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
     const btnClass = size === 'full' ? 'w-full gap-2' : 'flex-1 gap-2';
 
     if (isEnrolled) {
+      // PARTIAL enrollees (bought individual chapters) also get an upgrade CTA
+      // showing the top-up price to unlock the whole course.
+      if (isPartial && upgrade) {
+        return (
+          <div className={size === 'full' ? 'w-full space-y-2' : 'flex flex-1 flex-col gap-2'}>
+            <Button className="w-full gap-2" onClick={() => router.push('/my-learning')}>
+              {t('continueLearning')}
+            </Button>
+            {isInCart ? (
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => router.push('/cart')}
+              >
+                <ShoppingCart className="h-4 w-4" />
+                {t('goToCart')}
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={handleUpgrade}
+                disabled={addCartItemMutation.isPending}
+              >
+                <ShoppingCart className="h-4 w-4" />
+                {upgrade.upgradePrice > 0
+                  ? t('upgradeToFull', { price: formatPrice(upgrade.upgradePrice) })
+                  : t('upgradeToFullFree')}
+              </Button>
+            )}
+          </div>
+        );
+      }
       return (
         <Button className={btnClass} onClick={() => router.push('/my-learning')}>
           {t('continueLearning')}
@@ -285,6 +344,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
                   totalLessons={course.totalLessons}
                   totalDuration={course.totalDuration}
                   onAddChapterToCart={handleAddChapterToCart}
+                  purchasedChapterIds={purchasedChapterIds}
                 />
               </TabsContent>
 
