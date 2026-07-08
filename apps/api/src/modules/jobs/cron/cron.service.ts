@@ -157,7 +157,7 @@ export class CronService {
       lte: endOfDay,
     };
 
-    const [students, instructors, revenue, enrollments, courses] = await Promise.all([
+    const [students, instructors, revenue, commission, enrollments, courses] = await Promise.all([
       this.prisma.user.count({
         where: { createdAt: dateRange, deletedAt: null, role: 'STUDENT' },
       }),
@@ -170,6 +170,11 @@ export class CronService {
           paidAt: dateRange,
         },
         _sum: { finalAmount: true },
+      }),
+      // Platform commission (hoa hồng) recorded on the sales fulfilled that day.
+      this.prisma.earning.aggregate({
+        where: { createdAt: dateRange },
+        _sum: { commissionAmount: true },
       }),
       this.prisma.enrollment.count({
         where: { createdAt: dateRange },
@@ -185,6 +190,7 @@ export class CronService {
     // Data shape must match the chart consumers in the management portal:
     // - DAILY_USERS:       { students, instructors }
     // - DAILY_REVENUE:     { revenue }
+    // - DAILY_COMMISSION:  { commission }
     // - DAILY_ENROLLMENTS: { count }
     // - DAILY_COURSES:     { count }
     const snapshots: Array<{
@@ -201,6 +207,11 @@ export class CronService {
         date: yesterday,
         type: 'DAILY_REVENUE',
         data: { revenue: revenue._sum.finalAmount || 0 },
+      },
+      {
+        date: yesterday,
+        type: 'DAILY_COMMISSION',
+        data: { commission: commission._sum.commissionAmount || 0 },
       },
       {
         date: yesterday,

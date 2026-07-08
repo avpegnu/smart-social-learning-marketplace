@@ -22,7 +22,8 @@ export class AdminAnalyticsService {
     const [
       totalUsers,
       totalCourses,
-      totalRevenue,
+      grossRevenue,
+      earningTotals,
       todayOrders,
       newUsersThisWeek,
       pendingApps,
@@ -35,7 +36,16 @@ export class AdminAnalyticsService {
       this.prisma.course.count({
         where: { status: 'PUBLISHED', deletedAt: null },
       }),
-      this.prisma.earning.aggregate({ _sum: { netAmount: true } }),
+      // Gross Merchandise Value: actual money students paid for completed orders.
+      this.prisma.order.aggregate({
+        where: { status: 'COMPLETED' },
+        _sum: { finalAmount: true },
+      }),
+      // Split of every recorded sale: commissionAmount is the platform's cut (hoa hồng),
+      // netAmount is what instructors receive.
+      this.prisma.earning.aggregate({
+        _sum: { commissionAmount: true, netAmount: true },
+      }),
       this.prisma.order.count({
         where: {
           status: 'COMPLETED',
@@ -70,7 +80,12 @@ export class AdminAnalyticsService {
       overview: {
         totalUsers,
         totalCourses,
-        totalRevenue: totalRevenue._sum.netAmount || 0,
+        // Total sales (GMV) — top-line money that flowed through the marketplace.
+        grossRevenue: grossRevenue._sum.finalAmount || 0,
+        // Platform commission (hoa hồng) — the cut the platform keeps.
+        platformCommission: earningTotals._sum.commissionAmount || 0,
+        // Instructor earnings — the share paid out to instructors.
+        instructorEarnings: earningTotals._sum.netAmount || 0,
         todayOrders,
         newUsersThisWeek,
       },

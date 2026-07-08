@@ -198,6 +198,7 @@ enum SimilarityAlgorithm {
 enum AnalyticsType {
   DAILY_USERS
   DAILY_REVENUE
+  DAILY_COMMISSION
   DAILY_ENROLLMENTS
   DAILY_COURSES
 }
