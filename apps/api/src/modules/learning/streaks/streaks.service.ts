@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 
 const MS_PER_DAY = 86400000;
@@ -125,12 +126,20 @@ export class StreaksService {
       }),
     ]);
 
-    // Find next lesson for each active course
+    // Find next lesson for each active course. For PARTIAL enrollments (bought
+    // individual chapters), restrict to chapters the user can actually open,
+    // otherwise "Continue" resolves to the first lesson of an unpurchased chapter
+    // and the course player denies access.
     const activeCourses = await Promise.all(
       activeEnrollments.map(async (enrollment) => {
+        const chapterFilter = await this.accessibleChapterFilter(
+          userId,
+          enrollment.courseId,
+          enrollment.type,
+        );
         const nextLesson = await this.prisma.lesson.findFirst({
           where: {
-            chapter: { section: { courseId: enrollment.courseId } },
+            chapter: { section: { courseId: enrollment.courseId }, ...chapterFilter },
             lessonProgresses: { none: { userId, isCompleted: true } },
           },
           orderBy: [
@@ -145,11 +154,14 @@ export class StreaksService {
       }),
     );
 
-    // Get first lesson for completed courses (for "Review" button)
+    // Get first lesson for completed courses (for "Review" button). Same chapter
+    // access restriction as active courses so a PARTIAL learner reviews a lesson
+    // they own, not a locked one.
     const completedCourses = await Promise.all(
       completedEnrollments.map(async (e) => {
+        const chapterFilter = await this.accessibleChapterFilter(userId, e.courseId, e.type);
         const firstLesson = await this.prisma.lesson.findFirst({
-          where: { chapter: { section: { courseId: e.courseId } } },
+          where: { chapter: { section: { courseId: e.courseId }, ...chapterFilter } },
           orderBy: [
             { chapter: { section: { order: 'asc' } } },
             { chapter: { order: 'asc' } },
@@ -166,5 +178,27 @@ export class StreaksService {
     );
 
     return { activeCourses, completedCourses, streak };
+  }
+
+  /**
+   * Chapter filter for lesson lookups. FULL enrollment can open every chapter
+   * (empty filter). A PARTIAL enrollment (individual chapter purchases) is limited
+   * to free-preview chapters plus the ones actually bought — mirroring
+   * CoursePlayerService.verifyAccess so resolved lessons are always accessible.
+   */
+  private async accessibleChapterFilter(
+    userId: string,
+    courseId: string,
+    enrollmentType: string,
+  ): Promise<Prisma.ChapterWhereInput> {
+    if (enrollmentType === 'FULL') return {};
+
+    const purchases = await this.prisma.chapterPurchase.findMany({
+      where: { userId, chapter: { section: { courseId } } },
+      select: { chapterId: true },
+    });
+    return {
+      OR: [{ isFreePreview: true }, { id: { in: purchases.map((p) => p.chapterId) } }],
+    };
   }
 }

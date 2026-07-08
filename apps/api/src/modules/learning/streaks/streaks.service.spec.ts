@@ -7,6 +7,7 @@ const mockPrisma = {
   enrollment: { findMany: jest.fn() },
   certificate: { findMany: jest.fn() },
   lesson: { findFirst: jest.fn() },
+  chapterPurchase: { findMany: jest.fn() },
 };
 
 describe('StreaksService', () => {
@@ -110,8 +111,8 @@ describe('StreaksService', () => {
   describe('getDashboard', () => {
     it('should return active and completed courses', async () => {
       mockPrisma.enrollment.findMany
-        .mockResolvedValueOnce([{ courseId: 'c1', course: { title: 'React' } }]) // active
-        .mockResolvedValueOnce([{ courseId: 'c2', course: { title: 'CSS' } }]); // completed
+        .mockResolvedValueOnce([{ courseId: 'c1', type: 'FULL', course: { title: 'React' } }]) // active
+        .mockResolvedValueOnce([{ courseId: 'c2', type: 'FULL', course: { title: 'CSS' } }]); // completed
       mockPrisma.dailyActivity.findMany.mockResolvedValue([]);
       mockPrisma.certificate.findMany.mockResolvedValue([{ courseId: 'c2', verifyCode: 'ABC' }]);
       mockPrisma.lesson.findFirst.mockResolvedValue({ id: 'les-1', title: 'Next' });
@@ -121,6 +122,29 @@ describe('StreaksService', () => {
       expect(result.activeCourses).toHaveLength(1);
       expect(result.completedCourses).toHaveLength(1);
       expect(result.completedCourses[0]!.certificate).toBeDefined();
+      // FULL enrollment can open every chapter — no purchase lookup needed.
+      expect(mockPrisma.chapterPurchase.findMany).not.toHaveBeenCalled();
+    });
+
+    it('should restrict next lesson to purchased chapters for PARTIAL enrollment', async () => {
+      mockPrisma.enrollment.findMany
+        .mockResolvedValueOnce([{ courseId: 'c1', type: 'PARTIAL', course: { title: 'React' } }]) // active
+        .mockResolvedValueOnce([]); // completed
+      mockPrisma.dailyActivity.findMany.mockResolvedValue([]);
+      mockPrisma.certificate.findMany.mockResolvedValue([]);
+      mockPrisma.chapterPurchase.findMany.mockResolvedValue([{ chapterId: 'ch-2' }]);
+      mockPrisma.lesson.findFirst.mockResolvedValue({ id: 'les-2', title: 'Chapter 2 lesson' });
+
+      const result = await service.getDashboard('user-1');
+
+      expect(result.activeCourses[0]!.nextLesson).toEqual({
+        id: 'les-2',
+        title: 'Chapter 2 lesson',
+      });
+      // The lesson lookup must be constrained to free-preview + purchased chapters,
+      // never the whole course.
+      const where = mockPrisma.lesson.findFirst.mock.calls[0]![0].where;
+      expect(where.chapter.OR).toEqual([{ isFreePreview: true }, { id: { in: ['ch-2'] } }]);
     });
   });
 });
