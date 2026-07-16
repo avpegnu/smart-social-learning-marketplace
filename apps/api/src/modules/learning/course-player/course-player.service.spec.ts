@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CoursePlayerService } from './course-player.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { UploadsService } from '@/uploads/uploads.service';
 
 const mockPrisma = {
   lesson: { findUnique: jest.fn() },
@@ -11,11 +12,17 @@ const mockPrisma = {
   section: { findMany: jest.fn() },
 };
 
+const mockUploads = {
+  getSignedVideoUrl: jest.fn((publicId: string) => `https://signed.example/${publicId}`),
+};
+
 const MOCK_LESSON = {
   id: 'les-1',
   title: 'What is React?',
   type: 'VIDEO',
   textContent: null,
+  videoUrl: null,
+  videoPublicId: null,
   estimatedDuration: 600,
   media: [],
   attachments: [],
@@ -32,7 +39,11 @@ describe('CoursePlayerService', () => {
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [CoursePlayerService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        CoursePlayerService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: UploadsService, useValue: mockUploads },
+      ],
     }).compile();
 
     service = module.get(CoursePlayerService);
@@ -130,6 +141,42 @@ describe('CoursePlayerService', () => {
         watchedPercent: 0.5,
         watchedSegments: [[0, 300]],
       });
+    });
+
+    it('should return a signed URL when the lesson has a videoPublicId (authenticated)', async () => {
+      mockPrisma.lesson.findUnique.mockResolvedValue({
+        ...MOCK_LESSON,
+        videoUrl: null,
+        videoPublicId: 'courses/videos/abc123',
+      });
+      mockPrisma.enrollment.findUnique.mockResolvedValue({ type: 'FULL' });
+      mockPrisma.lessonProgress.findUnique.mockResolvedValue(null);
+      mockPrisma.section.findMany.mockResolvedValue([]);
+      mockPrisma.lessonProgress.findMany.mockResolvedValue([]);
+
+      const result = await service.getLesson('user-1', 'course-1', 'les-1');
+
+      expect(mockUploads.getSignedVideoUrl).toHaveBeenCalledWith('courses/videos/abc123');
+      expect(result.lesson.videoUrl).toBe('https://signed.example/courses/videos/abc123');
+    });
+
+    it('should return the raw videoUrl for a legacy public video (no publicId)', async () => {
+      mockPrisma.lesson.findUnique.mockResolvedValue({
+        ...MOCK_LESSON,
+        videoUrl: 'https://res.cloudinary.com/demo/video/upload/legacy.mp4',
+        videoPublicId: null,
+      });
+      mockPrisma.enrollment.findUnique.mockResolvedValue({ type: 'FULL' });
+      mockPrisma.lessonProgress.findUnique.mockResolvedValue(null);
+      mockPrisma.section.findMany.mockResolvedValue([]);
+      mockPrisma.lessonProgress.findMany.mockResolvedValue([]);
+
+      const result = await service.getLesson('user-1', 'course-1', 'les-1');
+
+      expect(mockUploads.getSignedVideoUrl).not.toHaveBeenCalled();
+      expect(result.lesson.videoUrl).toBe(
+        'https://res.cloudinary.com/demo/video/upload/legacy.mp4',
+      );
     });
   });
 });

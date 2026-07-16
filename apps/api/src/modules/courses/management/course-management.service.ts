@@ -11,6 +11,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { QueueService } from '@/modules/jobs/queue.service';
 import { PlatformSettingsService } from '@/modules/platform-settings/platform-settings.service';
 import { GroupsService } from '@/modules/social/groups/groups.service';
+import { UploadsService } from '@/uploads/uploads.service';
 import { createPaginatedResult } from '@/common/utils/pagination.util';
 import { generateSlug, generateUniqueSlug } from '@/common/utils/slug.util';
 import type { QueryCoursesDto } from '../dto/query-courses.dto';
@@ -27,6 +28,7 @@ export class CourseManagementService {
     @Inject(QueueService) private readonly queue: QueueService,
     @Inject(PlatformSettingsService) private readonly platformSettings: PlatformSettingsService,
     @Inject(GroupsService) private readonly groupsService: GroupsService,
+    @Inject(UploadsService) private readonly uploads: UploadsService,
   ) {}
 
   // CRUD
@@ -147,6 +149,7 @@ export class CourseManagementService {
                     order: true,
                     textContent: true,
                     videoUrl: true,
+                    videoPublicId: true,
                     fileUrl: true,
                     fileMimeType: true,
                     estimatedDuration: true,
@@ -192,6 +195,17 @@ export class CourseManagementService {
 
     if (course.instructorId !== instructorId) {
       throw new ForbiddenException({ code: 'NOT_COURSE_OWNER' });
+    }
+
+    // Ký URL video authenticated để instructor tự preview được (video cũ giữ nguyên).
+    for (const section of course.sections) {
+      for (const chapter of section.chapters) {
+        for (const lesson of chapter.lessons) {
+          if (lesson.videoPublicId) {
+            lesson.videoUrl = this.uploads.getSignedVideoUrl(lesson.videoPublicId);
+          }
+        }
+      }
     }
 
     return course;

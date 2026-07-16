@@ -28,6 +28,11 @@ export class CreateLessonDto {
   @IsString()
   videoUrl?: string;
 
+  @ApiPropertyOptional({ description: 'Cloudinary public_id cho video authenticated' })
+  @IsOptional()
+  @IsString()
+  videoPublicId?: string;
+
   @ApiPropertyOptional({ description: 'Cloudinary raw URL (for FILE type)' })
   @IsOptional()
   @IsString()
@@ -72,6 +77,11 @@ export class UpdateLessonDto {
   @IsOptional()
   @IsString()
   videoUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Cloudinary public_id cho video authenticated' })
+  @IsOptional()
+  @IsString()
+  videoPublicId?: string;
 
   @ApiPropertyOptional({ description: 'Cloudinary raw URL (for FILE type)' })
   @IsOptional()

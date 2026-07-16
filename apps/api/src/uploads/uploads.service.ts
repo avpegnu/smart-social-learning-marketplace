@@ -28,6 +28,37 @@ export class UploadsService {
     };
   }
 
+  // Ký params để upload video ở dạng authenticated (không public).
+  // FE gửi kèm type=authenticated + folder + timestamp + signature khi POST lên Cloudinary.
+  generateVideoUploadSignature() {
+    const timestamp = Math.round(Date.now() / 1000);
+    const folder = 'courses/videos';
+    const type = 'authenticated';
+    const signature = cloudinary.utils.api_sign_request(
+      { folder, timestamp, type },
+      this.configService.get('cloudinary.apiSecret') || '',
+    );
+
+    return {
+      timestamp,
+      signature,
+      folder,
+      type,
+      cloudName: this.configService.get('cloudinary.cloudName'),
+      apiKey: this.configService.get('cloudinary.apiKey'),
+    };
+  }
+
+  // Sinh URL có chữ ký cho video authenticated. Không có chữ ký thì Cloudinary từ chối.
+  getSignedVideoUrl(publicId: string): string {
+    return cloudinary.url(publicId, {
+      resource_type: 'video',
+      type: 'authenticated',
+      sign_url: true,
+      secure: true,
+    });
+  }
+
   async deleteFile(publicId: string): Promise<void> {
     await cloudinary.uploader.destroy(publicId);
   }

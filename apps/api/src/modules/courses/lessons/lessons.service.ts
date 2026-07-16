@@ -33,6 +33,7 @@ export class LessonsService {
         order: dto.order,
         textContent: dto.textContent,
         videoUrl: dto.videoUrl,
+        videoPublicId: dto.videoPublicId,
         fileUrl: dto.fileUrl,
         fileMimeType: dto.fileMimeType,
         estimatedDuration: dto.estimatedDuration,

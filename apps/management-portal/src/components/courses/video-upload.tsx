@@ -4,10 +4,11 @@ import { useState, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { X, Video } from 'lucide-react';
 import { cn, Button, Progress } from '@shared/ui';
-import { uploadToCloudinary } from '@/lib/cloudinary';
+import { uploadVideoAuthenticated } from '@/lib/cloudinary';
 
 interface VideoUploadResult {
   url: string;
+  publicId?: string;
   duration: number;
 }
 
@@ -40,9 +41,10 @@ export function VideoUpload({ value, onChange, onRemove }: VideoUploadProps) {
       setProgress(0);
 
       try {
-        const result = await uploadToCloudinary(file, 'video', setProgress);
+        const result = await uploadVideoAuthenticated(file, setProgress);
         onChange({
           url: result.secure_url,
+          publicId: result.public_id,
           duration: Math.round(result.duration ?? 0),
         });
       } catch {
@@ -66,8 +68,9 @@ export function VideoUpload({ value, onChange, onRemove }: VideoUploadProps) {
   if (value) {
     return (
       <div className="w-full max-w-md space-y-2">
-        <div className="border-border aspect-video overflow-hidden rounded-lg border bg-black">
-          <video src={value.url} controls className="h-full w-full object-contain" />
+        <div className="border-border bg-muted flex aspect-video flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border">
+          <Video className="text-muted-foreground h-8 w-8" />
+          <p className="text-muted-foreground text-sm">{t('videoUploaded')}</p>
         </div>
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground text-sm">

@@ -498,6 +498,7 @@ model Lesson {
   order             Int        @default(0)
   textContent       String?    @map("text_content")
   videoUrl          String?    @map("video_url")
+  videoPublicId     String?    @map("video_public_id") // Cloudinary public_id cho video authenticated
   fileUrl           String?    @map("file_url")
   fileMimeType      String?    @map("file_mime_type")
   fileExtractedText String?    @map("file_extracted_text")
